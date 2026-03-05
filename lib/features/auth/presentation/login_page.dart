@@ -135,7 +135,8 @@ class LoginPage extends StatelessWidget {
                 ElevatedButton(
                   // AQUÍ: Acción principal de Login
                   onPressed: () {
-                    // Lógica para validar el formulario e iniciar sesión
+                    // AQUÍ: Hacemos la navegación al Home reemplazando la ruta
+                    Navigator.pushReplacementNamed(context, '/home');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue[700], // Color de fondo
