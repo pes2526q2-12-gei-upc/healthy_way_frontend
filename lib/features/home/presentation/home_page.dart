@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../shared/widgets/custom_bottom_nav_bar.dart';
+import '../../../core/router/app_router.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -7,33 +9,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9), // Fondo gris clarito
-      // 1. BARRA DE NAVEGACIÓN INFERIOR (BottomAppBar con hueco)
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // AQUÍ: Acción principal (ej. Iniciar ruta)
-        },
-        backgroundColor: Colors.blue[700],
-        foregroundColor: Colors.white,
-        shape: const CircleBorder(),
-        elevation: 4,
-        child: const Icon(Icons.play_arrow_rounded, size: 36),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        color: Colors.white,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _BottomNavItem(icon: Icons.home_rounded, label: 'Inici', isActive: true, onTap: () {}),
-            _BottomNavItem(icon: Icons.map_outlined, label: 'Mapes', onTap: () {}),
-            const SizedBox(width: 40), // Espacio para el FloatingActionButton
-            _BottomNavItem(icon: Icons.people_outline, label: 'Social', onTap: () {}),
-            _BottomNavItem(icon: Icons.person_outline, label: 'Perfil', onTap: () {}),
-          ],
-        ),
-      ),
+      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 0),
 
       // 2. CUERPO DE LA PANTALLA
       body: SingleChildScrollView(
@@ -281,30 +257,6 @@ class HomePage extends StatelessWidget {
 }
 
 // --- WIDGETS PRIVADOS AUXILIARES ---
-
-class _BottomNavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _BottomNavItem({required this.icon, required this.label, this.isActive = false, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: isActive ? Colors.blue[700] : Colors.grey, size: 28),
-          Text(label, style: TextStyle(color: isActive ? Colors.blue[700] : Colors.grey, fontSize: 10, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
-        ],
-      ),
-    );
-  }
-}
 
 class _RouteCard extends StatelessWidget {
   final String title;
