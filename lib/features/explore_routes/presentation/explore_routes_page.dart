@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 // IMPORTA AQUÍ TU WIDGET COMPARTIDO (ajusta la ruta si es necesario)
+import '../../../core/router/app_router.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 
 class ExploreRoutesScreen extends StatefulWidget {
@@ -45,7 +46,7 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
       titleSpacing: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.black),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () => Navigator.pushNamed(context, AppRouter.mapRoute)
       ),
       title: const Text('Explorar Rutes', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
       actions: [
@@ -222,7 +223,23 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                           const SizedBox(width: 12),
                           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('ÍNDEX DE SALUT', style: TextStyle(color: _inactiveFilterTextColor, fontSize: 11, fontWeight: FontWeight.bold)), Text('${_sampleRoute['aqi_label']} (AQI ${_sampleRoute['aqi_value']})', style: TextStyle(color: _greenAQI, fontWeight: FontWeight.bold, fontSize: 14))]),
                           const Spacer(),
-                          Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Color(0xFFE2E8F0), shape: BoxShape.circle), child: Icon(Icons.chevron_right_rounded, color: _primaryBlue, size: 24)),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(context, AppRouter.routeView);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFE2E8F0),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.chevron_right_rounded,
+                                color: _primaryBlue,
+                                size: 24,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ],

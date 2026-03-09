@@ -51,7 +51,7 @@ class CustomBottomNavBar extends StatelessWidget {
               GestureDetector(
                 onTap: () {
                   // Acción central (Iniciar ruta, etc.)
-                  print("Botón Play pulsado");
+                  Navigator.pushNamed(context, AppRouter.runningRoute);
                 },
                 child: Container(
                   width: 56, // Tamaño estándar del botón
