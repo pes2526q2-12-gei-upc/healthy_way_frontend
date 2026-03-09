@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_filter_chip.dart';
 import '../../../core/router/app_router.dart';
+import '../../../shared/widgets/custom_map_widget.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -29,20 +30,12 @@ class _MapScreenState extends State<MapScreen> {
 
       body: Stack(
         children: [
-          // 1. EL MAPA DE FONDO (OSM)
-          FlutterMap(
+          // 1. EL MAPA (USANDO EL WIDGET COMPARTIDO)
+          CustomMapWidget(
             mapController: _mapController,
-            options: const MapOptions(
-              initialCenter: LatLng(41.3851, 2.1734), // Coordenadas iniciales (ej. Barcelona)
-              initialZoom: 15.0,
-            ),
-            children: [
-              TileLayer(
-                // Esta URL es la de OpenStreetMap por defecto
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.tuapp.nombre', // ¡Cámbialo por el tuyo en el futuro!
-              ),
-            ],
+            initialCenter: const LatLng(41.3851, 2.1734), // Coordenadas iniciales (ej. Barcelona)
+            initialZoom: 15.0,
+            // Aquí en el futuro puedes pasarle 'markers: []' o 'polylines: []'
           ),
 
           // 2. INTERFAZ SUPERIOR (Buscador, Planificar y Filtros)
@@ -155,7 +148,8 @@ class _MapScreenState extends State<MapScreen> {
                   color: Colors.white,
                   iconColor: Colors.black87,
                   onTap: () {
-                    // TODO: Centrar el mapa en la ubicación del usuario
+                    // Centrar el mapa en la ubicación original
+                    _mapController.move(const LatLng(41.3851, 2.1734), 15.0);
                   },
                 ),
                 const SizedBox(height: 12),
