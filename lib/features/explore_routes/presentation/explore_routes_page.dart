@@ -3,6 +3,24 @@ import 'package:flutter/material.dart';
 import '../../../core/router/app_router.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 
+void main() {
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: ExploreRoutesScreen(),
+  ));
+}
+
+typedef Ruta = ({
+  String title,
+  String location,
+  double rating,
+  double distancekm,
+  String difficulty,
+  String aqilabel,
+  int aqivalue,
+  String imageurl,
+});
+
 class ExploreRoutesScreen extends StatefulWidget {
   const ExploreRoutesScreen({super.key});
 
@@ -18,16 +36,52 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
   final Color _greenAQI = const Color(0xFF32A852);
   final Color _darkSelectedBlue = const Color(0xFF0C5AE1);
 
-  final Map<String, dynamic> _sampleRoute = {
-    'title': "Ruta Vall d'Hebron",
-    'location': 'Barcelona, Horta',
-    'rating': 4.8,
-    'distance_km': 5.2,
-    'difficulty': 'Mitjana',
-    'aqi_label': 'Excel·lent',
-    'aqi_value': 25,
-    'image_url': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Vall_d%27Hebron_view.jpg/640px-Vall_d%27Hebron_view.jpg',
-  };
+  List<Ruta> _routes = [];
+
+  void loadData() {
+    // Funció no implementada, les dades es carregaran des del backend
+    Ruta ruta1 = (
+      title: "Ruta Vall d'Hebron",
+      location: 'Barcelona, Horta',
+      rating: 4.8,
+      distancekm: 5.2,
+      difficulty: 'Mitjana',
+      aqilabel: 'Excel·lent',
+      aqivalue: 25,
+      imageurl: 'URL Imatge',
+    );
+
+    Ruta ruta2 = (
+    title: "Muralles de Girona",
+    location: 'Girona, Centre',
+    rating: 3.9,
+    distancekm: 3.1,
+    difficulty: 'Fàcil',
+    aqilabel: 'Moderat',
+    aqivalue: 62,
+    imageurl: 'URL Imatge',
+    );
+
+    Ruta ruta3 = (
+    title: "Collserola Trail Run",
+    location: 'St. Cugat, Collserola',
+    rating: 5.0,
+    distancekm: 12.5,
+    difficulty: 'Difícil',
+    aqilabel: 'Excel·lent',
+    aqivalue: 18,
+    imageurl: 'URL Imatge',
+    );
+
+    _routes.add(ruta1);
+    _routes.add(ruta2);
+    _routes.add(ruta3);
+    _routes.add(ruta1);
+  }
+
+  _ExploreRoutesScreenState() {
+    loadData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +96,8 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
   AppBar _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      scrolledUnderElevation: 0,
       elevation: 0,
       titleSpacing: 0,
       leading: IconButton(
@@ -71,27 +127,35 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
   }
 
   Widget _buildBody() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.only(bottom: 20),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.only(bottom: 20),
+          child: Column(
+            children: [
+              _buildSearchBar(),
+              const SizedBox(height: 16),
+              _buildCategoryTabs(),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+        _buildRouteListHeader(),
+
+        Expanded(
+          child: SingleChildScrollView(
             child: Column(
               children: [
-                _buildSearchBar(),
-                const SizedBox(height: 16),
-                _buildCategoryTabs(),
+                for (Ruta ruta in _routes) _buildSingleRouteCard(ruta),
+                const SizedBox(height: 100),
               ],
             ),
           ),
-          const SizedBox(height: 8),
-          _buildRouteListHeader(),
-          _buildSingleRouteCard(),
-          const SizedBox(height: 100),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -162,13 +226,13 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text('RUTES PÚBLIQUES', style: TextStyle(color: Color(0xFF1E6AFB), fontWeight: FontWeight.bold, letterSpacing: 1.1)),
-          Text('1 resultat', style: TextStyle(color: _inactiveFilterTextColor, fontSize: 13)),
+          Text("${_routes.length.toString()} resultats", style: TextStyle(color: _inactiveFilterTextColor, fontSize: 13)),
         ],
       ),
     );
   }
 
-  Widget _buildSingleRouteCard() {
+  Widget _buildSingleRouteCard(Ruta ruta) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Card(
@@ -194,8 +258,8 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                             borderRadius: BorderRadius.circular(12),
                             child: Stack(
                               children: [
-                                Image.network(_sampleRoute['image_url'], width: 100, height: 100, fit: BoxFit.cover, errorBuilder: (c, e, s) => Container(width: 100, height: 100, color: Colors.grey[200], child: const Icon(Icons.image, color: Colors.grey))),
-                                Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.star, color: Color(0xFFFFB800), size: 14), const SizedBox(width: 4), Text(_sampleRoute['rating'].toString(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))],))),
+                                Image.network(ruta.imageurl, width: 100, height: 100, fit: BoxFit.cover, errorBuilder: (c, e, s) => Container(width: 100, height: 100, color: Colors.grey[200], child: const Icon(Icons.image, color: Colors.grey))),
+                                Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.star, color: Color(0xFFFFB800), size: 14), const SizedBox(width: 4), Text(ruta.rating.toString(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))],))),
                               ],
                             ),
                           ),
@@ -204,11 +268,11 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Flexible(child: Text(_sampleRoute['title'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), overflow: TextOverflow.ellipsis)), Icon(Icons.favorite_outline, color: _inactiveFilterTextColor, size: 24)]),
+                                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Flexible(child: Text(ruta.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), overflow: TextOverflow.ellipsis)), Icon(Icons.favorite_outline, color: _inactiveFilterTextColor, size: 24)]),
                                 const SizedBox(height: 4),
-                                Row(children: [Icon(Icons.location_on_outlined, color: _inactiveFilterTextColor, size: 16), const SizedBox(width: 4), Text(_sampleRoute['location'], style: TextStyle(color: _inactiveFilterTextColor))]),
+                                Row(children: [Icon(Icons.location_on_outlined, color: _inactiveFilterTextColor, size: 16), const SizedBox(width: 4), Text(ruta.location, style: TextStyle(color: _inactiveFilterTextColor))]),
                                 const SizedBox(height: 12),
-                                Row(children: [_buildInfoPill(Icons.directions_run, '${_sampleRoute['distance_km']} km'), const SizedBox(width: 8), _buildInfoPill(Icons.trending_up, _sampleRoute['difficulty'])]),
+                                Row(children: [_buildInfoPill(Icons.directions_run, '${ruta.distancekm} km'), const SizedBox(width: 8), _buildInfoPill(Icons.trending_up, ruta.difficulty)]),
                               ],
                             ),
                           ),
@@ -221,7 +285,7 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                         children: [
                           Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Color(0xFFEBF6EC), shape: BoxShape.circle), child: Icon(Icons.air, color: _greenAQI)),
                           const SizedBox(width: 12),
-                          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('ÍNDEX DE SALUT', style: TextStyle(color: _inactiveFilterTextColor, fontSize: 11, fontWeight: FontWeight.bold)), Text('${_sampleRoute['aqi_label']} (AQI ${_sampleRoute['aqi_value']})', style: TextStyle(color: _greenAQI, fontWeight: FontWeight.bold, fontSize: 14))]),
+                          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('ÍNDEX DE SALUT', style: TextStyle(color: _inactiveFilterTextColor, fontSize: 11, fontWeight: FontWeight.bold)), Text('${ruta.aqilabel} (AQI ${ruta.aqivalue})', style: TextStyle(color: _greenAQI, fontWeight: FontWeight.bold, fontSize: 14))]),
                           const Spacer(),
                           GestureDetector(
                             onTap: () {
