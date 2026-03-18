@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:healthy_way_frontend/core/router/app_router.dart';
+import 'package:latlong2/latlong.dart';
+import 'results_route_screen.dart';
 
 
 class RunningRouteScreen extends StatefulWidget {
@@ -13,6 +15,20 @@ class RunningRouteScreen extends StatefulWidget {
 class _RunningRouteScreenState extends State<RunningRouteScreen> {
   final Stopwatch _stopwatch = Stopwatch();
   Timer? _timer;
+
+  // Ruta recogida durante el running (aquí simulo unos puntos; reemplázalos por los reales si los tienes)
+  List<LatLng> _collectedRoute = [
+    const LatLng(41.4285, 2.1448),
+    const LatLng(41.4277, 2.1463),
+    const LatLng(41.4265, 2.1453),
+    const LatLng(41.4255, 2.1472),
+    const LatLng(41.4245, 2.1464),
+  ];
+
+  // Stats de ejemplo (si tienes cálculos reales, actualízalos en tiempo real)
+  String _distance = '2.4';
+  String _pace = '5:30';
+  String _elevation = '45';
 
   @override
   void initState() {
@@ -158,7 +174,8 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                 child: Container(
                                   width: 6,
                                   height: heights[i].toDouble(),
-                                  decoration: BoxDecoration(color: Colors.blueAccent.withOpacity(0.8 - i * 0.05), borderRadius: BorderRadius.circular(3)),
+                                  // Calcular alpha dinámico en lugar de usar withOpacity
+                                  decoration: BoxDecoration(color: Colors.blueAccent.withAlpha(((0.8 - i * 0.05).clamp(0.0, 1.0) * 255).round()), borderRadius: BorderRadius.circular(3)),
                                 ),
                               );
                             }),
@@ -332,7 +349,23 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                   GestureDetector(
                                     onTap: () {
                                       _stopAll();
-                                      Navigator.pushNamed(context, AppRouter.homeRoute);
+                                      // Navegar a la pantalla de resultados pasando la ruta y stats
+                                      final timeStr = _formatElapsed(_stopwatch.elapsed);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => const ResultsRouteScreen(),
+                                          settings: RouteSettings(
+                                            arguments: {
+                                              'route': _collectedRoute,
+                                              'distance': _distance,
+                                              'pace': _pace,
+                                              'time': timeStr,
+                                              'elevation': _elevation,
+                                            },
+                                          ),
+                                        ),
+                                      );
                                     },
                                     child: Container(
                                       width: smallBtnSize,
