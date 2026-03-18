@@ -65,10 +65,6 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
     final size = MediaQuery.of(context).size;
     const double smallBtnSize = 64;
 
-    // Posición a 25% de la pantalla, centrada respecto al botón
-    final double leftPos = size.width * 0.25 - smallBtnSize / 2;
-    final double rightPos = size.width * 0.25 - smallBtnSize / 2;
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
@@ -177,7 +173,7 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
               // Espaciador dinámico
               SizedBox(height: size.height * 0.08),
 
-              // Hoja blanca inferior principal
+              // Hoja blanca inferior principal (ahora con barra de controles incluida)
               Expanded(
                 child: Container(
                   width: double.infinity,
@@ -187,137 +183,151 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                   ),
                   child: Column(
                     children: [
-                      const SizedBox(height: 12),
-                      // Manija de arrastre (pull bar)
-                      Container(width: 40, height: 4, decoration: const BoxDecoration(color: Color(0xFFE0E0E0), borderRadius: BorderRadius.all(Radius.circular(4)))),
-                      const SizedBox(height: 24),
+                      // Área scrollable con el contenido principal
+                      Expanded(
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 12),
+                                // Manija de arrastre (pull bar)
+                                Container(width: 40, height: 4, decoration: const BoxDecoration(color: Color(0xFFE0E0E0), borderRadius: BorderRadius.all(Radius.circular(4)))),
+                                const SizedBox(height: 24),
 
-                      // TEMPS TOTAL + timer grande
-                      Text('TEMPS TOTAL', style: TextStyle(color: Colors.grey[500], fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatElapsed(elapsed),
-                        style: const TextStyle(
-                          fontSize: 72,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 2,
-                          color: darkTimerColor,
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // DISTANCIA y QUALITAT AIRE
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Row(
-                          children: [
-                            // Distancia (ALTURA REDUCIDA)
-                            Expanded(
-                              child: Container(
-                                height: 95, // Altura reducida de 115 a 95
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10), // Padding ajustado
-                                decoration: BoxDecoration(color: const Color(0xFFF7F8FA), borderRadius: BorderRadius.circular(12)),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: const [
-                                        Icon(Icons.pin_drop_outlined, color: Colors.blueAccent, size: 14), // Icono mas pequeño
-                                        SizedBox(width: 4), // Espaciado mas corto
-                                        Flexible(child: Text('DISTANCIA', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
-                                      ],
-                                    ),
-                                    const Spacer(), // Empuja el texto hacia abajo
-                                    const Text('0.0 km', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)), // Texto mas pequeño
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-
-                            // Calidad del aire (ALTURA REDUCIDA)
-                            Expanded(
-                              child: Container(
-                                height: 95, // Altura reducida de 115 a 95
-                                decoration: BoxDecoration(
-                                  color: Colors.greenAccent.shade400,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 3),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10), // Padding ajustado
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
+                                // TEMPS TOTAL + timer grande
+                                Text('TEMPS TOTAL', style: TextStyle(color: Colors.grey[500], fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _formatElapsed(elapsed),
+                                  style: const TextStyle(
+                                    fontSize: 72,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 2,
+                                    color: darkTimerColor,
                                   ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribuye los elementos
+                                ),
+
+                                const SizedBox(height: 24),
+
+                                // DISTANCIA y QUALITAT AIRE
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                                  child: Row(
                                     children: [
-                                      Row(
-                                        children: const [
-                                          Icon(Icons.air, color: Colors.green, size: 14), // Icono mas pequeño
-                                          SizedBox(width: 4), // Espaciado mas corto
-                                          Flexible(child: Text('QUALITAT AIRE', style: TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
-                                        ],
+                                      // Distancia
+                                      Expanded(
+                                        child: Container(
+                                          height: 95,
+                                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                                          decoration: BoxDecoration(color: const Color(0xFFF7F8FA), borderRadius: BorderRadius.circular(12)),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: const [
+                                                  Icon(Icons.pin_drop_outlined, color: Colors.blueAccent, size: 14),
+                                                  SizedBox(width: 4),
+                                                  Flexible(child: Text('DISTANCIA', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
+                                                ],
+                                              ),
+                                              const Spacer(),
+                                              const Text('0.0 km', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                                            ],
+                                          ),
+                                        ),
                                       ),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('AQI 25', style: TextStyle(fontSize: 10, color: Colors.green.shade700, fontWeight: FontWeight.bold)),
-                                          const Text('Excel·lent', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), // Texto mas pequeño
-                                        ],
-                                      )
+                                      const SizedBox(width: 12),
+
+                                      // Calidad del aire
+                                      Expanded(
+                                        child: Container(
+                                          height: 95,
+                                          decoration: BoxDecoration(
+                                            color: Colors.greenAccent.shade400,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(horizontal: 3),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Row(
+                                                  children: const [
+                                                    Icon(Icons.air, color: Colors.green, size: 14),
+                                                    SizedBox(width: 4),
+                                                    Flexible(child: Text('QUALITAT AIRE', style: TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
+                                                  ],
+                                                ),
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text('AQI 25', style: TextStyle(fontSize: 10, color: Colors.green.shade700, fontWeight: FontWeight.bold)),
+                                                    const Text('Excel·lent', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
 
-                      // Spacer superior aumentado para bajar la tarjeta
-                      const Spacer(flex: 3), // Aumentado de flex:1 a flex:3 para empujar hacia abajo
+                                // 2. CAMBIAMOS EL Spacer(flex: 3) POR UN SizedBox
+                                const SizedBox(height: 32),
 
-                      // Métricas: RITME / KCAL / ALTITUD (BAJADA UN PELIN)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Card(
-                          elevation: 0,
-                          color: const Color(0xFFF7F8FA),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 6),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                _metricItem('RITME', '5:30', '/km'),
-                                Container(width: 1, height: 34, color: Colors.grey.shade300),
-                                _metricItem('KCAL', '010', ''),
-                                Container(width: 1, height: 34, color: Colors.grey.shade300),
-                                _metricItem('ALTITUD', '145', 'm'),
+                                // Métricas: RITME / KCAL / ALTITUD
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                  child: Card(
+                                    elevation: 0,
+                                    color: const Color(0xFFF7F8FA),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 6),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                        children: [
+                                          _metricItem('RITME', '5:30', '/km'),
+                                          Container(width: 1, height: 34, color: Colors.grey.shade300),
+                                          _metricItem('KCAL', '010', ''),
+                                          Container(width: 1, height: 34, color: Colors.grey.shade300),
+                                          _metricItem('ALTITUD', '145', 'm'),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                // 3. CAMBIAMOS EL Spacer(flex: 2) POR UN SizedBox
+                                const SizedBox(height: 32),
                               ],
                             ),
                           ),
                         ),
                       ),
 
-                      // Spacer inferior reducido para dejar que las métricas bajen
-                      const Spacer(flex: 2), // Mantenido o ajustado para equilibrar
-
-                      // Controles inferiores
-                      SizedBox(
-                        height: 140,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Botón FINALITZAR
-                            Positioned(
-                              left: leftPos,
-                              bottom: 24,
-                              child: Column(
+                      // Barra inferior fija con los controles (dentro de la hoja blanca)
+                      Padding(
+                        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom, top: 6),
+                        child: Container(
+                          color: Colors.white,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              // Finalitzar (ligeramente hacia el centro)
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   GestureDetector(
                                     onTap: () {
@@ -327,76 +337,68 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                     child: Container(
                                       width: smallBtnSize,
                                       height: smallBtnSize,
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xFFF0F2F6),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(Icons.square_outlined, color: Colors.black54),
+                                      decoration: const BoxDecoration(color: Color(0xFFF0F2F6), shape: BoxShape.circle),
+                                      child: const Icon(Icons.stop, color: Colors.black54),
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 6),
                                   const Text('FINALITZAR', style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
                                 ],
                               ),
-                            ),
+                              const SizedBox(width: 24),
 
-                            // Botón MAPA
-                            Positioned(
-                              right: rightPos,
-                              bottom: 24,
-                              child: Column(
+                              // Botón central Play/Pause (elevado)
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Transform.translate(
+                                    offset: const Offset(0, -10),
+                                    child: GestureDetector(
+                                      onTap: _toggleRunning,
+                                      child: Container(
+                                        width: 82,
+                                        height: 82,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(color: Colors.white, width: 6),
+                                          boxShadow: [
+                                            BoxShadow(color: Colors.blue.withAlpha((0.3 * 255).round()), blurRadius: 14, spreadRadius: 2),
+                                          ],
+                                        ),
+                                        child: Container(
+                                          decoration: BoxDecoration(color: Colors.blue[700], shape: BoxShape.circle),
+                                          child: Icon(_stopwatch.isRunning ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 36),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 6),
+                                ],
+                              ),
+                              const SizedBox(width: 24),
+
+                              // Mapa
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   GestureDetector(
                                     onTap: () => Navigator.pushNamed(context, AppRouter.routeMap),
                                     child: Container(
                                       width: smallBtnSize,
                                       height: smallBtnSize,
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xFFF0F2F6),
-                                        shape: BoxShape.circle,
-                                      ),
+                                      decoration: const BoxDecoration(color: Color(0xFFF0F2F6), shape: BoxShape.circle),
                                       child: const Icon(Icons.map_outlined, color: Colors.black54),
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 6),
                                   const Text('MAPA', style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
                                 ],
                               ),
-                            ),
-
-                            // Botón central Play/Pause
-                            Positioned(
-                              bottom: 34,
-                              child: GestureDetector(
-                                onTap: _toggleRunning,
-                                child: Container(
-                                  width: 90,
-                                  height: 90,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 6),
-                                    boxShadow: [
-                                      BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 18, spreadRadius: 2),
-                                    ],
-                                  ),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue[700],
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      _stopwatch.isRunning ? Icons.pause : Icons.play_arrow,
-                                      color: Colors.white,
-                                      size: 38,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 12),
                     ],
                   ),
                 ),
