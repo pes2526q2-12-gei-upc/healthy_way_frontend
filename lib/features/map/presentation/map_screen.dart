@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-// Ajusta estas rutas según tus carpetas:
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_filter_chip.dart';
 import '../../../core/router/app_router.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
+import '../../../core/services/location_service.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -15,37 +15,67 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  // --- ESTADOS DE LA PANTALLA ---
-  bool isZonesCapturedSelected = true; // Controla el botón de zonas
-  bool isRunningMode = true; // true = Correr, false = Bici
+  bool isZonesCapturedSelected = true;
+  bool isRunningMode = true;
 
-  // Controlador del mapa (para mover la cámara en el futuro)
   final MapController _mapController = MapController();
+
+  // Ubicación actual del usuario
+  LatLng? _userLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeLocation();
+  }
+
+  Future<void> _initializeLocation() async {
+    // 1️⃣ Obtener ubicación inicial
+    _userLocation = await LocationService.getCurrentLocation();
+    setState(() {});
+
+    // 2️⃣ Centrar el mapa en la ubicación inicial
+    _mapController.move(_userLocation!, 15.0);
+
+    // 3️⃣ Iniciar seguimiento en tiempo real
+    await LocationService().startTracking(distanceFilter: 5);
+
+    // 4️⃣ Suscribirse a actualizaciones
+    LocationService().locationStream.listen((position) {
+      setState(() {
+        _userLocation = position;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    // Detener seguimiento cuando la pantalla se cierra
+    LocationService().stopTracking();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Usamos el índice 1 (Mapes) para que se marque en azul abajo
       bottomNavigationBar: const CustomBottomNavBar(currentIndex: 1),
-
       body: Stack(
         children: [
-          // 1. EL MAPA (USANDO EL WIDGET COMPARTIDO)
+          // 1️⃣ MAPA REUTILIZABLE
           CustomMapWidget(
             mapController: _mapController,
-            initialCenter: const LatLng(41.3851, 2.1734), // Coordenadas iniciales (ej. Barcelona)
+            initialCenter: _userLocation ?? const LatLng(41.3851, 2.1734),
             initialZoom: 15.0,
-            // Aquí en el futuro puedes pasarle 'markers: []' o 'polylines: []'
+            userLocation: _userLocation, // PUNTO AZUL
           ),
 
-          // 2. INTERFAZ SUPERIOR (Buscador, Planificar y Filtros)
+          // 2️⃣ INTERFAZ SUPERIOR
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Fila del Buscador y Botón Planificar
                   Row(
                     children: [
                       Expanded(
@@ -69,9 +99,7 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
-                        onPressed: () {
-                          // TODO: Navegar a la vista de planificar en el futuro
-                        },
+                        onPressed: () {},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.blue[700],
@@ -83,10 +111,7 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 12),
-
-                  // Fila de Filtros Reutilizables
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -101,7 +126,6 @@ class _MapScreenState extends State<MapScreen> {
                             });
                           },
                         ),
-                        // Aquí en el futuro puedes añadir más CustomFilterChip
                       ],
                     ),
                   ),
@@ -110,58 +134,49 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // 3. BOTONES FLOTANTES DE LA DERECHA
+          // 3️⃣ BOTONES FLOTANTES
           Positioned(
             right: 16,
-            bottom: 32, // Espacio para que no choque con la barra inferior
+            bottom: 32,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Botón Toggle: Correr / Bici
                 _FloatingMapButton(
                   icon: isRunningMode ? Icons.directions_run : Icons.directions_bike,
                   color: Colors.blue[700]!,
                   iconColor: Colors.white,
                   onTap: () {
                     setState(() {
-                      isRunningMode = !isRunningMode; // Cambia entre los dos estados
+                      isRunningMode = !isRunningMode;
                     });
                   },
                 ),
                 const SizedBox(height: 12),
-
-                // Botón "E" -> Navega a la vista de tu compañero
                 _FloatingMapButton(
-                  icon: Icons.explicit, // Icono "E" temporal
+                  icon: Icons.explicit,
                   color: Colors.white,
                   iconColor: Colors.black87,
                   onTap: () {
-                    // Viaja a la pantalla Explore (la de tu compañero)
                     Navigator.pushNamed(context, AppRouter.exploreRoute);
                   },
                 ),
                 const SizedBox(height: 12),
-
-                // Botón Localización
                 _FloatingMapButton(
                   icon: Icons.my_location,
                   color: Colors.white,
                   iconColor: Colors.black87,
                   onTap: () {
-                    // Centrar el mapa en la ubicación original
-                    _mapController.move(const LatLng(41.3851, 2.1734), 15.0);
+                    if (_userLocation != null) {
+                      _mapController.move(_userLocation!, 15.0);
+                    }
                   },
                 ),
                 const SizedBox(height: 12),
-
-                // Botón Capas
                 _FloatingMapButton(
                   icon: Icons.layers_outlined,
                   color: Colors.white,
                   iconColor: Colors.black87,
-                  onTap: () {
-                    // TODO: Abrir menú de capas
-                  },
+                  onTap: () {},
                 ),
               ],
             ),
@@ -172,7 +187,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 }
 
-// Widget privado para hacer los botones circulares flotantes iguales
+// BOTONES FLOTANTES
 class _FloatingMapButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;

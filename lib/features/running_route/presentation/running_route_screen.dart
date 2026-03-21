@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:healthy_way_frontend/core/router/app_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'results_route_screen.dart';
-
+import 'package:geolocator/geolocator.dart';
 
 class RunningRouteScreen extends StatefulWidget {
   const RunningRouteScreen({super.key});
@@ -15,26 +16,133 @@ class RunningRouteScreen extends StatefulWidget {
 class _RunningRouteScreenState extends State<RunningRouteScreen> {
   final Stopwatch _stopwatch = Stopwatch();
   Timer? _timer;
+  DateTime? _lastNotificationTime;
 
-  // Ruta recogida durante el running (aquí simulo unos puntos; reemplázalos por los reales si los tienes)
-  List<LatLng> _collectedRoute = [
-    const LatLng(41.4285, 2.1448),
-    const LatLng(41.4277, 2.1463),
-    const LatLng(41.4265, 2.1453),
-    const LatLng(41.4255, 2.1472),
-    const LatLng(41.4245, 2.1464),
-  ];
+  // Ruta recogida durante el running
+  List<Position> _collectedRoute = [];
+
+  // Suscripción al stream de posición
+  StreamSubscription<Position>? _subscription;
 
   // Stats de ejemplo (si tienes cálculos reales, actualízalos en tiempo real)
-  String _distance = '2.4';
-  String _pace = '5:30';
-  String _elevation = '45';
+  String _distance = '0.0';
+  double distanceDouble = 0.0;
+  String _pace = '0:00';
+  String _elevation = '0';
+  String _calories = '0';
+
+  void savePosition(Position newPos) {
+    _collectedRoute.add(newPos);
+  }
+
+  LocationSettings getSettings() {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return AndroidSettings(
+        accuracy: LocationAccuracy.high, // GPS puro para máxima precisión
+        distanceFilter: 5,               // Actualiza cada 5 metros
+        intervalDuration: const Duration(seconds: 3), // O cada 3 segundos
+        // IMPRESCINDIBLE para que no se pare al bloquear el móvil:
+        foregroundNotificationConfig: const ForegroundNotificationConfig(
+          notificationTitle: "Entrenamiento en curso",
+          notificationText: "Tu ruta se está grabando...",
+          enableWakeLock: true, // Evita que el procesador se duerma
+        ),
+      );
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return AppleSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 5,
+        activityType: ActivityType.fitness, // Ayuda a iOS a optimizar el sensor para deporte
+        showBackgroundLocationIndicator: true, // Barra azul arriba para que el usuario sepa que grabas
+        pauseLocationUpdatesAutomatically: false, // Evita que iOS pare el GPS si te detienes en un semáforo
+      );
+    } else {
+      return const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 5,
+      );
+    }
+  }
+
+  Future<void> permissionsAndInit() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // 1. ¿Está el GPS activado en los ajustes del móvil?
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      print('El GPS está apagado. Necesitamos que enciendas el GPS para que puedas utilizar HealthyWay correctamente.');
+      return;
+    }
+
+    // 2. ¿Tenemos permiso de la app?
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      // Si no tiene, se lo pedimos ahora mismo
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        print('El usuario ha denegado el permiso.');
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      print('Permisos denegados para siempre. Debe ir a Ajustes.');
+      return;
+    }
+
+    if (permission == LocationPermission.whileInUse) {
+      permission = await Geolocator.requestPermission();
+      // Si sigue siendo whileInUse, avisamos que puede haber cortes
+      if (permission == LocationPermission.whileInUse) {
+        print("Aviso: La ruta podría detenerse al bloquear el teléfono ya que solo tenemos permiso parcial. Para el correcto funcionamiento ve ajustes y permite la ubicacion todo el tiempo.");
+      }
+    }
+
+    // 3. Si llegamos aquí
+    initSub();
+  }
+
+  void initSub() {
+    late LocationSettings settings = getSettings();
+
+    // 4. Nos suscribimos al stream de posición
+    _subscription = Geolocator.getPositionStream(
+      locationSettings: settings,
+    ).listen((Position position) {
+      // Distancia incremental desde el último punto (si existe)
+      if(_collectedRoute.length > 1) {
+        distanceDouble += Geolocator.distanceBetween(
+            _collectedRoute.last.latitude,
+            _collectedRoute.last.longitude,
+            position.latitude, position.longitude);
+        // Actualizamos la distancia formateada a 2 decimales en Kilómetros
+        _distance = (distanceDouble / 1000).toStringAsFixed(10);
+      }
+      // Actualizar pace
+      if(distanceDouble > 0.0) {
+        final elapsedMinutes = _stopwatch.elapsed.inSeconds / 60;
+        _pace =
+        elapsedMinutes > 0 ? '${(elapsedMinutes / double.parse(_distance))
+            .toStringAsFixed(2)}:00' : '0:00';
+      }
+      // Actualizar elevacion (provisionalmente solo mostramos 40, pero idealmente sería la diferencia entre el punto más alto y el más bajo)
+      _elevation = (40).toStringAsFixed(0);
+      // Actualizar calorias peso 70kg elpased time y 9 MET
+      _calories = (70 * 9 * (_stopwatch.elapsed.inSeconds / 3600)).toStringAsFixed(0);
+
+      savePosition(position);
+      // Forzamos actualización de la UI cada vez que llega un nuevo punto
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     _stopwatch.start();
     _startTimer();
+    permissionsAndInit();
   }
 
   void _startTimer() {
@@ -47,16 +155,11 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
     setState(() {
       if (_stopwatch.isRunning) {
         _stopwatch.stop();
+        _subscription?.pause();
       } else {
         _stopwatch.start();
+        _subscription?.resume();
       }
-    });
-  }
-
-  void _stopAll() {
-    setState(() {
-      _stopwatch.stop();
-      _stopwatch.reset();
     });
   }
 
@@ -70,6 +173,7 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _subscription?.cancel();
     _stopwatch.stop();
     super.dispose();
   }
@@ -250,7 +354,8 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                                 ],
                                               ),
                                               const Spacer(),
-                                              const Text('0.0 km', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                                              // Mostramos _distance en lugar de un valor fijo
+                                              Text('$_distance km', style: TextStyle(fontSize: 16, color: Colors.blueAccent.shade700, fontWeight: FontWeight.bold)),
                                             ],
                                           ),
                                         ),
@@ -314,18 +419,20 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                                         children: [
-                                          _metricItem('RITME', '5:30', '/km'),
+                                          // Mostramos _pace en lugar de un valor fijo
+                                          _metricItem('RITME', _pace, '/km'),
                                           Container(width: 1, height: 34, color: Colors.grey.shade300),
-                                          _metricItem('KCAL', '010', ''),
+                                          // Mostramos _calories en lugar de un valor fijo
+                                          _metricItem('KCAL', _calories, 'kcal'),
                                           Container(width: 1, height: 34, color: Colors.grey.shade300),
-                                          _metricItem('ALTITUD', '145', 'm'),
+                                          // Mostramos _elevation en lugar de un valor fijo
+                                          _metricItem('ALTITUD', _elevation, 'm'),
                                         ],
                                       ),
                                     ),
                                   ),
                                 ),
 
-                                // 3. CAMBIAMOS EL Spacer(flex: 2) POR UN SizedBox
                                 const SizedBox(height: 32),
                               ],
                             ),
@@ -348,10 +455,16 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                 children: [
                                   GestureDetector(
                                     onTap: () {
-                                      _stopAll();
-                                      // Navegar a la pantalla de resultados pasando la ruta y stats
+                                      // 1) Parar y capturar el tiempo
+                                      _stopwatch.stop();
                                       final timeStr = _formatElapsed(_stopwatch.elapsed);
-                                      Navigator.push(
+
+                                      // 2) Cancelar timers / subscripciones para liberar recursos inmediatamente
+                                      _timer?.cancel();
+                                      _subscription?.cancel();
+
+                                      // 3) Navegar reemplazando la pantalla actual
+                                      Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) => const ResultsRouteScreen(),
@@ -362,6 +475,7 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                               'pace': _pace,
                                               'time': timeStr,
                                               'elevation': _elevation,
+                                              'calories': _calories,
                                             },
                                           ),
                                         ),
