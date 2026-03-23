@@ -38,7 +38,7 @@ class _MapScreenState extends State<MapScreen> {
     _mapController.move(_userLocation!, 15.0);
 
     // 3️⃣ Iniciar seguimiento en tiempo real
-    await LocationService().startTracking(distanceFilter: 5);
+    await LocationService().startTracking();
 
     // 4️⃣ Suscribirse a actualizaciones
     LocationService().locationStream.listen((position) {
