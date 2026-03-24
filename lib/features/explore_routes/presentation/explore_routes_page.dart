@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-// IMPORTA AQUÍ TU WIDGET COMPARTIDO (ajusta la ruta si es necesario)
+import '../../../core/services/route_service.dart';
+import '../../../shared/models/RouteModel.dart';
 import '../../../core/router/app_router.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 
@@ -9,17 +10,6 @@ void main() {
     home: ExploreRoutesScreen(),
   ));
 }
-
-typedef Ruta = ({
-  String title,
-  String location,
-  double rating,
-  double distancekm,
-  String difficulty,
-  String aqilabel,
-  int aqivalue,
-  String imageurl,
-});
 
 class ExploreRoutesScreen extends StatefulWidget {
   const ExploreRoutesScreen({super.key});
@@ -36,47 +26,26 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
   final Color _greenAQI = const Color(0xFF32A852);
   final Color _darkSelectedBlue = const Color(0xFF0C5AE1);
 
-  List<Ruta> _routes = [];
+  List<RouteModel> _routes = [];
+  bool _isLoading = true;
 
-  void loadData() {
-    // Funció no implementada, les dades es carregaran des del backend
-    Ruta ruta1 = (
-      title: "Ruta Vall d'Hebron",
-      location: 'Barcelona, Horta',
-      rating: 4.8,
-      distancekm: 5.2,
-      difficulty: 'Mitjana',
-      aqilabel: 'Excel·lent',
-      aqivalue: 25,
-      imageurl: 'URL Imatge',
-    );
+  Future<void> loadData() async {
+    // Les dades es carregaran des del backend
+    try {
+      // Pedimos los datos al servicio
+      final rutasObtenidas = await RouteService().getRoutes();
 
-    Ruta ruta2 = (
-    title: "Muralles de Girona",
-    location: 'Girona, Centre',
-    rating: 3.9,
-    distancekm: 3.1,
-    difficulty: 'Fàcil',
-    aqilabel: 'Moderat',
-    aqivalue: 62,
-    imageurl: 'URL Imatge',
-    );
-
-    Ruta ruta3 = (
-    title: "Collserola Trail Run",
-    location: 'St. Cugat, Collserola',
-    rating: 5.0,
-    distancekm: 12.5,
-    difficulty: 'Difícil',
-    aqilabel: 'Excel·lent',
-    aqivalue: 18,
-    imageurl: 'URL Imatge',
-    );
-
-    _routes.add(ruta1);
-    _routes.add(ruta2);
-    _routes.add(ruta3);
-    _routes.add(ruta1);
+      // Una vez llegan, actualizamos la pantalla de forma segura
+      setState(() {
+        _routes = rutasObtenidas;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('🚨 ERROR AL CARGAR DATOS: $e');
+    }
   }
 
   _ExploreRoutesScreenState() {
@@ -149,8 +118,27 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                for (Ruta ruta in _routes) _buildSingleRouteCard(ruta),
+                if(_isLoading) ...[
+                  const SizedBox(height: 50),
+
+                  const Center(child: CircularProgressIndicator(color: Color(0xFF1E6AFB))),
+                ] else if (_routes.isEmpty) ...[
+                  const SizedBox(height: 50),
+                  // Centramos el mensaje de "No se han encontrado rutas" tanto vertical como horizontalmente
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.warning_amber_outlined, size: 48, color: _inactiveFilterTextColor),
+                        const SizedBox(height: 12),
+                        Text('No s\'han trobat rutes', style: TextStyle(color: _inactiveFilterTextColor, fontSize: 16)),
+                      ],
+                    ),
+                  ),
+                ] else ...[
+                for (RouteModel ruta in _routes) _buildSingleRouteCard(ruta),
                 const SizedBox(height: 100),
+                ]
               ],
             ),
           ),
@@ -232,7 +220,7 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
     );
   }
 
-  Widget _buildSingleRouteCard(Ruta ruta) {
+  Widget _buildSingleRouteCard(RouteModel ruta) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Card(
@@ -258,8 +246,10 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                             borderRadius: BorderRadius.circular(12),
                             child: Stack(
                               children: [
-                                Image.network(ruta.imageurl, width: 100, height: 100, fit: BoxFit.cover, errorBuilder: (c, e, s) => Container(width: 100, height: 100, color: Colors.grey[200], child: const Icon(Icons.image, color: Colors.grey))),
-                                Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.star, color: Color(0xFFFFB800), size: 14), const SizedBox(width: 4), Text(ruta.rating.toString(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))],))),
+                                //URL de prova, substituir per ruta.imageUrl quan el backend estigui operatiu
+                                Image.network('https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cnVubmluZyUyMHJ1dGV8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60', width: 100, height: 100, fit: BoxFit.cover, errorBuilder: (c, e, s) => Container(width: 100, height: 100, color: Colors.grey[200], child: const Icon(Icons.image, color: Colors.grey))),
+                                // Valor de prova, substituir per ruta.rating quan el backend estigui operatiu
+                                Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.star, color: Color(0xFFFFB800), size: 14), const SizedBox(width: 4), Text('9.8', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))],))),
                               ],
                             ),
                           ),
@@ -268,11 +258,11 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Flexible(child: Text(ruta.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), overflow: TextOverflow.ellipsis)), Icon(Icons.favorite_outline, color: _inactiveFilterTextColor, size: 24)]),
+                                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Flexible(child: Text(ruta.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), overflow: TextOverflow.ellipsis)), Icon(Icons.favorite_outline, color: _inactiveFilterTextColor, size: 24)]),
                                 const SizedBox(height: 4),
                                 Row(children: [Icon(Icons.location_on_outlined, color: _inactiveFilterTextColor, size: 16), const SizedBox(width: 4), Text(ruta.location, style: TextStyle(color: _inactiveFilterTextColor))]),
                                 const SizedBox(height: 12),
-                                Row(children: [_buildInfoPill(Icons.directions_run, '${ruta.distancekm} km'), const SizedBox(width: 8), _buildInfoPill(Icons.trending_up, ruta.difficulty)]),
+                                Row(children: [_buildInfoPill(Icons.directions_run, '${ruta.distance} km'), const SizedBox(width: 8), _buildInfoPill(Icons.trending_up, 'FACIL')]),
                               ],
                             ),
                           ),
@@ -285,7 +275,8 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                         children: [
                           Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Color(0xFFEBF6EC), shape: BoxShape.circle), child: Icon(Icons.air, color: _greenAQI)),
                           const SizedBox(width: 12),
-                          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('ÍNDEX DE SALUT', style: TextStyle(color: _inactiveFilterTextColor, fontSize: 11, fontWeight: FontWeight.bold)), Text('${ruta.aqilabel} (AQI ${ruta.aqivalue})', style: TextStyle(color: _greenAQI, fontWeight: FontWeight.bold, fontSize: 14))]),
+                          // Valor de prova, substituir per ruta.aqiStatus quan el backend estigui operatiu
+                          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('ÍNDEX DE SALUT', style: TextStyle(color: _inactiveFilterTextColor, fontSize: 11, fontWeight: FontWeight.bold)), Text('BUENO (AQI 25)', style: TextStyle(color: _greenAQI, fontWeight: FontWeight.bold, fontSize: 14))]),
                           const Spacer(),
                           GestureDetector(
                             onTap: () {

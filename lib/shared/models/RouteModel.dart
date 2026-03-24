@@ -29,16 +29,19 @@ class RouteModel {
 
   factory RouteModel.fromJson(Map<String, dynamic> json) {
     return RouteModel(
-      id: json['id'],
+      id: 1.toString(),
       name: json['name'],
       distance: json['distance'].toDouble(),
       isPrivate: json['private'],
       creatorName: json['created_by'],
       createdAt: json['created_at'],
-      trajectory: (json['trajectory'] as List)
-          .map((point) => LatLng(point['latitude'], point['longitude']))
-          .toList(),
-      startPoint: LatLng(json['start_point']['latitude'], json['startPoint']['longitude']),
+      trajectory: (json['trajectory'] != null && json['trajectory']['coordinates'] != null) ? (json['trajectory']['coordinates'] as List).map((coord) {
+        return LatLng(
+            (coord[1] as num).toDouble(),
+            (coord[0] as num).toDouble()
+        );
+      }).toList() : [],
+      startPoint: LatLng(json['start_point']['latitude'], json['start_point']['longitude']),
       endPoint: LatLng(json['end_point']['latitude'], json['endPoint']['longitude']),
       location: json['location'],
     );

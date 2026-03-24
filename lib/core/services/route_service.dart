@@ -4,6 +4,11 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class RouteService {
+
+  static final RouteService _instance = RouteService._internal();
+  factory RouteService() => _instance;
+  RouteService._internal();
+
   final String baseUrl = 'http://localhost:3000/api/v1';
 
   // 1. OBTENER TODAS LAS RUTAS PUBLICAS
@@ -11,7 +16,10 @@ class RouteService {
     final response = await http.get(Uri.parse('$baseUrl/routes'));
 
     if (response.statusCode == 200) {
-      final List<dynamic> routesJson = json.decode(response.body);
+      List<dynamic> routesJson = json.decode(response.body);
+      if(routesJson is String) {
+        routesJson = json.decode(response.body);
+      }
       final List<RouteModel> routes = routesJson.map((json) => RouteModel.fromJson(json)).toList();
       return routes;
     } else {
