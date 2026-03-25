@@ -6,6 +6,7 @@ class CustomMapWidget extends StatelessWidget {
   final MapController mapController;
   final LatLng initialCenter;
   final double initialZoom;
+  final CameraFit? initialCameraFit;
 
   final List<LatLng> plannedRoute;   // Ruta a seguir entera (fondo gris)
   final List<LatLng> traversedRoute; // Ruta real hecha por el usuario (azul por encima)
@@ -22,6 +23,7 @@ class CustomMapWidget extends StatelessWidget {
     required this.mapController,
     required this.initialCenter,
     this.initialZoom = 15.5,
+    this.initialCameraFit,
     this.plannedRoute = const [],
     this.traversedRoute = const [],
     this.showStartMarker = false,
@@ -36,8 +38,8 @@ class CustomMapWidget extends StatelessWidget {
     // 1. CONSTRUIR POLÍNEAS AUTOMÁTICAS (El orden importa: de abajo hacia arriba)
     final List<Polyline> allPolylines = [...polylines];
 
-    // Primero la ruta planificada (fondo gris)
-    if (plannedRoute.isNotEmpty) {
+    // Primero la ruta planificada (fondo gris) - Solo si hay más de 1 punto
+    if (plannedRoute.length > 1) {
       allPolylines.add(
         Polyline(
           points: plannedRoute,
@@ -47,8 +49,8 @@ class CustomMapWidget extends StatelessWidget {
       );
     }
 
-    // Segundo, la ruta real que se va pisando (azul por encima)
-    if (traversedRoute.isNotEmpty) {
+    // Segundo, la ruta real que se va pisando (azul por encima) - Solo si hay más de 1 punto
+    if (traversedRoute.length > 1) {
       allPolylines.add(
         Polyline(
           points: traversedRoute,
@@ -62,7 +64,6 @@ class CustomMapWidget extends StatelessWidget {
     final List<Marker> allMarkers = [...markers];
 
     // Priorizamos la ruta planificada para poner los marcadores de inicio/fin.
-    // Si es un "entrenamiento libre" (sin ruta planificada), usamos la ruta recorrida.
     final List<LatLng> baseRoute = plannedRoute.isNotEmpty ? plannedRoute : traversedRoute;
 
     if (baseRoute.isNotEmpty) {
@@ -84,6 +85,8 @@ class CustomMapWidget extends StatelessWidget {
       options: MapOptions(
         initialCenter: initialCenter,
         initialZoom: initialZoom,
+        initialCameraFit: initialCameraFit,
+        maxZoom: 18.0, // <-- NUEVO: Límite para que no desaparezca el fondo (mapa gris)
       ),
       children: [
         // 🌍 MAPA OSM
@@ -92,7 +95,7 @@ class CustomMapWidget extends StatelessWidget {
           userAgentPackageName: 'com.healthy_way.app',
         ),
 
-        // 📍 POLYLINES (dibujadas en el orden correcto)
+        // 📍 POLYLINES
         if (allPolylines.isNotEmpty)
           PolylineLayer(polylines: allPolylines),
 
@@ -103,8 +106,7 @@ class CustomMapWidget extends StatelessWidget {
     );
   }
 
-
-  //CONSTRUCTORES DE MARCADORES PERSONALIZADOS (els punts blau, verd i roig)
+  // CONSTRUCTORES DE MARCADORES PERSONALIZADOS
   Marker _buildStartMarker(LatLng position) {
     return Marker(
       point: position,

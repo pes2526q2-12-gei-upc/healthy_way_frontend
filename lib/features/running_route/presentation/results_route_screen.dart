@@ -5,22 +5,45 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:healthy_way_frontend/core/router/app_router.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
-
- import '../providers/tracking_provider.dart'; 
+import '../providers/tracking_provider.dart';
 
 class ResultsRouteScreen extends StatelessWidget {
   const ResultsRouteScreen({super.key});
 
+  // Método helper para crear las columnas de estadísticas limpiamente
+  Widget _buildStatColumn(String title, String value) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            title,
+            style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Color(0xFF0B233B)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Leemos los datos finales del Provider
     final trackingProvider = context.read<TrackingProvider>();
     final fullRoute = trackingProvider.traversedRoute;
 
-    // Calculamos el centro para la cámara del mapa
+    // 1. BOUNDS Y ZOOM DINÁMICO (Solo si hay recorrido real: 2+ puntos)
+    LatLngBounds? routeBounds;
+    if (fullRoute.length > 1) {
+      routeBounds = LatLngBounds.fromPoints(fullRoute);
+    }
+
+    // 2. CENTRO EXACTO (Si hay 1 o más puntos, nos centramos en el último. Si hay 0, L'Hospitalet)
     final center = fullRoute.isNotEmpty
-        ? fullRoute[fullRoute.length ~/ 2]
-        : const LatLng(41.4285, 2.1448);
+        ? fullRoute.last
+        : const LatLng(41.3596, 2.1002);
 
     return Scaffold(
       appBar: AppBar(
@@ -50,7 +73,6 @@ class ResultsRouteScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-
                         // --- 1. MAPA ---
                         Container(
                           height: mapHeight,
@@ -70,48 +92,23 @@ class ResultsRouteScreen extends StatelessWidget {
                             child: CustomMapWidget(
                               mapController: MapController(),
                               initialCenter: center,
-                              initialZoom: 15.5,
-                              polylines: [
-                                Polyline(
-                                  points: fullRoute,
-                                  strokeWidth: 6.0,
-                                  color: const Color(0xFF2864FF),
-                                ),
-                              ],
-                              markers: fullRoute.isNotEmpty
-                                  ? [
-                                Marker(
-                                  point: fullRoute.first,
-                                  width: 14,
-                                  height: 14,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.green,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white, width: 3),
-                                    ),
-                                  ),
-                                ),
-                                Marker(
-                                  point: fullRoute.last,
-                                  width: 14,
-                                  height: 14,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white, width: 3),
-                                    ),
-                                  ),
-                                ),
-                              ]
-                                  : [],
+                              initialZoom: 16.0,
+                              initialCameraFit: routeBounds != null
+                                  ? CameraFit.bounds(
+                                bounds: routeBounds,
+                                padding: const EdgeInsets.all(40.0),
+                                maxZoom: 18.0, // <-- Límite de zoom
+                              )
+                                  : null,
+                              traversedRoute: fullRoute,
+                              showStartMarker: true,
+                              showEndMarker: fullRoute.length > 1,
                             ),
                           ),
                         ),
                         const SizedBox(height: 12),
 
-                        // --- 2. STATS CARD 1 (Distancia y Tiempo) ---
+                        // --- 2. STATS CARD 1 ---
                         Card(
                           elevation: 0,
                           color: Colors.white,
@@ -121,32 +118,16 @@ class ResultsRouteScreen extends StatelessWidget {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Expanded(
-                                  child: Column(
-                                    children: [
-                                      Text('DISTÀNCIA', style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold)),
-                                      const SizedBox(height: 6),
-                                      Text('${trackingProvider.distance} km', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Color(0xFF0B233B))),
-                                    ],
-                                  ),
-                                ),
+                                _buildStatColumn('DISTÀNCIA', '${trackingProvider.distance} km'),
                                 Container(width: 1, height: 48, color: Colors.grey.shade300),
-                                Expanded(
-                                  child: Column(
-                                    children: [
-                                      Text('TEMPS', style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold)),
-                                      const SizedBox(height: 6),
-                                      Text(trackingProvider.formatElapsed(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Color(0xFF0B233B))),
-                                    ],
-                                  ),
-                                ),
+                                _buildStatColumn('TEMPS', trackingProvider.formatElapsed()),
                               ],
                             ),
                           ),
                         ),
                         const SizedBox(height: 12),
 
-                        // --- 3. STATS CARD 2 (Ritmo, KCAL, Elevación) ---
+                        // --- 3. STATS CARD 2 ---
                         Card(
                           elevation: 0,
                           color: Colors.white,
@@ -156,35 +137,11 @@ class ResultsRouteScreen extends StatelessWidget {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Expanded(
-                                  child: Column(
-                                    children: [
-                                      Text('RITME', style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold)),
-                                      const SizedBox(height: 6),
-                                      Text(trackingProvider.pace, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Color(0xFF0B233B))),
-                                    ],
-                                  ),
-                                ),
+                                _buildStatColumn('RITME', trackingProvider.pace),
                                 Container(width: 1, height: 48, color: Colors.grey.shade300),
-                                Expanded(
-                                  child: Column(
-                                    children: [
-                                      Text('KCAL', style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold)),
-                                      const SizedBox(height: 6),
-                                      Text(trackingProvider.calories, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Color(0xFF0B233B))),
-                                    ],
-                                  ),
-                                ),
+                                _buildStatColumn('KCAL', trackingProvider.calories),
                                 Container(width: 1, height: 48, color: Colors.grey.shade300),
-                                Expanded(
-                                  child: Column(
-                                    children: [
-                                      Text('DESNIVELL', style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold)),
-                                      const SizedBox(height: 6),
-                                      Text('${trackingProvider.elevation} m', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Color(0xFF0B233B))),
-                                    ],
-                                  ),
-                                ),
+                                _buildStatColumn('DESNIVELL', '${trackingProvider.elevation} m'),
                               ],
                             ),
                           ),
@@ -198,8 +155,10 @@ class ResultsRouteScreen extends StatelessWidget {
                               context,
                               MaterialPageRoute(builder: (_) => const SaveRouteFormScreen()),
                             );
-                            if (result == true) {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ruta guardada')));
+                            if (result == true && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Ruta guardada')),
+                              );
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -259,14 +218,16 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Leemos el provider para dibujar el mapa pequeño
     final provider = context.read<TrackingProvider>();
     final route = provider.traversedRoute;
 
-    // Calculamos el centro de la ruta o ponemos uno por defecto
+    LatLngBounds? routeBounds;
+    if (route.length > 1) {
+      routeBounds = LatLngBounds.fromPoints(route);
+    }
     final center = route.isNotEmpty
-        ? route[route.length ~/ 2]
-        : const LatLng(41.4285, 2.1448);
+        ? route.last
+        : const LatLng(41.3596, 2.1002);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -288,7 +249,6 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-
                 // --- MAPA PEQUEÑO DE PREVIEW ---
                 Container(
                   height: (MediaQuery.of(context).size.height * 0.32).clamp(140.0, 380.0),
@@ -308,15 +268,17 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                     child: CustomMapWidget(
                       mapController: MapController(),
                       initialCenter: center,
-                      initialZoom: 15.0,
-                      polylines: [
-                        if (route.isNotEmpty)
-                          Polyline(
-                            points: route,
-                            strokeWidth: 5.0,
-                            color: const Color(0xFF2864FF),
-                          ),
-                      ],
+                      initialZoom: 16.0,
+                      initialCameraFit: routeBounds != null
+                          ? CameraFit.bounds(
+                        bounds: routeBounds,
+                        padding: const EdgeInsets.all(20.0),
+                        maxZoom: 18.0, // <-- Límite de zoom también aquí
+                      )
+                          : null,
+                      traversedRoute: route,
+                      showStartMarker: true,
+                      showEndMarker: route.length > 1,
                     ),
                   ),
                 ),
@@ -335,16 +297,10 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                           labelText: 'Nom de la ruta',
                           border: OutlineInputBorder(),
                         ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Introdueix un nom';
-                          }
-                          return null;
-                        },
+                        validator: (value) =>
+                        (value == null || value.trim().isEmpty) ? 'Introdueix un nom' : null,
                       ),
-
                       const SizedBox(height: 12),
-
                       Row(
                         children: [
                           const Text(
@@ -355,32 +311,21 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                           ChoiceChip(
                             label: const Text('Pública'),
                             selected: _isPublic,
-                            onSelected: (selected) {
-                              setState(() => _isPublic = true);
-                            },
+                            onSelected: (_) => setState(() => _isPublic = true),
                           ),
                           const SizedBox(width: 8),
                           ChoiceChip(
                             label: const Text('Privada'),
                             selected: !_isPublic,
-                            onSelected: (selected) {
-                              setState(() {
-                                // Si seleccionan privada, _isPublic pasa a false
-                                _isPublic = false;
-                              });
-                            },
+                            onSelected: (_) => setState(() => _isPublic = false),
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 18),
-
                       ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState?.validate() ?? false) {
-                            // Limpiamos la ruta de la memoria al guardar
                             provider.reset();
-                            // Volvemos a la pantalla de inicio
                             Navigator.pushNamedAndRemoveUntil(
                               context,
                               AppRouter.homeRoute,
