@@ -13,7 +13,7 @@ class CustomMapWidget extends StatelessWidget {
 
   final bool showStartMarker; // Punto verde al inicio
   final bool showEndMarker;   // Punto rojo al final
-  final LatLng? userLocation; // Ubicación en tiempo real del usuario
+  final LatLng? userLocation;
 
   final List<Polyline> polylines;
   final List<Marker> markers;

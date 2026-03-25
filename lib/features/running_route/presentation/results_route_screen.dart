@@ -10,7 +10,7 @@ import '../../../shared/providers/tracking_provider.dart';
 class ResultsRouteScreen extends StatelessWidget {
   const ResultsRouteScreen({super.key});
 
-  // Método helper para crear las columnas de estadísticas limpiamente
+  // Métod helper para crear las columnas de estadísticas limpiamente
   Widget _buildStatColumn(String title, String value) {
     return Expanded(
       child: Column(
@@ -73,7 +73,7 @@ class ResultsRouteScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // --- 1. MAPA ---
+                        // --- 1. MAP ---
                         Container(
                           height: mapHeight,
                           decoration: BoxDecoration(
