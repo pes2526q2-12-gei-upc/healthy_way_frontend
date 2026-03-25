@@ -27,16 +27,163 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
   final Color _greenAQI = const Color(0xFF32A852);
   final Color _darkSelectedBlue = const Color(0xFF0C5AE1);
 
+  // Controladores para los filtros
+  final TextEditingController _routeNameController = TextEditingController();
+  final TextEditingController _creatorController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _minDistController = TextEditingController();
+  final TextEditingController _maxDistController = TextEditingController();
+
+  // Es buena práctica liberar la memoria cuando la pantalla se destruye
+  @override
+  void dispose() {
+    _routeNameController.dispose();
+    _creatorController.dispose();
+    _locationController.dispose();
+    _minDistController.dispose();
+    _maxDistController.dispose();
+    super.dispose();
+  }
+
   List<RouteModel> _routes = [];
   bool _isLoading = true;
 
-  Future<void> loadData() async {
+  void _restablecerFiltros() {
+    // 1. Vaciamos todos los controladores
+    _routeNameController.clear();
+    _creatorController.clear();
+    _locationController.clear();
+    _minDistController.clear();
+    _maxDistController.clear();
 
-  // Les dades es carregaran des del backend
+    // 2. Cerramos el menú desplegable
+    Navigator.pop(context);
+
+    // 3. Llamamos a la función de aplicar.
+    loadData();
+  }
+
+  void _mostrarMenuFiltros() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Permite que el panel suba si sale el teclado
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          // Este padding evita que el teclado tape los campos de texto
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 20,
+            right: 20,
+            top: 20,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Filtrar Rutas', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 15),
+
+                TextField(
+                  controller: _routeNameController,
+                  decoration: const InputDecoration(labelText: 'Nombre de la ruta', prefixIcon: Icon(Icons.map)),
+                ),
+                TextField(
+                  controller: _creatorController,
+                  decoration: const InputDecoration(labelText: 'Creador', prefixIcon: Icon(Icons.person)),
+                ),
+                TextField(
+                  controller: _locationController,
+                  decoration: const InputDecoration(labelText: 'Localización', prefixIcon: Icon(Icons.location_city)),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _minDistController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Dist. Min (km)'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        controller: _maxDistController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Dist. Max (km)'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                Row(
+                  children: [
+                    // Botón de Restablecer (Diseño secundario, con borde)
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.redAccent, // Texto rojo para indicar "borrar"
+                          side: const BorderSide(color: Colors.redAccent),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: _restablecerFiltros, // Llamamos a nuestra nueva función
+                        child: const Text('Restablecer'),
+                      ),
+                    ),
+                    const SizedBox(width: 15), // Espacio entre botones
+
+                    // Botón de Aplicar (Diseño principal, relleno de color)
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0C5AE1), // Tu color azul
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          loadData();
+                        },
+                        child: const Text('Aplicar'),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> loadData() async {
+    // Les dades es carregaran des del backend
     try {
-  // Pedimos los datos al servicio
-      final rutasObtenidas = await RouteService().getRoutes();
-// Una vez llegan, actualizamos la pantalla de forma segura
+      // Extraemos los textos de los controladores. Si están vacíos, mandamos null
+      String? rName = _routeNameController.text.isNotEmpty ? _routeNameController.text : null;
+      String? creator = _creatorController.text.isNotEmpty ? _creatorController.text : null;
+      String? loc = _locationController.text.isNotEmpty ? _locationController.text : null;
+
+      // Convertimos las distancias a números de forma segura
+      double? minD = double.tryParse(_minDistController.text);
+      double? maxD = double.tryParse(_maxDistController.text);
+
+      // Llamamos al servicio para obtener las rutas con los filtros aplicados
+      List<RouteModel> rutasObtenidas = await RouteService().getPublicRoutes(
+        name: rName,
+        creator: creator,
+        location: loc,
+        minDistance: minD,
+        maxDistance: maxD,
+      );
+
+      // Una vez llegan, actualizamos la pantalla de forma segura
       setState(() {
         _routes = rutasObtenidas;
         _isLoading = false;
@@ -159,7 +306,12 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
           const SizedBox(width: 12),
           Container(
             decoration: BoxDecoration(color: _backgroundGray, borderRadius: BorderRadius.circular(12)),
-            child: IconButton(icon: Icon(Icons.tune, color: _inactiveFilterTextColor), onPressed: () {}),
+            child: IconButton(
+              icon: Icon(Icons.tune, color: _inactiveFilterTextColor),
+              onPressed: () {
+                _mostrarMenuFiltros();
+              },
+            ),
           ),
         ],
       ),
