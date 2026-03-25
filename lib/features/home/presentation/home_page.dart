@@ -3,9 +3,32 @@ import '../../../shared/models/RouteModel.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../core/services/route_service.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/services/location_service.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePage(); // El "puente"
+}
+
+class _HomePage extends State<HomePage> {
+
+  @override
+  void initState() {
+    super.initState();
+    iniciaGPS();
+  }
+
+  Future<void> iniciaGPS() async {
+    await LocationService().startTracking();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
