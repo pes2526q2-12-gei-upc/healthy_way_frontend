@@ -11,6 +11,20 @@ class CustomBottomNavBar extends StatelessWidget {
     required this.currentIndex,
   });
 
+  // Función auxiliar para mostrar el mensaje de "Próximamente"
+  void _showComingSoonMessage(BuildContext context, String feature) {
+    ScaffoldMessenger.of(context).clearSnackBars(); // Limpia si hay otro mensaje activo
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Pròximament: La secció de $feature estarà disponible aviat! 🚀'),
+        behavior: SnackBarBehavior.floating, // Hace que el mensaje flote un poco
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        backgroundColor: const Color(0xFF0C5AE1), // Tu color azul
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -124,17 +138,28 @@ class CustomBottomNavBar extends StatelessWidget {
                 ),
               ),
 
+              // 🔥 BOTÓN SOCIAL (Feedback añadido)
               _BottomNavItem(
                 icon: Icons.people_outline,
                 label: 'Social',
                 isActive: currentIndex == 2,
-                onTap: () {},
+                onTap: () {
+                  if (currentIndex != 2) {
+                    _showComingSoonMessage(context, 'Social');
+                  }
+                },
               ),
+
+              // 🔥 BOTÓN PERFIL (Feedback añadido)
               _BottomNavItem(
                 icon: Icons.person_outline,
                 label: 'Perfil',
                 isActive: currentIndex == 3,
-                onTap: () {},
+                onTap: () {
+                  if (currentIndex != 3) {
+                    _showComingSoonMessage(context, 'Perfil');
+                  }
+                },
               ),
             ],
           ),
