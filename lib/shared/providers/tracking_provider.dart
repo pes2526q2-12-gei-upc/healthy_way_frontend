@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:healthy_way_frontend/shared/models/RouteModel.dart';
 import 'package:latlong2/latlong.dart';
-import '../../../core/services/location_service.dart';
+import '../../core/services/location_service.dart';
 
 class TrackingProvider extends ChangeNotifier {
   final LocationService _locationService = LocationService();
@@ -12,15 +13,8 @@ class TrackingProvider extends ChangeNotifier {
   final Stopwatch _stopwatch = Stopwatch();
 
   // --- RUTAS ---
-  final List<LatLng> plannedRoute = const [
-    LatLng(41.3596, 2.1002),
-    LatLng(41.3621, 2.1028),
-    LatLng(41.3654, 2.1065),
-    LatLng(41.3688, 2.1102),
-    LatLng(41.3712, 2.1140),
-    LatLng(41.3745, 2.1185),
-    LatLng(41.3781, 2.1221), // META
-  ];
+  late RouteModel rutaSeleccionada;
+  bool routeIsSelected = false;
 
   List<LatLng> traversedRoute = [];
 
@@ -103,8 +97,8 @@ class TrackingProvider extends ChangeNotifier {
     _updateStats();
 
     // --- NUEVO: AUTO-COMPLETAR LA RUTA ---
-    if (plannedRoute.isNotEmpty) {
-      final endPoint = plannedRoute.last;
+    if (routeIsSelected) {
+      final endPoint = rutaSeleccionada.trajectory.last;
       final distanceToEnd = Geolocator.distanceBetween(
           newPos.latitude, newPos.longitude,
           endPoint.latitude, endPoint.longitude);
@@ -153,5 +147,11 @@ class TrackingProvider extends ChangeNotifier {
     final minutes = d.inMinutes.remainder(60);
     final seconds = d.inSeconds.remainder(60);
     return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  void setSelectedRoute(RouteModel route) {
+    rutaSeleccionada = route;
+    routeIsSelected = true;
+    notifyListeners();
   }
 }

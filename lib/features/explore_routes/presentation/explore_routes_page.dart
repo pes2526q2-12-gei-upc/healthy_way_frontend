@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:healthy_way_frontend/shared/models/RouteModel.dart';
+import 'package:provider/provider.dart';
 // IMPORTA AQUÍ TU WIDGET COMPARTIDO (ajusta la ruta si es necesario)
 import '../../../core/router/app_router.dart';
 import '../../../core/services/route_service.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
+import '../../../shared/providers/tracking_provider.dart';
 
 void main() {
   runApp(const MaterialApp(
@@ -422,6 +424,8 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                           const Spacer(),
                           GestureDetector(
                             onTap: () {
+                              final trackingProvider = context.read<TrackingProvider>(); // Obtenemos el provider de tracking
+                              trackingProvider.setSelectedRoute(ruta); // Establecemos la ruta seleccionada en el provider
                               Navigator.pushNamed(context, AppRouter.routeView);
                             },
                             child: Container(

@@ -6,7 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:healthy_way_frontend/core/router/app_router.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
 
- import '../providers/tracking_provider.dart'; 
+ import '../../../shared/providers/tracking_provider.dart';
 
 class ResultsRouteScreen extends StatelessWidget {
   const ResultsRouteScreen({super.key});
