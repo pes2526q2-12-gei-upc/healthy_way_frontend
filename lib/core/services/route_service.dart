@@ -34,7 +34,7 @@ class RouteService {
       }
     }
 
-  // 1.2 OBTENER TODAS LAS RUTAS RECOMENDADAS
+  // 2. OBTENER TODAS LAS RUTAS RECOMENDADAS
   Future<List<RouteModel>> getRecommendedRoutes() async {
     final response = await http.get(Uri.parse('$baseUrl/routes/recommendations'));
 
@@ -44,18 +44,6 @@ class RouteService {
       return routes;
     } else {
       throw Exception('Error al cargar las rutas recomendadas');
-    }
-  }
-
-  // 2. OBTENER DETALLES DE UNA RUTA POR ID
-  Future<RouteModel> getRouteByID(String routeId) async {
-    final response = await http.get(Uri.parse('$baseUrl/routes/$routeId'));
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> routeJson = json.decode(response.body);
-      return RouteModel.fromJson(routeJson);
-    } else {
-      throw Exception('Error al cargar los detalles de la ruta');
     }
   }
 

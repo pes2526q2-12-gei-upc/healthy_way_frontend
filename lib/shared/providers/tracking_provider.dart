@@ -19,7 +19,7 @@ class TrackingProvider extends ChangeNotifier {
   List<LatLng> traversedRoute = [];
 
   // --- ESTADÍSTICAS Y ESTADO ---
-  double _distanceDouble = 0.0;
+  double distanceDouble = 0.0;
   String distance = '0.00';
   String pace = '0:00';
   String elevation = '40';
@@ -29,6 +29,7 @@ class TrackingProvider extends ChangeNotifier {
   bool isFinished = false;
 
   bool get isRunning => _stopwatch.isRunning;
+
 
   // 1. INICIAR
   Future<void> startRun() async {
@@ -71,7 +72,7 @@ class TrackingProvider extends ChangeNotifier {
   // 4. RESETEAR
   void reset() {
     traversedRoute.clear();
-    _distanceDouble = 0.0;
+    distanceDouble = 0.0;
     distance = '0.00';
     pace = '0:00';
     calories = '0';
@@ -87,11 +88,11 @@ class TrackingProvider extends ChangeNotifier {
 
     if (traversedRoute.isNotEmpty) {
       final lastPos = traversedRoute.last;
-      _distanceDouble += Geolocator.distanceBetween(
+      distanceDouble += Geolocator.distanceBetween(
           lastPos.latitude, lastPos.longitude,
           newPos.latitude, newPos.longitude);
 
-      distance = (_distanceDouble / 1000).toStringAsFixed(2);
+      distance = (distanceDouble / 1000).toStringAsFixed(2);
     }
     traversedRoute.add(newPos);
     _updateStats();
@@ -123,7 +124,7 @@ class TrackingProvider extends ChangeNotifier {
 
   void _updateStats() {
     final elapsedMinutes = _stopwatch.elapsed.inSeconds / 60;
-    final distKm = _distanceDouble / 1000;
+    final distKm = distanceDouble / 1000;
 
     if (distKm > 0.01) {
       double paceMinutes = elapsedMinutes / distKm;
@@ -138,7 +139,12 @@ class TrackingProvider extends ChangeNotifier {
       pace = '0:00';
     }
 
-    calories = (70 * 9 * (_stopwatch.elapsed.inSeconds / 3600)).toStringAsFixed(0);
+    if(distance == 0) {
+      calories = '0';
+    } else {
+      calories =
+          (70 * 9 * (_stopwatch.elapsed.inSeconds / 3600)).toStringAsFixed(0);
+    }
   }
 
   String formatElapsed() {

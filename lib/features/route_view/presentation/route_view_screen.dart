@@ -33,9 +33,6 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
   // 1. OBTENER LA RUTA SELECCIONADA DEL PROVIDER
 
   Future<void> getRutaSeleccionada() async {
-    // Simulamos una llamada a la API para obtener la ruta seleccionada
-    await Future.delayed(const Duration(seconds: 1)); // Simula tiempo de carga
-
     // Aquí deberías obtener la ruta real del TrackingProvider o de tu API
     final trackingProvider = context.read<TrackingProvider>();
     setState(() {

@@ -69,7 +69,6 @@ class RouteModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'name': name,
       'distance': distance,
       'private': isPrivate,
