@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:healthy_way_frontend/core/router/app_router.dart';
 import 'results_route_screen.dart';
-import '../providers/tracking_provider.dart';
+import '../../../shared/providers/tracking_provider.dart';
 
 class RunningRouteScreen extends StatefulWidget {
   const RunningRouteScreen({super.key});

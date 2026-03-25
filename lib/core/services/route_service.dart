@@ -4,20 +4,35 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class RouteService {
+
+  static final RouteService _instance = RouteService._internal();
+  factory RouteService() => _instance;
+  RouteService._internal();
+
   final String baseUrl = 'http://localhost:3000/api/v1';
 
-  // 1. OBTENER TODAS LAS RUTAS PUBLICAS
-  Future<List<RouteModel>> getRoutes() async {
-    final response = await http.get(Uri.parse('$baseUrl/routes'));
+  // 1. OBTENER TODAS LAS RUTAS PUBLICAS CON POSIBILIDAD DE FILTRAR POR ID DE RUTA, NOMBRE DE RUTA, LOCALIZACION, MAX/MIN DISTANCE, CREADOR
+    Future<List<RouteModel>> getPublicRoutes({String? routeId, String? name, String? location, double? minDistance, double? maxDistance, String? creator}) async {
+      final queryParameters = {
+        if (routeId != null) 'routeId': routeId,
+        if (name != null) 'routeName': name,
+        if (location != null) 'routeLocation': location,
+        if (minDistance != null) 'minDistance': minDistance.toString(),
+        if (maxDistance != null) 'maxDistance': maxDistance.toString(),
+        if (creator != null) 'createdBy': creator,
+      };
 
-    if (response.statusCode == 200) {
-      final List<dynamic> routesJson = json.decode(response.body);
-      final List<RouteModel> routes = routesJson.map((json) => RouteModel.fromJson(json)).toList();
-      return routes;
-    } else {
-      throw Exception('Error al cargar las rutas');
+      final uri = Uri.parse('$baseUrl/routes').replace(queryParameters: queryParameters);
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> routesJson = json.decode(response.body);
+        final List<RouteModel> routes = routesJson.map((json) => RouteModel.fromJson(json)).toList();
+        return routes;
+      } else {
+        throw Exception('Error al cargar las rutas públicas');
+      }
     }
-  }
 
   // 1.2 OBTENER TODAS LAS RUTAS RECOMENDADAS
   Future<List<RouteModel>> getRecommendedRoutes() async {

@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'results_route_screen.dart';
 
 import '../../../shared/widgets/custom_map_widget.dart';
-import '../providers/tracking_provider.dart';
+import '../../../shared/providers/tracking_provider.dart';
 
 class RouteMapScreen extends StatefulWidget {
   const RouteMapScreen({super.key});
@@ -41,7 +41,8 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     }
 
     final traversedRoute = trackingProvider.traversedRoute;
-    final plannedRoute = trackingProvider.plannedRoute;
+    //
+    List<LatLng> plannedRoute = trackingProvider.routeIsSelected ? trackingProvider.rutaSeleccionada.trajectory : [];
 
     // 1. CENTRO DEL MAPA CORREGIDO:
     // Ya NO le decimos que vaya a plannedRoute.first. Si no hay GPS, se queda en la zona general de L'Hospitalet.

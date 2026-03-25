@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'app.dart';
-import 'features/running_route/providers/tracking_provider.dart';
+import 'shared/providers/tracking_provider.dart';
 void main() {
   // Asegura que los bindings de Flutter estén listos (necesario si luego añades Firebase o plugins nativos como el GPS aquí)
   WidgetsFlutterBinding.ensureInitialized();
