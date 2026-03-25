@@ -6,17 +6,26 @@ class CustomMapWidget extends StatelessWidget {
   final MapController mapController;
   final LatLng initialCenter;
   final double initialZoom;
+
+  final List<LatLng> plannedRoute;   // Ruta a seguir entera (fondo gris)
+  final List<LatLng> traversedRoute; // Ruta real hecha por el usuario (azul por encima)
+
+  final bool showStartMarker; // Punto verde al inicio
+  final bool showEndMarker;   // Punto rojo al final
+  final LatLng? userLocation; // Ubicación en tiempo real del usuario
+
   final List<Polyline> polylines;
   final List<Marker> markers;
-
-  /// 🔵 NUEVO: ubicación del usuario
-  final LatLng? userLocation;
 
   const CustomMapWidget({
     super.key,
     required this.mapController,
     required this.initialCenter,
     this.initialZoom = 15.5,
+    this.plannedRoute = const [],
+    this.traversedRoute = const [],
+    this.showStartMarker = false,
+    this.showEndMarker = false,
     this.polylines = const [],
     this.markers = const [],
     this.userLocation,
@@ -24,12 +33,52 @@ class CustomMapWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 👇 combinamos markers existentes + user location
-    final List<Marker> allMarkers = [
-      ...markers,
-      if (userLocation != null) _buildUserLocationMarker(userLocation!),
-    ];
+    // 1. CONSTRUIR POLÍNEAS AUTOMÁTICAS (El orden importa: de abajo hacia arriba)
+    final List<Polyline> allPolylines = [...polylines];
 
+    // Primero la ruta planificada (fondo gris)
+    if (plannedRoute.isNotEmpty) {
+      allPolylines.add(
+        Polyline(
+          points: plannedRoute,
+          strokeWidth: 6.0,
+          color: Colors.grey.shade400, // Gris para indicar el camino a seguir
+        ),
+      );
+    }
+
+    // Segundo, la ruta real que se va pisando (azul por encima)
+    if (traversedRoute.isNotEmpty) {
+      allPolylines.add(
+        Polyline(
+          points: traversedRoute,
+          strokeWidth: 6.0,
+          color: const Color(0xFF2864FF), // Azul vibrante para lo que ya has recorrido
+        ),
+      );
+    }
+
+    // 2. CONSTRUIR MARCADORES AUTOMÁTICOS
+    final List<Marker> allMarkers = [...markers];
+
+    // Priorizamos la ruta planificada para poner los marcadores de inicio/fin.
+    // Si es un "entrenamiento libre" (sin ruta planificada), usamos la ruta recorrida.
+    final List<LatLng> baseRoute = plannedRoute.isNotEmpty ? plannedRoute : traversedRoute;
+
+    if (baseRoute.isNotEmpty) {
+      if (showStartMarker) {
+        allMarkers.add(_buildStartMarker(baseRoute.first));
+      }
+      if (showEndMarker) {
+        allMarkers.add(_buildEndMarker(baseRoute.last));
+      }
+    }
+
+    if (userLocation != null) {
+      allMarkers.add(_buildUserLocationMarker(userLocation!));
+    }
+
+    // 3. RENDERIZAR MAPA
     return FlutterMap(
       mapController: mapController,
       options: MapOptions(
@@ -43,18 +92,49 @@ class CustomMapWidget extends StatelessWidget {
           userAgentPackageName: 'com.healthy_way.app',
         ),
 
-        // 📍 POLYLINES (rutas)
-        if (polylines.isNotEmpty)
-          PolylineLayer(polylines: polylines),
+        // 📍 POLYLINES (dibujadas en el orden correcto)
+        if (allPolylines.isNotEmpty)
+          PolylineLayer(polylines: allPolylines),
 
-        // 📍 MARKERS (incluye usuario)
+        // 📍 MARKERS
         if (allMarkers.isNotEmpty)
           MarkerLayer(markers: allMarkers),
       ],
     );
   }
 
-  /// 🔵 Marker típico estilo Google Maps
+
+  //CONSTRUCTORES DE MARCADORES PERSONALIZADOS (els punts blau, verd i roig)
+  Marker _buildStartMarker(LatLng position) {
+    return Marker(
+      point: position,
+      width: 14,
+      height: 14,
+      child: Container(
+        decoration: BoxDecoration(
+            color: Colors.green,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3)
+        ),
+      ),
+    );
+  }
+
+  Marker _buildEndMarker(LatLng position) {
+    return Marker(
+      point: position,
+      width: 14,
+      height: 14,
+      child: Container(
+        decoration: BoxDecoration(
+            color: Colors.red,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3)
+        ),
+      ),
+    );
+  }
+
   Marker _buildUserLocationMarker(LatLng position) {
     return Marker(
       point: position,
@@ -63,17 +143,11 @@ class CustomMapWidget extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Círculo grande (precisión)
           Container(
             width: 50,
             height: 50,
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: Colors.blue.withOpacity(0.2), shape: BoxShape.circle),
           ),
-
-          // Punto azul central
           Container(
             width: 16,
             height: 16,
