@@ -121,6 +121,8 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                     _buildMapOverlayButton(
                       icon: Icons.arrow_back,
                       onTap: () {
+                        // Al volver, reseteamos la ruta seleccionada para evitar inconsistencias
+                        context.read<TrackingProvider>().routeIsSelected = false;
                         Navigator.pushNamed(context, AppRouter.exploreRoute);
                       },
                     ),

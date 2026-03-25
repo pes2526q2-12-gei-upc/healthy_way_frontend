@@ -73,7 +73,7 @@ class RouteModel {
       'distance': distance,
       'private': isPrivate,
       'created_by': creatorName,
-      'created_at': createdAt,
+      'created_at': createdAt.toIso8601String(),
       'trajectory': trajectory.map((point) => {'latitude': point.latitude, 'longitude': point.longitude}).toList(),
       'start_point': {'latitude': startPoint.latitude, 'longitude': startPoint.longitude},
       'end_point': {'latitude': endPoint.latitude, 'longitude': endPoint.longitude},

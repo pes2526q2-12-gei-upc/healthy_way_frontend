@@ -142,6 +142,12 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                       const SizedBox(height: 18),
                       ElevatedButton(
                         onPressed: () async {
+                          if (route.isEmpty) { // <-- Cambia esto por el nombre de tu variable real
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('No hay ninguna ruta para guardar')),
+                            );
+                            return;
+                          }
                           if (_formKey.currentState?.validate() ?? false) {
                             final nuevaRuta = RouteModel(
                               id: 0.toString(),
