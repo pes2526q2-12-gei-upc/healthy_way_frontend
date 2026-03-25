@@ -9,7 +9,7 @@ class LocationService {
     if (defaultTargetPlatform == TargetPlatform.android) {
       return AndroidSettings(
         accuracy: LocationAccuracy.high, // GPS puro para máxima precisión
-        distanceFilter: 5,               // Actualiza cada 5 metros
+        distanceFilter: 2,               // Actualiza cada 5 metros
         intervalDuration: const Duration(seconds: 3), // O cada 3 segundos
         // IMPRESCINDIBLE para que no se pare al bloquear el móvil:
         foregroundNotificationConfig: const ForegroundNotificationConfig(
@@ -21,7 +21,7 @@ class LocationService {
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       return AppleSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 5,
+        distanceFilter: 2,
         activityType: ActivityType.fitness, // Ayuda a iOS a optimizar el sensor para deporte
         showBackgroundLocationIndicator: true, // Barra azul arriba para que el usuario sepa que grabas
         pauseLocationUpdatesAutomatically: false, // Evita que iOS pare el GPS si te detienes en un semáforo
@@ -29,7 +29,7 @@ class LocationService {
     } else {
       return const LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 5,
+        distanceFilter: 2,
       );
     }
   }
@@ -100,7 +100,7 @@ class LocationService {
     if (_positionSubscription != null) return;
 
     _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: settings
+        locationSettings: settings
     ).listen((Position pos) {
       final latLng = LatLng(pos.latitude, pos.longitude);
       _locationController.add(latLng);
