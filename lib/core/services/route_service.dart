@@ -58,6 +58,8 @@ class RouteService {
     if (response.statusCode == 201) {
       return json.decode(response.body);
     } else {
+      print('Codigo de error: ${response.statusCode}');
+      print('Mensaje: ${response.body}');
       throw Exception('Error al crear la ruta');
     }
   }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/router/app_router.dart';
-import '../providers/tracking_provider.dart';
-import 'package:provider/provider.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -67,58 +65,7 @@ class CustomBottomNavBar extends StatelessWidget {
               GestureDetector(
                 onTap: () {
                   // Acción central (Iniciar ruta, etc.)
-                  final trackingProvider = context.read<TrackingProvider>();
-                  bool activeRoute = trackingProvider.routeIsSelected;
-                  if (!activeRoute) {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text('No hi ha cap ruta seleccionada', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                          content: const Text('Vols crear una nova ruta o explorar rutes existents?'),
-                          actionsAlignment: MainAxisAlignment.center,
-                          actionsOverflowButtonSpacing: 10,
-                          actionsOverflowDirection: VerticalDirection.down,
-                          actions: [
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0C5AE1), // Tu color azul
-                                foregroundColor: Colors.white,
-                              ),
-                              onPressed: () {
-                                Navigator.pop(context); // Tanca el diàleg
-                                Navigator.pushNamed(context, AppRouter.exploreRoute); // Navega a explorar rutes
-                              },
-                              child: const Text('Explorar Rutes'),
-                            ),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0C5AE1), // Tu color azul
-                                foregroundColor: Colors.white,
-                              ),
-                              onPressed: () {
-                                Navigator.pop(context); // Tanca el diàleg
-                                Navigator.pushNamed(context, AppRouter.runningRoute); // Navega a crear ruta
-                              },
-                              child: const Text('Crear Ruta'),
-                            ),
-                            ElevatedButton(
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.redAccent,
-                                side: const BorderSide(color: Colors.redAccent),
-                              ),
-                              onPressed: () {
-                                Navigator.pop(context); // Tanca el diàleg
-                              },
-                              child: const Text('Cancel·lar'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  }
-                  else Navigator.pushNamed(context, AppRouter.runningRoute);
+                  Navigator.pushNamed(context, AppRouter.runningRoute);
                 },
                 child: Container(
                   width: 56, // Tamaño estándar del botón

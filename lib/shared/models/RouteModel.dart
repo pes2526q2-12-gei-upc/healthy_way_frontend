@@ -74,12 +74,21 @@ class RouteModel {
       'private': isPrivate,
       'created_by': creatorName,
       'created_at': createdAt.toIso8601String(),
-      'trajectory': trajectory.map((point) => {'latitude': point.latitude, 'longitude': point.longitude}).toList(),
-      'start_point': {'latitude': startPoint.latitude, 'longitude': startPoint.longitude},
-      'end_point': {'latitude': endPoint.latitude, 'longitude': endPoint.longitude},
+      'trajectory': {
+        'type': 'LineString',
+        'coordinates' : trajectory.map((point) => [point.latitude, point.longitude]).toList()
+      },
+      'start_point': {
+        'type': 'Point',
+        'coordinates': [startPoint.latitude, startPoint.longitude]
+      },
+      'end_point': {
+        'type': 'Point',
+        'coordinates': [endPoint.latitude, endPoint.longitude]
+      },
       'location': location,
-      'altitude': altitude,
-      'elevation_gain': elevation_gain,
+      'altitude': double.tryParse(altitude),
+      'elevation_gain': double.tryParse(elevation_gain),
     };
   }
 }

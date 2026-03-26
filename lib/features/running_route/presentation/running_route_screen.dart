@@ -19,7 +19,7 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<TrackingProvider>();
       provider.reset();
-      provider.startRun();
+      //provider.startRun();
     });
   }
 
@@ -262,7 +262,13 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                   Transform.translate(
                                     offset: const Offset(0, -10),
                                     child: GestureDetector(
-                                      onTap: () => context.read<TrackingProvider>().toggleRun(),
+                                      onTap: () {
+                                        if (trackingProvider.isRunning) {
+                                          context.read<TrackingProvider>().toggleRun();
+                                        } else {
+                                          context.read<TrackingProvider>().startRun();
+                                        }
+                                      },
                                       child: Container(
                                         width: 82, height: 82,
                                         decoration: BoxDecoration(

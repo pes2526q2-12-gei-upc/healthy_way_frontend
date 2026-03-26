@@ -150,15 +150,15 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                           }
                           if (_formKey.currentState?.validate() ?? false) {
                             final nuevaRuta = RouteModel(
-                              id: 0.toString(),
+                              id: 10.toString(),
                               name: _nameCtrl.text.trim(),
                               trajectory: route,
                               startPoint: route.first,
                               endPoint: route.last,
                               distance: distance,
-                              creatorName: 'Silverio Martinez',
+                              creatorName: 'test1',
                               isPrivate: !_isPublic,
-                              location: 'Barcelona',
+                              location: 'Girona',
                               createdAt: DateTime.now(),
                               elevation_gain: elevation,
                               altitude: elevation,
