@@ -90,7 +90,7 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
 
                 TextField(
                   controller: _routeNameController,
-                  decoration: const InputDecoration(labelText: 'Nombre de la ruta', prefixIcon: Icon(Icons.map)),
+                  decoration: const InputDecoration(labelText: 'Nom de la ruta', prefixIcon: Icon(Icons.map)),
                 ),
                 TextField(
                   controller: _creatorController,
@@ -98,7 +98,7 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                 ),
                 TextField(
                   controller: _locationController,
-                  decoration: const InputDecoration(labelText: 'Localización', prefixIcon: Icon(Icons.location_city)),
+                  decoration: const InputDecoration(labelText: 'Localització', prefixIcon: Icon(Icons.location_city)),
                 ),
                 Row(
                   children: [

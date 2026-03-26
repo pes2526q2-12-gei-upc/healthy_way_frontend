@@ -295,8 +295,8 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
         backgroundColor: Colors.blue[700],
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        label: const Text('Iniciar Ruta', style: TextStyle(fontWeight: FontWeight.bold)),
-        icon: const Icon(Icons.play_arrow_rounded),
+        label: const Text('Seleccionar Ruta', style: TextStyle(fontWeight: FontWeight.bold)),
+        icon: const Icon(Icons.touch_app),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );

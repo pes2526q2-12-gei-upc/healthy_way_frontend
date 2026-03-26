@@ -65,17 +65,18 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          width: 36, height: 36,
-                          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                          child: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
+                    if (!trackingProvider.running)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            width: 36, height: 36,
+                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                            child: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
+                          ),
                         ),
                       ),
-                    ),
                     Text('RUTA EN MARXA', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey[900], letterSpacing: 0.6)),
                   ],
                 ),
@@ -253,11 +254,13 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                   GestureDetector(
                                     onTap: () {
                                       // Finalización MANUAL
-                                      context.read<TrackingProvider>().stopRun();
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(builder: (_) => const ResultsRouteScreen()),
-                                      );
+                                      if (trackingProvider.running) {
+                                        context.read<TrackingProvider>().stopRun();
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(builder: (_) => const ResultsRouteScreen()),
+                                        );
+                                      }
                                     },
                                     child: Container(width: smallBtnSize, height: smallBtnSize, decoration: const BoxDecoration(color: Color(0xFFF0F2F6), shape: BoxShape.circle), child: const Icon(Icons.stop, color: Colors.black54)),
                                   ),
@@ -276,6 +279,7 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                         if (trackingProvider.isRunning) {
                                           context.read<TrackingProvider>().toggleRun();
                                         } else {
+                                          context.read<TrackingProvider>().running = true;
                                           context.read<TrackingProvider>().startRun();
                                         }
                                       },
@@ -300,11 +304,27 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   GestureDetector(
-                                    onTap: () => Navigator.pushNamed(context, AppRouter.routeMap),
-                                    child: Container(width: smallBtnSize, height: smallBtnSize, decoration: const BoxDecoration(color: Color(0xFFF0F2F6), shape: BoxShape.circle), child: const Icon(Icons.map_outlined, color: Colors.black54)),
+                                    onTap: () {
+                                      if (trackingProvider.running) {
+                                        Navigator.pushNamed(context, AppRouter.routeMap);
+                                      }
+                                      else if (!trackingProvider.routeIsSelected) {
+                                        Navigator.pushNamed(context, AppRouter.exploreRoute);
+                                      }
+                                      else {
+                                        trackingProvider.routeIsSelected = false;
+                                        trackingProvider.reset();
+                                        setState(() {});
+                                      }
+                                    },
+                                    child: Container(width: smallBtnSize, height: smallBtnSize, decoration: const BoxDecoration(color: Color(0xFFF0F2F6), shape: BoxShape.circle), child: Icon(
+                                        trackingProvider.running ? Icons.map_outlined : !trackingProvider.routeIsSelected ? Icons.touch_app : Icons.cancel,
+                                        color: Colors.black54)),
                                   ),
                                   const SizedBox(height: 6),
-                                  const Text('MAPA', style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
+                                  Text(
+                                      trackingProvider.running ? 'MAPA' : !trackingProvider.routeIsSelected ? 'RUTA' : 'RUTA',
+                                      style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ],

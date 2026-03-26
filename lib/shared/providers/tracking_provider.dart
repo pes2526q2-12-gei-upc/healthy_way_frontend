@@ -16,6 +16,7 @@ class TrackingProvider extends ChangeNotifier {
   // --- RUTAS ---
   late RouteModel rutaSeleccionada;
   bool routeIsSelected = false;
+  bool running = false;
 
   List<LatLng> traversedRoute = [];
 
@@ -25,7 +26,7 @@ class TrackingProvider extends ChangeNotifier {
   String pace = '0:00';
   String elevation = '40';
   String calories = '0';
-  String placeName = 'Ubicación desconocida';
+  String placeName = 'Ubicació desconeguda';
 
   // NUEVO: Bandera para saber si hemos llegado al destino
   bool isFinished = false;
@@ -39,10 +40,10 @@ class TrackingProvider extends ChangeNotifier {
         final p = placemarks.first;
         placeName = '${p.locality}';
       } else {
-        placeName = 'Ubicación desconocida';
+        placeName = 'Ubicació desconeguda';
       }
     } catch (e) {
-      placeName = 'Ubicación desconocida';
+      placeName = 'Ubicació desconeguda';
     }
   }
 
@@ -59,6 +60,8 @@ class TrackingProvider extends ChangeNotifier {
     _subscription ??= _locationService.locationStream.listen((LatLng pos) {
       _updateLocation(pos);
     });
+
+    running = true;
 
     notifyListeners();
   }
@@ -92,9 +95,10 @@ class TrackingProvider extends ChangeNotifier {
     distance = '0.00';
     pace = '0:00';
     calories = '0';
-    placeName = 'Ubicación desconocida';
+    placeName = 'Ubicació desconeguda';
     isFinished = false; // Reiniciamos la bandera
     _stopwatch.reset();
+    running = false;
     notifyListeners();
   }
 
@@ -163,7 +167,7 @@ class TrackingProvider extends ChangeNotifier {
           (70 * 9 * (_stopwatch.elapsed.inSeconds / 3600)).toStringAsFixed(0);
     }
 
-    if(placeName == 'Ubicación desconocida' && traversedRoute.isNotEmpty) {
+    if(placeName == 'Ubicació desconeguda' && traversedRoute.isNotEmpty) {
       _updatePlaceName(traversedRoute.first);
     }
   }

@@ -55,6 +55,14 @@ class ResultsRouteScreen extends StatelessWidget {
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.cancel),
+          onPressed: () {
+            trackingProvider.reset();
+            trackingProvider.routeIsSelected = false;
+            Navigator.pushNamedAndRemoveUntil(context, AppRouter.homeRoute, (r) => false);
+          },
+        ),
       ),
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -164,19 +172,6 @@ class ResultsRouteScreen extends StatelessWidget {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           child: const Text('Guardar ruta', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                        ),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: () {
-                            trackingProvider.reset();
-                            Navigator.pushNamedAndRemoveUntil(context, AppRouter.homeRoute, (r) => false);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0x66666666),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          child: const Text('Tornar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ),

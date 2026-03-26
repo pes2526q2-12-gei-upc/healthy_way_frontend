@@ -94,6 +94,9 @@ class _MapScreenState extends State<MapScreen> {
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
                               contentPadding: const EdgeInsets.symmetric(vertical: 0),
                             ),
+                            onTap: () {
+                              Navigator.pushNamed(context, AppRouter.exploreRoute);
+                            },
                           ),
                         ),
                       ),
@@ -149,15 +152,6 @@ class _MapScreenState extends State<MapScreen> {
                     setState(() {
                       isRunningMode = !isRunningMode;
                     });
-                  },
-                ),
-                const SizedBox(height: 12),
-                _FloatingMapButton(
-                  icon: Icons.explicit,
-                  color: Colors.white,
-                  iconColor: Colors.black87,
-                  onTap: () {
-                    Navigator.pushNamed(context, AppRouter.exploreRoute);
                   },
                 ),
                 const SizedBox(height: 12),

@@ -156,7 +156,7 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                               trajectory: route,
                               startPoint: route.first,
                               endPoint: route.last,
-                              distance: distance,
+                              distance: double.parse((distance/1000).toStringAsFixed(2)), // <-- Redondear a 2 decimales
                               creatorName: 'test1',
                               isPrivate: !_isPublic,
                               location: location,
@@ -166,6 +166,7 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                             );
                             await RouteService().createRoute(nuevaRuta);
                             provider.reset();
+                            provider.routeIsSelected = false;
                             Navigator.pushNamedAndRemoveUntil(
                               context,
                               AppRouter.homeRoute,
