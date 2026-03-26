@@ -105,13 +105,23 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                           ],
                         ),
                         const SizedBox(height: 6),
-                        const Text("Ruta Vall d'Hebron", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        Text(
+                          trackingProvider.routeIsSelected
+                              ? trackingProvider.rutaSeleccionada.name
+                              : 'RUTA PERSONALITZADA',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                        ),
                         const SizedBox(height: 4),
                         Row(
                           children: [
                             const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
                             const SizedBox(width: 6),
-                            Text('Barcelona, Horta', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                            Text(
+                              trackingProvider.routeIsSelected
+                                  ? trackingProvider.rutaSeleccionada.location
+                                  : trackingProvider.placeName,
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 12),

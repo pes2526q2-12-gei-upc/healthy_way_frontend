@@ -38,6 +38,7 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
     final route = provider.traversedRoute;
     final distance = provider.distanceDouble;
     final elevation = provider.elevation;
+    final location = provider.routeIsSelected ? provider.rutaSeleccionada.location : provider.placeName;
 
     LatLngBounds? routeBounds;
     if (route.length > 1) {
@@ -158,7 +159,7 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                               distance: distance,
                               creatorName: 'test1',
                               isPrivate: !_isPublic,
-                              location: 'Girona',
+                              location: location,
                               createdAt: DateTime.now(),
                               elevation_gain: elevation,
                               altitude: elevation,

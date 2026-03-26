@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:healthy_way_frontend/shared/models/RouteModel.dart';
 import 'package:latlong2/latlong.dart';
 import '../../core/services/location_service.dart';
+import 'package:geocoding/geocoding.dart';
 
 class TrackingProvider extends ChangeNotifier {
   final LocationService _locationService = LocationService();
@@ -24,11 +25,26 @@ class TrackingProvider extends ChangeNotifier {
   String pace = '0:00';
   String elevation = '40';
   String calories = '0';
+  String placeName = 'Ubicación desconocida';
 
   // NUEVO: Bandera para saber si hemos llegado al destino
   bool isFinished = false;
 
   bool get isRunning => _stopwatch.isRunning;
+
+  Future<void> _updatePlaceName(LatLng pos) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(pos.latitude, pos.longitude);
+      if (placemarks.isNotEmpty) {
+        final p = placemarks.first;
+        placeName = '${p.locality}';
+      } else {
+        placeName = 'Ubicación desconocida';
+      }
+    } catch (e) {
+      placeName = 'Ubicación desconocida';
+    }
+  }
 
 
   // 1. INICIAR
@@ -76,6 +92,7 @@ class TrackingProvider extends ChangeNotifier {
     distance = '0.00';
     pace = '0:00';
     calories = '0';
+    placeName = 'Ubicación desconocida';
     isFinished = false; // Reiniciamos la bandera
     _stopwatch.reset();
     notifyListeners();
@@ -144,6 +161,10 @@ class TrackingProvider extends ChangeNotifier {
     } else {
       calories =
           (70 * 9 * (_stopwatch.elapsed.inSeconds / 3600)).toStringAsFixed(0);
+    }
+
+    if(placeName == 'Ubicación desconocida' && traversedRoute.isNotEmpty) {
+      _updatePlaceName(traversedRoute.first);
     }
   }
 
