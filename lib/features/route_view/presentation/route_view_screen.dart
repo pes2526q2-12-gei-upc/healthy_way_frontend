@@ -60,39 +60,11 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
             height: size.height * 0.65,
             child: CustomMapWidget(
               mapController: _mapController,
-              initialCenter: const LatLng(41.4260, 2.1460),
-              polylines: [
-                Polyline(
-                  points: rutaSeleccionada.trajectory,
-                  strokeWidth: 5.0,
-                  color: _isLoadingRoute ? Colors.grey : const Color(0xFF2864FF),
-                ),
-              ],
-              markers: [
-                Marker(
-                  point: rutaSeleccionada.startPoint,
-                  width: 20,
-                  height: 20,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF2864FF), width: 4),
-                    ),
-                  ),
-                ),
-                Marker(
-                  point: rutaSeleccionada.endPoint,
-                  width: 20,
-                  height: 20,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF2864FF),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
+              initialZoom: 16.0,
+              initialCenter: LatLng((rutaSeleccionada.startPoint.latitude + rutaSeleccionada.endPoint.latitude)/2, (rutaSeleccionada.startPoint.longitude + rutaSeleccionada.endPoint.longitude)/2),
+              traversedRoute: rutaSeleccionada.trajectory,
+              showStartMarker: true,
+              showEndMarker: rutaSeleccionada.trajectory.length > 1,
             ),
           ),
 
