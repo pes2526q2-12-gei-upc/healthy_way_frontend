@@ -6,6 +6,7 @@ import '../../features/running_route/presentation/running_route_screen.dart';
 import '../../features/running_route/presentation/results_route_screen.dart';
 import '../../features/route_view/presentation/route_view_screen.dart';
 import '../../features/explore_routes/presentation/explore_routes_page.dart';
+import '../../features/running_route/presentation/save_route_form.dart';
 // 1. IMPORTAMOS LA NUEVA PANTALLA DEL MAPA (Asegúrate de que la ruta coincida con tus carpetas)
 import '../../features/map/presentation/map_screen.dart';
 
@@ -17,6 +18,7 @@ class AppRouter {
   static const String routeMap = '/route_map';
   static const String routeView = '/route_view';
   static const String resultsRoute = '/results';
+  static const String saveFormRoute = '/save_form';
   // 2. AÑADIMOS LA RUTA PARA EL MAPA GENERAL
   static const String mapRoute = '/map';
 
@@ -38,6 +40,8 @@ class AppRouter {
         return _fadeRoute(const RouteViewScreen());
       case resultsRoute:
         return _fadeRoute(const ResultsRouteScreen());
+        case saveFormRoute:
+        return _fadeRoute(const SaveRouteFormScreen());
     // 3. AÑADIMOS EL CASO PARA NAVEGAR AL MAPA
       case mapRoute:
         return _fadeRoute(const MapScreen());

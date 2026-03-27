@@ -1,9 +1,34 @@
 import 'package:flutter/material.dart';
+import '../../../shared/models/RouteModel.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
+import '../../../core/services/route_service.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/services/location_service.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePage(); // El "puente"
+}
+
+class _HomePage extends State<HomePage> {
+
+  @override
+  void initState() {
+    super.initState();
+    iniciaGPS();
+  }
+
+  Future<void> iniciaGPS() async {
+    await LocationService().startTracking();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -226,24 +251,41 @@ class HomePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // Lista de Rutas
-                  _RouteCard(
-                    title: "Ruta Vall d'Hebron",
-                    distance: "5.2 km",
-                    time: "35 min",
-                    badgeText: "Neta",
-                    badgeColor: Colors.green,
-                    teamControl: "Zona controlada pel teu equip",
+                  // Coger rutas del route service y mostrarlas. Si no hay rutas, mostrar mensaje de "No hay rutas recomendadas disponibles"
+                  FutureBuilder<List<RouteModel>>(
+                    future: RouteService().getRecommendedRoutes(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return const Center(child: Text('Error al cargar las rutas recomendadas'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(child: Text('No hay rutas recomendadas disponibles'));
+                      } else {
+                        final routes = snapshot.data!;
+                        return Column(
+                          children: routes.map((route) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: _RouteCard(
+                              title: route.name,
+                              distance: '${route.distance} km',
+                              /*
+                              time: '${route.estimatedTime} min',
+                              badgeText: route.difficulty.toUpperCase(),
+                              badgeColor: route.difficulty == 'fàcil' ? Colors.green : route.difficulty == 'mitjà' ? Colors.orange : Colors.red,
+                              teamControl: '${route.teamControl}% control',*/
+                              // Placeholder, ya que el backend no devuelve el tiempo estimado
+                              time: '45 min',
+                              badgeText: 'FÀCIL',
+                              badgeColor: Colors.green,
+                              teamControl: '75% control',
+                            ),
+                          )).toList(),
+                        );
+                      }
+                    },
                   ),
-                  const SizedBox(height: 12),
-                  _RouteCard(
-                    title: "Muralles de Girona",
-                    distance: "3.8 km",
-                    time: "28 min",
-                    badgeText: "Moderada",
-                    badgeColor: Colors.orange,
-                    teamControl: "Zona neutral",
-                  ),
+
                   // Espacio al final para que no tape la barra inferior al hacer scroll
                   const SizedBox(height: 40),
                 ],

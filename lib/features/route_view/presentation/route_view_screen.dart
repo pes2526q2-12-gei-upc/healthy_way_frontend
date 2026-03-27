@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:healthy_way_frontend/core/router/app_router.dart';
-import '../../../shared/widgets/custom_bottom_nav_bar.dart';
+import 'package:healthy_way_frontend/shared/models/RouteModel.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
+import '../../../shared/providers/tracking_provider.dart';
 
 class RouteViewScreen extends StatefulWidget {
   const RouteViewScreen({super.key});
@@ -17,49 +19,30 @@ class RouteViewScreen extends StatefulWidget {
 class _RouteViewScreenState extends State<RouteViewScreen> {
   bool _isFavorite = false;
   final MapController _mapController = MapController();
-
-  List<LatLng> _routePoints = [
-    const LatLng(41.4285, 2.1448),
-    const LatLng(41.4238, 2.1476),
-  ];
+  // NUEVO: Variable fija y constante para almacenar la ruta seleccionada
+  late RouteModel rutaSeleccionada;
 
   bool _isLoadingRoute = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchRealRoute();
+    getRutaSeleccionada();
   }
 
-  Future<void> _fetchRealRoute() async {
-    const String apiKey = 'TU_API_KEY_AQUI';
-    final startCoords = '2.1448,41.4285';
-    final endCoords = '2.1476,41.4238';
+  // 1. OBTENER LA RUTA SELECCIONADA DEL PROVIDER
 
-    final url = 'https://api.openrouteservice.org/v2/directions/foot-walking?api_key=$apiKey&start=$startCoords&end=$endCoords';
-
-    try {
-      final response = await http.get(Uri.parse(url));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final List dynamicCoords = data['features'][0]['geometry']['coordinates'];
-
-        final List<LatLng> realPath = dynamicCoords
-            .map((coord) => LatLng(coord[1], coord[0]))
-            .toList();
-
-        setState(() {
-          _routePoints = realPath;
-          _isLoadingRoute = false;
-        });
-      } else {
-        setState(() => _isLoadingRoute = false);
-      }
-    } catch (e) {
-      setState(() => _isLoadingRoute = false);
-    }
+  Future<void> getRutaSeleccionada() async {
+    // Aquí deberías obtener la ruta real del TrackingProvider o de tu API
+    final trackingProvider = context.read<TrackingProvider>();
+    setState(() {
+      rutaSeleccionada = trackingProvider.rutaSeleccionada;
+      _isLoadingRoute = false;
+    });
   }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -74,42 +57,14 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
             top: 0,
             left: 0,
             right: 0,
-            height: size.height * 0.55,
+            height: size.height * 0.65,
             child: CustomMapWidget(
               mapController: _mapController,
-              initialCenter: const LatLng(41.4260, 2.1460),
-              polylines: [
-                Polyline(
-                  points: _routePoints,
-                  strokeWidth: 5.0,
-                  color: _isLoadingRoute ? Colors.grey : const Color(0xFF2864FF),
-                ),
-              ],
-              markers: [
-                Marker(
-                  point: _routePoints.first,
-                  width: 20,
-                  height: 20,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF2864FF), width: 4),
-                    ),
-                  ),
-                ),
-                Marker(
-                  point: _routePoints.last,
-                  width: 20,
-                  height: 20,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF2864FF),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
+              initialZoom: 16.0,
+              initialCenter: LatLng((rutaSeleccionada.startPoint.latitude + rutaSeleccionada.endPoint.latitude)/2, (rutaSeleccionada.startPoint.longitude + rutaSeleccionada.endPoint.longitude)/2),
+              traversedRoute: rutaSeleccionada.trajectory,
+              showStartMarker: true,
+              showEndMarker: rutaSeleccionada.trajectory.length > 1,
             ),
           ),
 
@@ -138,6 +93,8 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                     _buildMapOverlayButton(
                       icon: Icons.arrow_back,
                       onTap: () {
+                        // Al volver, reseteamos la ruta seleccionada para evitar inconsistencias
+                        context.read<TrackingProvider>().routeIsSelected = false;
                         Navigator.pushNamed(context, AppRouter.exploreRoute);
                       },
                     ),
@@ -167,7 +124,7 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
 
           Positioned(
             right: 16,
-            top: size.height * 0.3,
+            top: size.height * 0.5,
             child: Column(
               children: [
                 _buildMapOverlayButton(
@@ -191,7 +148,7 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
 
           // 3. PANEL BLANCO INFERIOR (Detalles de la ruta)
           Positioned(
-            top: size.height * 0.42,
+            top: size.height * 0.65,
             left: 0,
             right: 0,
             bottom: 0,
@@ -229,9 +186,9 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                "Ruta Vall d'Hebron",
-                                style: TextStyle(
+                              Text(
+                                rutaSeleccionada.name,
+                                style: const TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w900,
                                   color: Color(0xFF0B233B),
@@ -243,7 +200,7 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                                   const Icon(Icons.location_on_outlined, size: 16, color: Colors.blueAccent),
                                   const SizedBox(width: 4),
                                   Text(
-                                    'Barcelona, Horta',
+                                    rutaSeleccionada.location,
                                     style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                                   ),
                                 ],
@@ -286,11 +243,11 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(
                         children: [
-                          _buildMetricCard('DISTANCIA', '5.2', 'km'),
+                          _buildMetricCard('DISTANCIA', rutaSeleccionada.distance.toString(), 'km'),
                           const SizedBox(width: 12),
-                          _buildMetricCard('TEMPS', '35', 'm'),
+                          _buildMetricCard('ALTITUD', rutaSeleccionada.elevation_gain, 'm'),
                           const SizedBox(width: 12),
-                          _buildMetricCard('CALORIES', '520', 'kcal'),
+                          _buildMetricCard('CREADOR', rutaSeleccionada.creatorName, ''),
                         ],
                       ),
                     ),
@@ -302,7 +259,18 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 1),
+      // Añadimos un boton para iniciar ruta parecido al de google maps, pero con un diseño más moderno y adaptado a nuestra app
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.pushNamed(context, AppRouter.runningRoute);
+        },
+        backgroundColor: Colors.blue[700],
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        label: const Text('Seleccionar Ruta', style: TextStyle(fontWeight: FontWeight.bold)),
+        icon: const Icon(Icons.touch_app),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
