@@ -1,0 +1,1 @@
+ /Users/christianclementegarcia/IdeaProjects/healthy_way_frontend/.dart_tool/flutter_build/b77069ccb27afd37be70d5275a6933dd/dart_build_result.json: 
