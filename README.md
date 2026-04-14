@@ -39,6 +39,7 @@ Este repositorio contiene el frontend de la aplicación Healthy Way (Flutter).
 		 flutter run
 
 	 - Desde Visual Studio Code: selecciona un dispositivo en la barra de estado y usa la acción "Run" o "Debug".
+     - Para ejecutar en Google Chrome (web): flutter run -d chrome --web-browser-flag "--disable-web-security"
 
 ## Notas y soluciones comunes
 
