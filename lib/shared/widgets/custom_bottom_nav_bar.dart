@@ -92,7 +92,7 @@ class CustomBottomNavBar extends StatelessWidget {
                 isActive: currentIndex == 2,
                 onTap: () {
                   if (currentIndex != 2) {
-                    _showComingSoonMessage(context, 'Social');
+                    Navigator.pushNamed(context, AppRouter.rankingRoute);
                   }
                 },
               ),
