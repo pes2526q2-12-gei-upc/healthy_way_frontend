@@ -13,6 +13,7 @@ import '../../features/map/presentation/map_screen.dart';
 import '../../features/chat/presentation/chat_view.dart';
 import '../../features/ranking/presentation/ranking_view.dart';
 import '../../features/my_team/presentation/my_team_view.dart';
+import '../../features/ranking/presentation/total_ranking_view.dart';
 
 class AppRouter {
   static const String loginRoute = '/login';
@@ -28,6 +29,7 @@ class AppRouter {
   static const String mapRoute = '/map';
   static const String chatRoute = '/chat';
   static const String rankingRoute = '/ranking';
+  static const String totalRankingRoute = '/total_ranking';
   static const String myTeamRoute = '/my_team';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -61,6 +63,8 @@ class AppRouter {
         return _fadeRoute(const Ranking());
       case myTeamRoute:
         return _fadeRoute(const MyTeam());
+      case totalRankingRoute:
+        return _fadeRoute(const TotalRanking());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

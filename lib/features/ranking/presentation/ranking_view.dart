@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_comunity_bar.dart';
+import '../../../core/router/app_router.dart';
 
 // --- MODELO ACTUALIZADO ---
 enum TeamModality { running, ciclisme }
@@ -274,7 +275,8 @@ class _RankingState extends State<Ranking> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('TOP 10 EQUIPS - $_selectedZone'.toUpperCase(), style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1.0)),
-              TextButton(onPressed: () {}, child: const Text('Veure tot', style: TextStyle(color: Color(0xFF1058E5), fontWeight: FontWeight.bold, fontSize: 12))),
+              TextButton(onPressed: () => Navigator.pushNamed(context, AppRouter.totalRankingRoute),
+                  child: const Text('Veure tot', style: TextStyle(color: Color(0xFF1058E5), fontWeight: FontWeight.bold, fontSize: 12))),
             ],
           ),
           const SizedBox(height: 16),
