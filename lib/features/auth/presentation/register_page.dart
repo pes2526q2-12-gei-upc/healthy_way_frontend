@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
+import '../../../shared/providers/Auth_provider.dart';
 import '/core/services/user_service.dart';
 import '/core/router/app_router.dart';
 
@@ -121,6 +123,25 @@ class _RegisterPageState extends State<RegisterPage> {
     );
 
     if(b) {
+      final loginSuccess = await UserService().login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+
+      if(!mounted) return;
+
+      if (loginSuccess == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al iniciar sesión después del registro.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+        return;
+      }
+
+      context.read<AuthProvider>().login(loginSuccess);
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Registre correcte!'),
