@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:healthy_way_frontend/shared/providers/Auth_provider.dart';
+import 'package:provider/provider.dart';
 import 'core/router/app_router.dart';
+import 'features/auth/presentation/login_page.dart';
+import 'features/home/presentation/home_page.dart';
 
 class HealthyWayApp extends StatelessWidget {
   const HealthyWayApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isAuthenticated = context.watch<AuthProvider>().isAuthenticated;
     return MaterialApp(
       title: 'Healthy Way',
       debugShowCheckedModeBanner: false,
 
-      // Definimos la ruta inicial (Login)
-      initialRoute: AppRouter.loginRoute,
+      home: isAuthenticated ? const HomePage() : const LoginPage(),
 
       // Conectamos nuestra lógica de navegación
       onGenerateRoute: AppRouter.generateRoute,

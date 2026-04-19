@@ -15,7 +15,7 @@ import '../../features/ranking/presentation/ranking_view.dart';
 import '../../features/my_team/presentation/my_team_view.dart';
 
 class AppRouter {
-  static const String loginRoute = '/';
+  static const String loginRoute = '/login';
   static const String registerRoute = '/register';
   static const String homeRoute = '/home';
   static const String exploreRoute = '/explore';

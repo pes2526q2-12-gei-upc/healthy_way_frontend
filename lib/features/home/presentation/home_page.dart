@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../shared/models/RouteModel.dart';
+import '../../../shared/providers/Auth_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../core/services/route_service.dart';
 import '../../../core/router/app_router.dart';
@@ -65,11 +67,11 @@ class _HomePage extends State<HomePage> {
                             child: const Icon(Icons.person, color: Colors.white),
                           ),
                           const SizedBox(width: 12),
-                          const Column(
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Benvingut de nou,', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                              Text('Silverio Martínez', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                              const Text('Benvingut de nou,', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                              Text(context.watch<AuthProvider>().currentUser!.nom, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ],
