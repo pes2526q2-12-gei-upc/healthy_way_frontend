@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../features/auth/presentation/login_page.dart';
+import '../../features/auth/presentation/register_page.dart';
 import '../../features/home/presentation/home_page.dart';
 import '../../features/running_route/presentation/route_map_screen.dart';
 import '../../features/running_route/presentation/running_route_screen.dart';
@@ -15,6 +16,7 @@ import '../../features/my_team/presentation/my_team_view.dart';
 
 class AppRouter {
   static const String loginRoute = '/';
+  static const String registerRoute = '/register';
   static const String homeRoute = '/home';
   static const String exploreRoute = '/explore';
   static const String runningRoute = '/running';
@@ -34,6 +36,8 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => const LoginPage(),
         );
+      case registerRoute:
+        return _fadeRoute(const RegisterPage());
       case homeRoute:
         return _fadeRoute(const HomePage());
       case exploreRoute:

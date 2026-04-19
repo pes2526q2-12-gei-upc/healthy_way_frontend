@@ -8,15 +8,14 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        // Fondo con degradado
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFFE3EFFF), // Azul muy clarito
-              Color(0xFFF4F6F9), // Blanco grisáceo
-              Color(0xFFD6E4FF), // Azul suave
+              Color(0xFFE3EFFF),
+              Color(0xFFF4F6F9),
+              Color(0xFFD6E4FF),
             ],
           ),
         ),
@@ -66,11 +65,10 @@ class LoginPage extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 // 3. Formulario - Correo
-                const Text('Correu electrònic', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text('Username o Correu electrònic', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 TextField(
                   decoration: InputDecoration(
-                    hintText: 'exemple@correu.com',
                     prefixIcon: const Icon(Icons.email_outlined),
                     filled: true,
                     fillColor: Colors.white,
@@ -92,7 +90,6 @@ class LoginPage extends StatelessWidget {
                 TextField(
                   obscureText: true,
                   decoration: InputDecoration(
-                    hintText: '••••••••',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.visibility_outlined),
@@ -169,8 +166,7 @@ class LoginPage extends StatelessWidget {
                 OutlinedButton(
                   // AQUÍ: Acción para ir a la pantalla de registro
                   onPressed: () {
-                    // Navegación hacia la pantalla de registro
-                    // Navigator.pushNamed(context, '/register');
+                    Navigator.pushNamed(context, '/register');
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
