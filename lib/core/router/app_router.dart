@@ -14,6 +14,8 @@ import '../../features/chat/presentation/chat_view.dart';
 import '../../features/ranking/presentation/ranking_view.dart';
 import '../../features/my_team/presentation/my_team_view.dart';
 import '../../features/ranking/presentation/total_ranking_view.dart';
+import '../../features/ranking/presentation/individual_ranking_view.dart';
+import '../../features/ranking/presentation/individual_total_ranking_view.dart';
 
 class AppRouter {
   static const String loginRoute = '/login';
@@ -30,6 +32,8 @@ class AppRouter {
   static const String chatRoute = '/chat';
   static const String rankingRoute = '/ranking';
   static const String totalRankingRoute = '/total_ranking';
+  static const String individualRankingRoute = '/individual_ranking';
+  static const String individualTotalRankingRoute = '/individual_total_ranking';
   static const String myTeamRoute = '/my_team';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -65,6 +69,10 @@ class AppRouter {
         return _fadeRoute(const MyTeam());
       case totalRankingRoute:
         return _fadeRoute(const TotalRanking());
+      case individualRankingRoute:
+        return _fadeRoute(const IndividualRanking());
+      case individualTotalRankingRoute:
+        return _fadeRoute(const IndividualTotalRanking());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(
