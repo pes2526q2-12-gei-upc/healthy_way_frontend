@@ -30,18 +30,16 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _initializeLocation() async {
-    // 1️⃣ Obtener ubicación inicial
     _userLocation = await LocationService.getCurrentLocation();
+    if (!mounted) return;
     setState(() {});
 
-    // 2️⃣ Centrar el mapa en la ubicación inicial
     _mapController.move(_userLocation!, 15.0);
 
-    // 3️⃣ Iniciar seguimiento en tiempo real
     await LocationService().startTracking();
 
-    // 4️⃣ Suscribirse a actualizaciones
     LocationService().locationStream.listen((position) {
+      if (!mounted) return;
       setState(() {
         _userLocation = position;
       });
@@ -61,7 +59,6 @@ class _MapScreenState extends State<MapScreen> {
       bottomNavigationBar: const CustomBottomNavBar(currentIndex: 1),
       body: Stack(
         children: [
-          // 1️⃣ MAPA REUTILIZABLE
           CustomMapWidget(
             mapController: _mapController,
             initialCenter: _userLocation ?? const LatLng(41.3851, 2.1734),
@@ -69,7 +66,6 @@ class _MapScreenState extends State<MapScreen> {
             userLocation: _userLocation, // PUNTO AZUL
           ),
 
-          // 2️⃣ INTERFAZ SUPERIOR
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),

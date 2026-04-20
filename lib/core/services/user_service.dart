@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
 
+import '../../shared/models/Activity.dart';
 import '../../shared/models/UserModel.dart';
 import '../../shared/providers/Auth_provider.dart';
 
@@ -52,6 +53,30 @@ class UserService {
       print('Error al iniciar sesión: ${response.statusCode}');
       print('Mensaje: ${response.body}');
       return null;
+    }
+  }
+
+  Future<User?> getUserProfile(int userId) async {
+    final response = await http.get(Uri.parse('$baseUrl/users/$userId'));
+
+    if (response.statusCode == 200) {
+      final userJson = json.decode(response.body);
+      return User.fromJson(userJson);
+    } else {
+      print('Error al obtener perfil del usuario: ${response.statusCode}');
+      return null;
+    }
+  }
+
+  Future<List<Activity>> getUserActivities(int userId) async {
+    final response = await http.get(Uri.parse('$baseUrl/users/$userId/activities'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> activitiesJson = json.decode(response.body);
+      return activitiesJson.map((json) => Activity.fromJson(json)).toList();
+    } else {
+      print('Error al obtener actividades del usuario: ${response.statusCode}');
+      return [];
     }
   }
 }

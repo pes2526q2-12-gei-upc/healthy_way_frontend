@@ -87,4 +87,15 @@ class RouteService {
       throw Exception('Error al eliminar la ruta');
     }
   }
+
+  Future<RouteModel> getRouteById(String routeId) async {
+    final response = await http.get(Uri.parse('$baseUrl/routes/$routeId'));
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> routeJson = json.decode(response.body);
+      return RouteModel.fromJson(routeJson);
+    } else {
+      throw Exception('Error al cargar la ruta');
+    }
+  }
 }

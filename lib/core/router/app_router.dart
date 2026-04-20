@@ -8,6 +8,7 @@ import '../../features/running_route/presentation/results_route_screen.dart';
 import '../../features/route_view/presentation/route_view_screen.dart';
 import '../../features/explore_routes/presentation/explore_routes_page.dart';
 import '../../features/running_route/presentation/save_route_form.dart';
+import '../../features/profile/presentation/ProfileScreen.dart';
 // 1. IMPORTAMOS LA NUEVA PANTALLA DEL MAPA (Asegúrate de que la ruta coincida con tus carpetas)
 import '../../features/map/presentation/map_screen.dart';
 import '../../features/chat/presentation/chat_view.dart';
@@ -29,6 +30,7 @@ class AppRouter {
   static const String chatRoute = '/chat';
   static const String rankingRoute = '/ranking';
   static const String myTeamRoute = '/my_team';
+  static const String profile = '/my_routes';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -61,6 +63,8 @@ class AppRouter {
         return _fadeRoute(const Ranking());
       case myTeamRoute:
         return _fadeRoute(const MyTeam());
+      case profile:
+        return _fadeRoute(const ProfileScreen());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

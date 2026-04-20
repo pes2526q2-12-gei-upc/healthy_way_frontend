@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/models/RouteModel.dart';
 import '../../../shared/providers/Auth_provider.dart';
+import '../../../shared/providers/location_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../core/services/route_service.dart';
 import '../../../core/router/app_router.dart';
@@ -25,6 +26,10 @@ class _HomePage extends State<HomePage> {
 
   Future<void> iniciaGPS() async {
     await LocationService().startTracking();
+
+    if (!mounted) return;
+
+    context.read<LocationProvider>().fetchLocationName();
   }
 
   @override

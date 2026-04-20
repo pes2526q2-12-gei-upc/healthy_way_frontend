@@ -103,9 +103,7 @@ class CustomBottomNavBar extends StatelessWidget {
                 label: 'Perfil',
                 isActive: currentIndex == 3,
                 onTap: () {
-                  if (currentIndex != 3) {
-                    _showComingSoonMessage(context, 'Perfil');
-                  }
+                  if (currentIndex != 3) Navigator.pushReplacementNamed(context, AppRouter.profile);
                 },
               ),
             ],

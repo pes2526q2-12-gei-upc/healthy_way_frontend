@@ -54,7 +54,8 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    final loggedUser = await UserService().login(_identifierController.text.trim(), _passwordController.text.trim());
+    final partialUser = await UserService().login(_identifierController.text.trim(), _passwordController.text.trim());
+    final loggedUser = await UserService().getUserProfile(partialUser!.userId);
     if (!mounted) return;
     if(loggedUser != null){
       context.read<AuthProvider>().login(loggedUser);
