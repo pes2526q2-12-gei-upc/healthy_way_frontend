@@ -14,6 +14,7 @@ import '../../features/map/presentation/map_screen.dart';
 import '../../features/chat/presentation/chat_view.dart';
 import '../../features/ranking/presentation/ranking_view.dart';
 import '../../features/my_team/presentation/my_team_view.dart';
+import '../../features/my_team/presentation/create_team_view.dart';
 
 class AppRouter {
   static const String loginRoute = '/login';
@@ -30,6 +31,7 @@ class AppRouter {
   static const String chatRoute = '/chat';
   static const String rankingRoute = '/ranking';
   static const String myTeamRoute = '/my_team';
+  static const String createTeamRoute = '/create_team';
   static const String profile = '/my_routes';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -63,6 +65,8 @@ class AppRouter {
         return _fadeRoute(const Ranking());
       case myTeamRoute:
         return _fadeRoute(const MyTeam());
+      case createTeamRoute:
+        return _fadeRoute(const CreateTeamView());
       case profile:
         return _fadeRoute(const ProfileScreen());
       default:
