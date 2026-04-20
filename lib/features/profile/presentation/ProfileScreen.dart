@@ -234,7 +234,7 @@ class ProfileScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildTag(Icons.people_alt_outlined, context.watch<AuthProvider>().currentUser!.team),
+            _buildTag(Icons.people_alt_outlined, context.watch<AuthProvider>().currentUser!.team ?? 'Sense Equip'),
             const SizedBox(width: 10),
             _buildTag(Icons.location_on_outlined, context.watch<LocationProvider>().placeName),
           ],

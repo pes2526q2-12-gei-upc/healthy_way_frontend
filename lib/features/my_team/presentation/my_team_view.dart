@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../../core/services/team_service.dart';
+import '../../../shared/models/TeamModel.dart';
+import '../../../shared/providers/Auth_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_comunity_bar.dart';
+import 'create_team_view.dart';
 
 class MyTeam extends StatefulWidget {
   const MyTeam({super.key});
@@ -10,35 +16,799 @@ class MyTeam extends StatefulWidget {
 }
 
 class _MyTeamState extends State<MyTeam> {
+  static const Color _primaryBlue = Color(0xFF1058E5);
+  static const Color _bgColor = Color(0xFFF4F6F9);
+
+  // Future per carregar les dades de l'equip desde el backend
+  Future<TeamModel?>? _teamFuture;
 
   @override
   void initState() {
     super.initState();
+    _loadTeam();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
+  void _loadTeam() {
+    final teamName = context.read<AuthProvider>().currentUser?.team;
+    if (teamName != null && teamName.isNotEmpty) {
+      setState(() {
+        _teamFuture = TeamService().getTeamByName(teamName);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().currentUser;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F9),
+      backgroundColor: _bgColor,
       bottomNavigationBar: const CustomBottomNavBar(currentIndex: 2),
       body: Column(
         children: [
           CommunityHeader(selectedIndex: 1),
-
           Expanded(
-            child: Center(
-              child: Text(
-                'Vista Equip (sense implementar)',
-                style: const TextStyle(fontSize: 24, color: Colors.grey),
+            child: user == null
+                ? const Center(child: CircularProgressIndicator())
+                : user.hasTeam
+                    ? _buildTeamView(context, user.team!)
+                    : _buildNoTeamView(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── VISTA: USUARI AMB EQUIP ─────────────────────────────────────────────────
+
+  Widget _buildTeamView(BuildContext context, String teamName) {
+    return FutureBuilder<TeamModel?>(
+      future: _teamFuture,
+      builder: (context, snapshot) {
+        // Mentre carrega, mostrem un skeleton/loader però ja tenim el nom
+        final team = snapshot.data;
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            setState(() {
+              _teamFuture = TeamService().getTeamByName(teamName);
+            });
+          },
+          color: _primaryBlue,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Targeta principal de l'equip ──
+                _buildTeamCard(context, teamName, team, isLoading),
+                const SizedBox(height: 24),
+
+                // ── Progrés Setmanal ──
+                _buildWeeklyProgress(),
+                const SizedBox(height: 24),
+
+                // ── Membres ──
+                _buildMembersList(context),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTeamCard(
+    BuildContext context,
+    String teamName,
+    TeamModel? team,
+    bool isLoading,
+  ) {
+    final zone = team?.zone ?? '—';
+    final modality = team?.modality ?? '—';
+    final modalityIcon = modality == 'cycling'
+        ? Icons.directions_bike
+        : Icons.directions_run;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Avatar de l'equip (cercle pintat, sense imatge de moment)
+          Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1058E5), Color(0xFF4A85F6)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: _primaryBlue.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.people_alt_rounded,
+                  color: Colors.white,
+                  size: 40,
+                ),
+              ),
+              // Indicador de modalitat
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF34C759),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    modalityIcon,
+                    color: Colors.white,
+                    size: 10,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Nom de l'equip
+          Text(
+            teamName,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1D26),
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // Zona i nivell (nivell hardcoded — no hi ha endpoint)
+          isLoading
+              ? const SizedBox(
+                  height: 16,
+                  width: 140,
+                  child: LinearProgressIndicator(borderRadius: BorderRadius.all(Radius.circular(4))),
+                )
+              : Text(
+                  'Nivell 1 · $zone', // ⚠️ Hardcoded: Nivell, ja que no hi ha endpoint
+                  style: const TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+
+          const SizedBox(height: 20),
+
+          // Estadístiques (hardcoded — no hi ha endpoint d'estadístiques d'equip)
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  // ⚠️ Hardcoded: estadístiques pendents d'endpoint
+                  value: '0',
+                  label: 'Punts Totals',
+                  color: _primaryBlue,
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 40,
+                color: Colors.grey.withOpacity(0.2),
+              ),
+              Expanded(
+                child: _buildStatItem(
+                  // ⚠️ Hardcoded: estadístiques pendents d'endpoint
+                  value: '0',
+                  label: 'Zones Conquerides',
+                  color: const Color(0xFF34C759),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Botó Gestionar Equip
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Gestió d\'equip pròximament disponible'),
+                    backgroundColor: _primaryBlue,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.edit_outlined, size: 16),
+              label: const Text('Gestionar Equip'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _primaryBlue,
+                side: BorderSide(color: _primaryBlue.withOpacity(0.3)),
+                backgroundColor: _primaryBlue.withOpacity(0.05),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
-          )
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required String value,
+    required String label,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWeeklyProgress() {
+    // ⚠️ Tot hardcoded — no hi ha endpoint de progrés setmanal
+    const double progressValue = 0.0;
+    const String progressLabel = '0%';
+    const String goalLabel = 'Objectiu: 15k';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Progrés Setmanal',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1D26),
+              ),
+            ),
+            Text(
+              goalLabel,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: _primaryBlue,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Aconseguit',
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                  Text(
+                    progressLabel,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1D26),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: progressValue,
+                  minHeight: 10,
+                  backgroundColor: const Color(0xFFE8EEF7),
+                  valueColor: const AlwaysStoppedAnimation<Color>(_primaryBlue),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Les dades de progrés s\'actualitzaran aviat',
+                style: TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMembersList(BuildContext context) {
+    final user = context.read<AuthProvider>().currentUser!;
+
+    // ⚠️ Hardcoded: només es mostra l'usuari actual, no hi ha endpoint per llistar membres
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Membres',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1D26),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: _primaryBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                'Afegir',
+                style: TextStyle(
+                  color: _primaryBlue,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Membre: l'usuari actual
+        _buildMemberCard(
+          name: '${user.nom} (Tu)',
+          status: 'Membre actiu',
+          isOnline: true,
+          // ⚠️ Hardcoded: punts pendents d'endpoint
+          points: '0 pts',
+          avatarColor: _primaryBlue,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMemberCard({
+    required String name,
+    required String status,
+    required bool isOnline,
+    required String points,
+    required Color avatarColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Avatar
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: avatarColor.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.person_outline, color: avatarColor, size: 24),
+          ),
+          const SizedBox(width: 14),
+
+          // Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Color(0xFF1A1D26),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: isOnline ? const Color(0xFF34C759) : Colors.grey,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      status,
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Punts
+          Text(
+            points,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: _primaryBlue,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── VISTA: USUARI SENSE EQUIP ───────────────────────────────────────────────
+
+  Widget _buildNoTeamView(BuildContext context) {
+    // ⚠️ Hardcoded: llista d'equips, ja que no hi ha endpoint per llistar equips
+    final hardcodedTeams = [
+      {'name': 'Els Llampecs', 'zone': 'Barcelona', 'modality': 'running', 'members': 8, 'open': true},
+      {'name': 'Velocitat Girona', 'zone': 'Girona', 'modality': 'cycling', 'members': 5, 'open': true},
+      {'name': 'Corredors Tarragona', 'zone': 'Tarragona', 'modality': 'running', 'members': 12, 'open': false},
+      {'name': 'Pedalers Lleida', 'zone': 'Lleida', 'modality': 'cycling', 'members': 3, 'open': true},
+    ];
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Missatge d'inici ──
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1058E5), Color(0xFF4A85F6)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: _primaryBlue.withOpacity(0.3),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.people_alt_rounded, color: Colors.white, size: 28),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Encara no tens equip',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Uneix-te a un equip existent o crea el teu propi per competir amb altres equips de la teva zona.',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Botó crear equip
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => Navigator.pushNamed(context, '/create_team'),
+                    icon: const Icon(Icons.add_rounded, size: 18),
+                    label: const Text(
+                      'Crear nou equip',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: _primaryBlue,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          // ── Capçalera llista d'equips ──
+          Row(
+            children: [
+              const Text(
+                'Equips disponibles',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1A1D26),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: _primaryBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                // ⚠️ Hardcoded: nombre d'equips
+                child: Text(
+                  '${hardcodedTeams.length}',
+                  style: const TextStyle(
+                    color: _primaryBlue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            '(Dades de prova — el llistat real estarà disponible aviat)',
+            style: TextStyle(fontSize: 11, color: Colors.grey),
+          ),
+          const SizedBox(height: 14),
+
+          // ── Llista de targetes d'equips ──
+          ...hardcodedTeams.map((team) => _buildTeamListCard(context, team)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTeamListCard(BuildContext context, Map<String, dynamic> team) {
+    final isOpen = team['open'] as bool;
+    final modality = team['modality'] as String;
+    final modalityIcon =
+        modality == 'cycling' ? Icons.directions_bike : Icons.directions_run;
+    final modalityColor =
+        modality == 'cycling' ? const Color(0xFFFF9500) : const Color(0xFF34C759);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () {
+            // ⚠️ Funcionalitat d'unir-se en construcció
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Unir-se a "${team['name']}" pròximament disponible'),
+                backgroundColor: _primaryBlue,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Avatar de l'equip
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        _primaryBlue.withOpacity(0.7),
+                        _primaryBlue,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.people_rounded, color: Colors.white, size: 26),
+                ),
+                const SizedBox(width: 14),
+
+                // Info de l'equip
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        team['name'] as String,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Color(0xFF1A1D26),
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Row(
+                        children: [
+                          // Zona
+                          const Icon(Icons.location_on_outlined,
+                              size: 12, color: Colors.grey),
+                          const SizedBox(width: 3),
+                          Text(
+                            team['zone'] as String,
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                          const SizedBox(width: 10),
+                          // Membres
+                          const Icon(Icons.people_outline,
+                              size: 12, color: Colors.grey),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${team['members']} membres',
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          // Modalitat
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: modalityColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(modalityIcon,
+                                    size: 11, color: modalityColor),
+                                const SizedBox(width: 3),
+                                Text(
+                                  modality,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: modalityColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          // Obert/Tancat
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: isOpen
+                                  ? Colors.green.withOpacity(0.1)
+                                  : Colors.grey.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              isOpen ? 'Obert' : 'Tancat',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isOpen
+                                    ? Colors.green[700]
+                                    : Colors.grey,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Fletxa
+                const Icon(Icons.chevron_right_rounded,
+                    color: Colors.grey, size: 22),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
