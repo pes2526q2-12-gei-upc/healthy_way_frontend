@@ -6,21 +6,26 @@ import '../../../core/router/app_router.dart';
 // --- MODELO ACTUALIZADO ---
 enum TeamModality { running, ciclisme }
 
+class Pair<A, B> {
+  final A first;
+  final B second;
+
+  Pair(this.first, this.second);
+}
+
 class TeamRankingModel {
   final String id;
   final String name;
-  final int points;
   final int zones;
   final bool isUserTeam;
-  final TeamModality modality;
-  final String zone; // Nueva propiedad
+  final List<Pair <TeamModality, int>> modalityPoints;
+  final String zone;
 
   TeamRankingModel({
     required this.id,
     required this.name,
-    required this.points,
     required this.zones,
-    required this.modality,
+    required this.modalityPoints,
     required this.zone,
     this.isUserTeam = false,
   });
@@ -41,26 +46,18 @@ class _RankingState extends State<Ranking> {
 
   // --- DATOS HARDCODEADOS PARA PRUEBAS ---
   final List<TeamRankingModel> allTeams = [
-    // BARCELONA + RUNNING (> 10 equipos para probar límite)
-    ...List.generate(12, (i) => TeamRankingModel(
-        id: 'bcn_r_$i',
-        name: i == 5 ? 'Tu Equipo BCN' : 'BCN Runner $i',
-        points: 2000 - (i * 100),
+    ...List.generate(15, (i) => TeamRankingModel( // He subido a 15 para que veas el scroll largo
+        id: 'EquipBcn$i',
+        name: i == 5 ? 'Tu Equipo BCN' : 'EquipBcn$i',
+        modalityPoints: {Pair(TeamModality.running, 2000 - (i * 100)), Pair(TeamModality.ciclisme, 1500 - (i * 80))}.toList(),
         zones: 15 - i,
-        modality: TeamModality.running,
         zone: 'Barcelona',
         isUserTeam: i == 5
     )),
-
-    // GIRONA + CICLISME (< 3 equipos para probar podio incompleto)
-    TeamRankingModel(id: 'gi_c_1', name: 'Girona Wheels', points: 2500, zones: 20, modality: TeamModality.ciclisme, zone: 'Girona'),
-    TeamRankingModel(id: 'gi_c_2', name: 'Costa Brava Bikes', points: 2100, zones: 12, modality: TeamModality.ciclisme, zone: 'Girona'),
-
-    // LLEIDA + RUNNING (Equipos aleatorios)
-    TeamRankingModel(id: 'll_r_1', name: 'Boira Runners', points: 1800, zones: 5, modality: TeamModality.running, zone: 'Lleida'),
-
-    // TARRAGONA + CICLISME
-    TeamRankingModel(id: 'ta_c_1', name: 'Tàrraco Cyclists', points: 1900, zones: 8, modality: TeamModality.ciclisme, zone: 'Tarragona'),
+    TeamRankingModel(id: 'gi_c_1', name: 'Girona Wheels', zones: 20, modalityPoints: {Pair(TeamModality.ciclisme, 2500)}.toList(), zone: 'Girona'),
+    TeamRankingModel(id: 'gi_c_2', name: 'Costa Brava Bikes', zones: 12, modalityPoints: {Pair(TeamModality.ciclisme, 2100)}.toList(), zone: 'Girona'),
+    TeamRankingModel(id: 'll_r_1', name: 'Boira Runners', zones: 5, modalityPoints: {Pair(TeamModality.running, 1800)}.toList(), zone: 'Lleida'),
+    TeamRankingModel(id: 'ta_c_1', name: 'Tàrraco Cyclists', zones: 8, modalityPoints: {Pair(TeamModality.ciclisme, 1900)}.toList(), zone: 'Tarragona'),
   ];
 
   List<TeamRankingModel> filteredTop10 = [];
@@ -72,13 +69,22 @@ class _RankingState extends State<Ranking> {
     _processTeams();
   }
 
+  bool isModalityPoints(TeamRankingModel team, TeamModality modality) {
+    return team.modalityPoints.any((pair) => pair.first == modality);
+  }
+
   void _processTeams() {
     // FILTRADO DOBLE: Modalidad AND Zona
     List<TeamRankingModel> filtered = allTeams
-        .where((team) => team.modality == _selectedModality && team.zone == _selectedZone)
+        .where((team) => isModalityPoints(team, _selectedModality) && team.zone == _selectedZone)
         .toList();
 
-    filtered.sort((a, b) => b.points.compareTo(a.points));
+    // Ordenamos por puntos de la modalidad seleccionada (si no tiene puntos para esa modalidad, se queda abajo)
+    filtered.sort((a, b) {
+      int pointsA = a.modalityPoints.firstWhere((pair) => pair.first == _selectedModality, orElse: () => Pair(_selectedModality, 0)).second;
+      int pointsB = b.modalityPoints.firstWhere((pair) => pair.first == _selectedModality, orElse: () => Pair(_selectedModality, 0)).second;
+      return pointsB.compareTo(pointsA); // Orden descendente
+    });
 
     setState(() {
       filteredTop10 = filtered.take(10).toList();
@@ -288,13 +294,13 @@ class _RankingState extends State<Ranking> {
             alignment: Alignment.bottomCenter,
             clipBehavior: Clip.none,
             children: [
-              CircleAvatar(radius: isFirst ? 36 : 28, backgroundColor: const Color(0xFF2864FF), child: Icon(team.modality == TeamModality.running ? Icons.directions_run : Icons.directions_bike, color: Colors.white, size: isFirst ? 32 : 24)),
+              CircleAvatar(radius: isFirst ? 36 : 28, backgroundColor: const Color(0xFF2864FF), child: Icon(_selectedModality == TeamModality.running ? Icons.directions_run : Icons.directions_bike, color: Colors.white, size: isFirst ? 32 : 24)),
               Positioned(bottom: -8, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: badgeColor, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)), child: Text(rank.toString(), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))),
             ],
           ),
           const SizedBox(height: 16),
           Text(team.name, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-          Text('${team.points} pts', style: const TextStyle(color: Color(0xFF1058E5), fontWeight: FontWeight.bold, fontSize: 12)),
+          Text('${team.modalityPoints.firstWhere((pair) => pair.first == _selectedModality).second} pts', style: const TextStyle(color: Color(0xFF1058E5), fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 8),
         ],
         Container(height: height, width: double.infinity, margin: const EdgeInsets.symmetric(horizontal: 4), decoration: BoxDecoration(color: baseColor, borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))), child: Icon(Icons.emoji_events, color: badgeColor.withOpacity(0.5), size: 32)),
@@ -326,42 +332,67 @@ class _RankingState extends State<Ranking> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: filteredTop10.length,
-              itemBuilder: (context, index) => _buildTeamCard(filteredTop10[index], index + 1),
+              itemBuilder: (context, index) => _buildTeamCard(filteredTop10[index].name, filteredTop10[index].zones,
+                  filteredTop10[index].isUserTeam, index + 1, filteredTop10[index].modalityPoints.firstWhere((pair) => pair.first == _selectedModality).second),
             ),
         ],
       ),
     );
   }
 
-  Widget _buildTeamCard(TeamRankingModel team, int rank) {
-    final bool isUser = team.isUserTeam;
+  Widget _buildTeamCard(String name, int zones, bool isUser, int rank, int points) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))]),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))]
+      ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          decoration: BoxDecoration(border: isUser ? const Border(left: BorderSide(color: Color(0xFF1058E5), width: 5)) : null),
+          decoration: BoxDecoration(
+              border: isUser ? const Border(left: BorderSide(color: Color(0xFF1058E5), width: 5)) : null
+          ),
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              SizedBox(width: 24, child: Text(rank.toString(), style: TextStyle(color: isUser ? const Color(0xFF1058E5) : Colors.grey.shade400, fontWeight: FontWeight.bold, fontSize: 18))),
-              CircleAvatar(radius: 18, backgroundColor: const Color(0xFF2864FF).withOpacity(0.8), child: Icon(team.modality == TeamModality.running ? Icons.directions_run : Icons.directions_bike, color: Colors.white, size: 18)),
+              SizedBox(
+                  width: 32, // Un poco más ancho por si se llega a rangos de 100+
+                  child: Text(
+                      rank.toString(),
+                      style: TextStyle(color: isUser ? const Color(0xFF1058E5) : Colors.grey.shade400, fontWeight: FontWeight.bold, fontSize: 18)
+                  )
+              ),
+              CircleAvatar(
+                  radius: 18,
+                  backgroundColor: const Color(0xFF2864FF).withOpacity(0.8),
+                  child: Icon(_selectedModality == TeamModality.running ? Icons.directions_run : Icons.directions_bike, color: Colors.white, size: 18)
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(team.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isUser ? const Color(0xFF1058E5) : Colors.black87)),
+                    Text(
+                        name,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isUser ? const Color(0xFF1058E5) : Colors.black87)
+                    ),
                     const SizedBox(height: 2),
-                    Text('${team.zones} zones conquerides', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                    Text(
+                        '$zones zones conquerides',
+                        style: const TextStyle(color: Colors.grey, fontSize: 11)
+                    ),
                   ],
                 ),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(team.points.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isUser ? const Color(0xFF1058E5) : Colors.black87)),
+                  Text(
+                      points.toString(),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isUser ? const Color(0xFF1058E5) : Colors.black87)
+                  ),
                   const Text('punts', style: TextStyle(color: Colors.grey, fontSize: 10))
                 ],
               )

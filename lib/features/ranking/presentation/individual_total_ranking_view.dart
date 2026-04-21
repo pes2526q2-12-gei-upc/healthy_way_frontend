@@ -5,19 +5,24 @@ import '../../../core/router/app_router.dart';
 // --- MODELO DE USUARIO (Idealmente en un archivo aparte pronto) ---
 enum UserModality { running, ciclisme }
 
+class Pair<A, B> {
+  final A first;
+  final B second;
+
+  Pair(this.first, this.second);
+}
+
 class UserRankingModel {
   final String id;
   final String name;
-  final int points;
   final bool isCurrentUser;
-  final UserModality modality;
+  final List<Pair <UserModality, int>> modalityPoints;
   final String zone;
 
   UserRankingModel({
     required this.id,
     required this.name,
-    required this.points,
-    required this.modality,
+    required this.modalityPoints,
     required this.zone,
     this.isCurrentUser = false,
   });
@@ -38,25 +43,24 @@ class _IndividualTotalRankingState extends State<IndividualTotalRanking> {
 
   // --- DATOS HARDCODEADOS DE USUARIOS ---
   final List<UserRankingModel> allUsers = [
-    // BARCELONA + RUNNING (Subido a 15 para probar el scroll largo)
-    ...List.generate(15, (i) => UserRankingModel(
+    // BARCELONA + RUNNING (> 10 usuarios para probar límite)
+    ...List.generate(12, (i) => UserRankingModel(
         id: 'bcn_r_u_$i',
         name: i == 4 ? 'El Teu Usuari' : 'Runner BCN $i',
-        points: 3500 - (i * 150),
-        modality: UserModality.running,
+        modalityPoints: {Pair(UserModality.running, 3500 - (i * 100)), Pair(UserModality.ciclisme, 1500 - (i * 80))}.toList(),
         zone: 'Barcelona',
         isCurrentUser: i == 4
     )),
 
-    // GIRONA + CICLISME
-    UserRankingModel(id: 'gi_c_u_1', name: 'Laura Pedals', points: 4200, modality: UserModality.ciclisme, zone: 'Girona'),
-    UserRankingModel(id: 'gi_c_u_2', name: 'Marc Rodes', points: 3800, modality: UserModality.ciclisme, zone: 'Girona'),
+    // GIRONA + CICLISME (< 3 usuarios para probar podio incompleto)
+    UserRankingModel(id: 'gi_c_u_1', name: 'Laura Pedals', modalityPoints: {Pair(UserModality.ciclisme, 4200)}.toList(), zone: 'Girona'),
+    UserRankingModel(id: 'gi_c_u_2', name: 'Marc Rodes', modalityPoints: {Pair(UserModality.ciclisme, 3800)}.toList(), zone: 'Girona'),
 
     // LLEIDA + RUNNING
-    UserRankingModel(id: 'll_r_u_1', name: 'Anna Boira', points: 2900, modality: UserModality.running, zone: 'Lleida'),
+    UserRankingModel(id: 'll_r_u_1', name: 'Anna Boira', modalityPoints: {Pair(UserModality.running, 2900)}.toList(), zone: 'Lleida'),
 
     // TARRAGONA + CICLISME
-    UserRankingModel(id: 'ta_c_u_1', name: 'Joan Tàrraco', points: 3100, modality: UserModality.ciclisme, zone: 'Tarragona'),
+    UserRankingModel(id: 'ta_c_u_1', name: 'Joan Tàrraco', modalityPoints: {Pair(UserModality.ciclisme, 3100)}.toList(), zone: 'Tarragona'),
   ];
 
   // Lista completa filtrada
@@ -68,12 +72,21 @@ class _IndividualTotalRankingState extends State<IndividualTotalRanking> {
     _processUsers();
   }
 
+  bool isModalityPoints(UserRankingModel user, UserModality modality) {
+    return user.modalityPoints.any((pair) => pair.first == modality);
+  }
+
   void _processUsers() {
     List<UserRankingModel> filtered = allUsers
-        .where((user) => user.modality == _selectedModality && user.zone == _selectedZone)
+        .where((user) => isModalityPoints(user, _selectedModality) && user.zone == _selectedZone)
         .toList();
 
-    filtered.sort((a, b) => b.points.compareTo(a.points));
+    // Ordenamos por puntos de la modalidad seleccionada
+    filtered.sort((a, b) {
+      int pointsA = a.modalityPoints.firstWhere((pair) => pair.first == _selectedModality).second;
+      int pointsB = b.modalityPoints.firstWhere((pair) => pair.first == _selectedModality).second;
+      return pointsB.compareTo(pointsA); // Orden descendente
+    });
 
     setState(() {
       filteredUsers = filtered;
@@ -137,7 +150,8 @@ class _IndividualTotalRankingState extends State<IndividualTotalRanking> {
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
                 itemCount: filteredUsers.length,
-                itemBuilder: (context, index) => _buildUserCard(filteredUsers[index], index + 1),
+                itemBuilder: (context, index) => _buildUserCard(filteredUsers[index].name, filteredUsers[index].modalityPoints.firstWhere((pair) => pair.first == _selectedModality).second,
+                    filteredUsers[index].isCurrentUser, index + 1),
               ),
             ),
           ],
@@ -224,8 +238,8 @@ class _IndividualTotalRankingState extends State<IndividualTotalRanking> {
   }
 
   // TARJETA DE USUARIO SIMPLIFICADA
-  Widget _buildUserCard(UserRankingModel user, int rank) {
-    final bool isCurrentUser = user.isCurrentUser;
+  Widget _buildUserCard(String name, int points, bool isCurrentUser, int rank) {
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -236,40 +250,59 @@ class _IndividualTotalRankingState extends State<IndividualTotalRanking> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Container(
+          // Si es el usuario actual, le ponemos el borde azul izquierdo
           decoration: BoxDecoration(
               border: isCurrentUser ? const Border(left: BorderSide(color: Color(0xFF1058E5), width: 5)) : null
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), // Padding ajustado
+          // Reducimos un poco el padding vertical para que sea más compacta
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
+              // Número de rango
               SizedBox(
-                  width: 32, // Ancho preparado para rangos > 99
+                  width: 24,
                   child: Text(
                       rank.toString(),
-                      style: TextStyle(color: isCurrentUser ? const Color(0xFF1058E5) : Colors.grey.shade400, fontWeight: FontWeight.bold, fontSize: 18)
+                      style: TextStyle(
+                          color: isCurrentUser ? const Color(0xFF1058E5) : Colors.grey.shade400,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18
+                      )
                   )
               ),
-              // Avatar con Icono de Persona
+
+              // Avatar de persona
               CircleAvatar(
                   radius: 18,
                   backgroundColor: const Color(0xFF2864FF).withOpacity(0.8),
                   child: const Icon(Icons.person, color: Colors.white, size: 20)
               ),
               const SizedBox(width: 12),
-              // Nombre del usuario sin subtítulos
+
+              // Nombre del usuario (ya sin el subtítulo de zonas debajo)
               Expanded(
                 child: Text(
-                    user.name,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isCurrentUser ? const Color(0xFF1058E5) : Colors.black87)
+                    name,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: isCurrentUser ? const Color(0xFF1058E5) : Colors.black87
+                    )
                 ),
               ),
+
+              // Puntos
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                      user.points.toString(),
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isCurrentUser ? const Color(0xFF1058E5) : Colors.black87)
+                      points.toString(),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: isCurrentUser ? const Color(0xFF1058E5) : Colors.black87
+                      )
                   ),
                   const Text('punts', style: TextStyle(color: Colors.grey, fontSize: 10))
                 ],

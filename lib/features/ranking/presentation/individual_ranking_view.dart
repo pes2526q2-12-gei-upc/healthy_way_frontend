@@ -6,19 +6,24 @@ import '../../../core/router/app_router.dart';
 // --- NUEVO MODELO PARA USUARIOS ---
 enum UserModality { running, ciclisme }
 
+class Pair<A, B> {
+  final A first;
+  final B second;
+
+  Pair(this.first, this.second);
+}
+
 class UserRankingModel {
   final String id;
   final String name;
-  final int points;
   final bool isCurrentUser;
-  final UserModality modality;
+  final List<Pair <UserModality, int>> modalityPoints;
   final String zone;
 
   UserRankingModel({
     required this.id,
     required this.name,
-    required this.points,
-    required this.modality,
+    required this.modalityPoints,
     required this.zone,
     this.isCurrentUser = false,
   });
@@ -43,21 +48,20 @@ class _IndividualRankingState extends State<IndividualRanking> {
     ...List.generate(12, (i) => UserRankingModel(
         id: 'bcn_r_u_$i',
         name: i == 4 ? 'El Teu Usuari' : 'Runner BCN $i',
-        points: 3500 - (i * 150),
-        modality: UserModality.running,
+        modalityPoints: {Pair(UserModality.running, 3500 - (i * 100)), Pair(UserModality.ciclisme, 1500 - (i * 80))}.toList(),
         zone: 'Barcelona',
         isCurrentUser: i == 4
     )),
 
     // GIRONA + CICLISME (< 3 usuarios para probar podio incompleto)
-    UserRankingModel(id: 'gi_c_u_1', name: 'Laura Pedals', points: 4200, modality: UserModality.ciclisme, zone: 'Girona'),
-    UserRankingModel(id: 'gi_c_u_2', name: 'Marc Rodes', points: 3800, modality: UserModality.ciclisme, zone: 'Girona'),
+    UserRankingModel(id: 'gi_c_u_1', name: 'Laura Pedals', modalityPoints: {Pair(UserModality.ciclisme, 4200)}.toList(), zone: 'Girona'),
+    UserRankingModel(id: 'gi_c_u_2', name: 'Marc Rodes', modalityPoints: {Pair(UserModality.ciclisme, 3800)}.toList(), zone: 'Girona'),
 
     // LLEIDA + RUNNING
-    UserRankingModel(id: 'll_r_u_1', name: 'Anna Boira', points: 2900, modality: UserModality.running, zone: 'Lleida'),
+    UserRankingModel(id: 'll_r_u_1', name: 'Anna Boira', modalityPoints: {Pair(UserModality.running, 2900)}.toList(), zone: 'Lleida'),
 
     // TARRAGONA + CICLISME
-    UserRankingModel(id: 'ta_c_u_1', name: 'Joan Tàrraco', points: 3100, modality: UserModality.ciclisme, zone: 'Tarragona'),
+    UserRankingModel(id: 'ta_c_u_1', name: 'Joan Tàrraco', modalityPoints: {Pair(UserModality.ciclisme, 3100)}.toList(), zone: 'Tarragona'),
   ];
 
   List<UserRankingModel> filteredTop10 = [];
@@ -69,12 +73,21 @@ class _IndividualRankingState extends State<IndividualRanking> {
     _processUsers();
   }
 
+  bool isModalityPoints(UserRankingModel user, UserModality modality) {
+    return user.modalityPoints.any((pair) => pair.first == modality);
+  }
+
   void _processUsers() {
     List<UserRankingModel> filtered = allUsers
-        .where((user) => user.modality == _selectedModality && user.zone == _selectedZone)
+        .where((user) => isModalityPoints(user, _selectedModality) && user.zone == _selectedZone)
         .toList();
 
-    filtered.sort((a, b) => b.points.compareTo(a.points));
+    // Ordenamos por puntos de la modalidad seleccionada
+    filtered.sort((a, b) {
+      int pointsA = a.modalityPoints.firstWhere((pair) => pair.first == _selectedModality).second;
+      int pointsB = b.modalityPoints.firstWhere((pair) => pair.first == _selectedModality).second;
+      return pointsB.compareTo(pointsA); // Orden descendente
+    });
 
     setState(() {
       filteredTop10 = filtered.take(10).toList();
@@ -289,7 +302,7 @@ class _IndividualRankingState extends State<IndividualRanking> {
           ),
           const SizedBox(height: 16),
           Text(user.name, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-          Text('${user.points} pts', style: const TextStyle(color: Color(0xFF1058E5), fontWeight: FontWeight.bold, fontSize: 12)),
+          Text('${user.modalityPoints.firstWhere((pair) => pair.first == _selectedModality).second} pts', style: const TextStyle(color: Color(0xFF1058E5), fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 8),
         ],
         Container(height: height, width: double.infinity, margin: const EdgeInsets.symmetric(horizontal: 4), decoration: BoxDecoration(color: baseColor, borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))), child: Icon(Icons.emoji_events, color: badgeColor.withOpacity(0.5), size: 32)),
@@ -322,7 +335,8 @@ class _IndividualRankingState extends State<IndividualRanking> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: filteredTop10.length,
-              itemBuilder: (context, index) => _buildUserCard(filteredTop10[index], index + 1),
+              itemBuilder: (context, index) => _buildUserCard(filteredTop10[index].name, filteredTop10[index].modalityPoints.firstWhere((pair) => pair.first == _selectedModality).second,
+                  filteredTop10[index].isCurrentUser, index + 1),
             ),
         ],
       ),
@@ -330,8 +344,7 @@ class _IndividualRankingState extends State<IndividualRanking> {
   }
 
   // TARJETA DE USUARIO REDUCIDA Y LIMPIA
-  Widget _buildUserCard(UserRankingModel user, int rank) {
-    final bool isCurrentUser = user.isCurrentUser;
+  Widget _buildUserCard(String name, int points, bool isCurrentUser, int rank) {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -375,7 +388,7 @@ class _IndividualRankingState extends State<IndividualRanking> {
               // Nombre del usuario (ya sin el subtítulo de zonas debajo)
               Expanded(
                 child: Text(
-                    user.name,
+                    name,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
@@ -390,7 +403,7 @@ class _IndividualRankingState extends State<IndividualRanking> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                      user.points.toString(),
+                      points.toString(),
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,

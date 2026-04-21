@@ -12,21 +12,26 @@ void main() {
 // --- MODELO (Idealmente esto ya estará en un archivo aparte pronto) ---
 enum TeamModality { running, ciclisme }
 
+class Pair<A, B> {
+  final A first;
+  final B second;
+
+  Pair(this.first, this.second);
+}
+
 class TeamRankingModel {
   final String id;
   final String name;
-  final int points;
   final int zones;
   final bool isUserTeam;
-  final TeamModality modality;
+  final List<Pair <TeamModality, int>> modalityPoints;
   final String zone;
 
   TeamRankingModel({
     required this.id,
     required this.name,
-    required this.points,
     required this.zones,
-    required this.modality,
+    required this.modalityPoints,
     required this.zone,
     this.isUserTeam = false,
   });
@@ -48,18 +53,17 @@ class _TotalRankingState extends State<TotalRanking> {
   // --- DATOS HARDCODEADOS ---
   final List<TeamRankingModel> allTeams = [
     ...List.generate(15, (i) => TeamRankingModel( // He subido a 15 para que veas el scroll largo
-        id: 'bcn_r_$i',
-        name: i == 5 ? 'Tu Equipo BCN' : 'BCN Runner $i',
-        points: 2000 - (i * 100),
+        id: 'EquipBcn$i',
+        name: i == 5 ? 'Tu Equipo BCN' : 'EquipBcn$i',
+        modalityPoints: {Pair(TeamModality.running, 2000 - (i * 100)), Pair(TeamModality.ciclisme, 1500 - (i * 80))}.toList(),
         zones: 15 - i,
-        modality: TeamModality.running,
         zone: 'Barcelona',
         isUserTeam: i == 5
     )),
-    TeamRankingModel(id: 'gi_c_1', name: 'Girona Wheels', points: 2500, zones: 20, modality: TeamModality.ciclisme, zone: 'Girona'),
-    TeamRankingModel(id: 'gi_c_2', name: 'Costa Brava Bikes', points: 2100, zones: 12, modality: TeamModality.ciclisme, zone: 'Girona'),
-    TeamRankingModel(id: 'll_r_1', name: 'Boira Runners', points: 1800, zones: 5, modality: TeamModality.running, zone: 'Lleida'),
-    TeamRankingModel(id: 'ta_c_1', name: 'Tàrraco Cyclists', points: 1900, zones: 8, modality: TeamModality.ciclisme, zone: 'Tarragona'),
+    TeamRankingModel(id: 'gi_c_1', name: 'Girona Wheels', zones: 20, modalityPoints: {Pair(TeamModality.ciclisme, 2500)}.toList(), zone: 'Girona'),
+    TeamRankingModel(id: 'gi_c_2', name: 'Costa Brava Bikes', zones: 12, modalityPoints: {Pair(TeamModality.ciclisme, 2100)}.toList(), zone: 'Girona'),
+    TeamRankingModel(id: 'll_r_1', name: 'Boira Runners', zones: 5, modalityPoints: {Pair(TeamModality.running, 1800)}.toList(), zone: 'Lleida'),
+    TeamRankingModel(id: 'ta_c_1', name: 'Tàrraco Cyclists', zones: 8, modalityPoints: {Pair(TeamModality.ciclisme, 1900)}.toList(), zone: 'Tarragona'),
   ];
 
   // Ya no es un top10, es la lista completa filtrada
@@ -71,12 +75,21 @@ class _TotalRankingState extends State<TotalRanking> {
     _processTeams();
   }
 
+  bool isModalityPoints(TeamRankingModel team, TeamModality modality) {
+    return team.modalityPoints.any((pair) => pair.first == modality);
+  }
+
   void _processTeams() {
     List<TeamRankingModel> filtered = allTeams
-        .where((team) => team.modality == _selectedModality && team.zone == _selectedZone)
+        .where((team) => isModalityPoints(team, _selectedModality) && team.zone == _selectedZone)
         .toList();
 
-    filtered.sort((a, b) => b.points.compareTo(a.points));
+    // Ordenamos por puntos de la modalidad seleccionada (si no tiene puntos para esa modalidad, se queda abajo)
+    filtered.sort((a, b) {
+      int pointsA = a.modalityPoints.firstWhere((pair) => pair.first == _selectedModality, orElse: () => Pair(_selectedModality, 0)).second;
+      int pointsB = b.modalityPoints.firstWhere((pair) => pair.first == _selectedModality, orElse: () => Pair(_selectedModality, 0)).second;
+      return pointsB.compareTo(pointsA); // Orden descendente
+    });
 
     setState(() {
       // Quitamos el .take(10) para cogerlos todos absolutamente
@@ -140,7 +153,8 @@ class _TotalRankingState extends State<TotalRanking> {
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
                 itemCount: filteredTeams.length,
-                itemBuilder: (context, index) => _buildTeamCard(filteredTeams[index], index + 1),
+                itemBuilder: (context, index) => _buildTeamCard(filteredTeams[index].name, filteredTeams[index].zones, filteredTeams[index].isUserTeam,
+                    index + 1, filteredTeams[index].modalityPoints.firstWhere((pair) => pair.first == _selectedModality).second),
               ),
             ),
           ],
@@ -226,8 +240,7 @@ class _TotalRankingState extends State<TotalRanking> {
     );
   }
 
-  Widget _buildTeamCard(TeamRankingModel team, int rank) {
-    final bool isUser = team.isUserTeam;
+  Widget _buildTeamCard(String name, int zones, bool isUser, int rank, int points) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -254,7 +267,7 @@ class _TotalRankingState extends State<TotalRanking> {
               CircleAvatar(
                   radius: 18,
                   backgroundColor: const Color(0xFF2864FF).withOpacity(0.8),
-                  child: Icon(team.modality == TeamModality.running ? Icons.directions_run : Icons.directions_bike, color: Colors.white, size: 18)
+                  child: Icon(_selectedModality == TeamModality.running ? Icons.directions_run : Icons.directions_bike, color: Colors.white, size: 18)
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -262,12 +275,12 @@ class _TotalRankingState extends State<TotalRanking> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                        team.name,
+                        name,
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isUser ? const Color(0xFF1058E5) : Colors.black87)
                     ),
                     const SizedBox(height: 2),
                     Text(
-                        '${team.zones} zones conquerides',
+                        '$zones zones conquerides',
                         style: const TextStyle(color: Colors.grey, fontSize: 11)
                     ),
                   ],
@@ -277,7 +290,7 @@ class _TotalRankingState extends State<TotalRanking> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                      team.points.toString(),
+                      points.toString(),
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isUser ? const Color(0xFF1058E5) : Colors.black87)
                   ),
                   const Text('punts', style: TextStyle(color: Colors.grey, fontSize: 10))
