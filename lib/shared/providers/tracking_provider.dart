@@ -23,15 +23,39 @@ class TrackingProvider extends ChangeNotifier {
   // --- ESTADÍSTICAS Y ESTADO ---
   double distanceDouble = 0.0;
   String distance = '0.00';
-  String pace = '0:00';
+  String pace = '0.00';
   String elevation = '40';
   String calories = '0';
   String placeName = 'Ubicació desconeguda';
+
+  DateTime startTime = DateTime.now();
+  String modality = 'Running';
 
   // NUEVO: Bandera para saber si hemos llegado al destino
   bool isFinished = false;
 
   bool get isRunning => _stopwatch.isRunning;
+
+  bool validModality() {
+    return modality == 'Running' || modality == 'Cycling';
+  }
+
+  String getModality() {
+    if (modality == 'Running') {
+      return 'running';
+    } else {
+      return 'cycling';
+    }
+  }
+
+  void toggleModality() {
+    if (modality == 'Running') {
+      modality = 'Cycling';
+    } else {
+      modality = 'Running';
+    }
+    notifyListeners();
+  }
 
   Future<void> _updatePlaceName(LatLng pos) async {
     try {
@@ -62,6 +86,8 @@ class TrackingProvider extends ChangeNotifier {
     });
 
     running = true;
+
+    startTime = DateTime.now(); // Guardamos el momento de inicio para calcular el tiempo total al finalizar
 
     notifyListeners();
   }
@@ -99,6 +125,8 @@ class TrackingProvider extends ChangeNotifier {
     isFinished = false; // Reiniciamos la bandera
     _stopwatch.reset();
     running = false;
+    modality = 'Running';
+    startTime = DateTime.now();
     notifyListeners();
   }
 

@@ -6,8 +6,11 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:healthy_way_frontend/core/router/app_router.dart';
 import 'package:healthy_way_frontend/shared/models/RouteModel.dart';
+import '../../../shared/models/UserModel.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
 import '../../../shared/providers/tracking_provider.dart';
+
+import '../../../core/services/user_service.dart';
 
 class RouteViewScreen extends StatefulWidget {
   const RouteViewScreen({super.key});
@@ -247,7 +250,26 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                           const SizedBox(width: 12),
                           _buildMetricCard('ALTITUD', rutaSeleccionada.elevation_gain, 'm'),
                           const SizedBox(width: 12),
-                          _buildMetricCard('CREADOR', rutaSeleccionada.creatorName, ''),
+
+                          // Usamos FutureBuilder para manejar la llamada asíncrona
+                          Expanded(
+                            child: FutureBuilder<User?>(
+                              future: UserService().getUserProfile(rutaSeleccionada.createdBy),
+                              builder: (context, snapshot) {
+                                String nombreCreador;
+
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  nombreCreador = 'Carregant...'; // Mientras espera la API
+                                } else if (snapshot.hasError || snapshot.data == null) {
+                                  nombreCreador = 'Desconegut';   // Si hay error o no existe
+                                } else {
+                                  nombreCreador = snapshot.data!.nom; // ¡Éxito! Tenemos el nombre
+                                }
+
+                                return _buildMetricCard('CREADOR', nombreCreador, '');
+                              },
+                            ),
+                          ),
                         ],
                       ),
                     ),
