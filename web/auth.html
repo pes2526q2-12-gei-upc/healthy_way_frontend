@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Autenticación completada</title>
+</head>
+<body>
+<script>
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+
+    if (window.opener) {
+        window.opener.postMessage(url.href, window.location.origin);
+        window.close();
+    } else {
+        window.parent.postMessage(url.href, window.location.origin);
+    }
+</script>
+<p>Autenticación exitosa. Esta ventana se cerrará automáticamente.</p>
+</body>
+</html>
