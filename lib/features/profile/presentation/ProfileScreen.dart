@@ -27,7 +27,7 @@ class ProfileScreen extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.topCenter,
                 children: [
-                  _buildBlueBackground(),
+                  _buildBlueBackground(context),
                   Positioned(
                     top: 60,
                     left: 0,
@@ -166,7 +166,7 @@ class ProfileScreen extends StatelessWidget {
 
   // --- MÉTODOS DE LA PANTALLA PRINCIPAL ---
 
-  Widget _buildBlueBackground() {
+  Widget _buildBlueBackground(BuildContext context) {
     return Container(
       height: 310,
       decoration: BoxDecoration(
@@ -183,7 +183,16 @@ class ProfileScreen extends StatelessWidget {
             right: 20,
             child: IconButton(
               icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 28),
-              onPressed: () {},
+              onPressed: () {
+                final messenger = ScaffoldMessenger.of(context);
+                final userId = context.read<AuthProvider>().currentUser!.userId;
+
+                UserService().importStravaRoutes(userId).then((result) {
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(result)),
+                  );
+                });
+              },
             ),
           ),
         ],
