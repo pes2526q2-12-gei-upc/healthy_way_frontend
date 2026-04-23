@@ -11,6 +11,7 @@ class Activity {
   final String modality;
   final double pace;
   final int userId;
+  final String userTeam;
   final bool createRoute;
   final RouteModel route;
 
@@ -21,6 +22,7 @@ class Activity {
     required this.modality,
     required this.pace,
     required this.userId,
+    required this.userTeam,
     required this.createRoute,
     required this.route,
   });
@@ -33,6 +35,7 @@ class Activity {
       modality: json['modality'] ?? 'Running',
       pace: json['pace']?.toDouble() ?? 0.0,
       userId: json['user_id'] ?? 99,
+      userTeam: json['user_team'] ?? 'No team',
       createRoute: json['create_route'] ?? false,
       route: json['route'] != null ? RouteModel.fromJson(json['route']) : RouteModel(
         id: '',

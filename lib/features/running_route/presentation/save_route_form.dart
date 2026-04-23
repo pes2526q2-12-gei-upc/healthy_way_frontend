@@ -177,6 +177,7 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                               endTime: DateTime.now(),
                               modality: provider.modality,
                               userId: context.read<AuthProvider>().currentUser!.userId,
+                              userTeam: context.read<AuthProvider>().currentUser!.team ?? '',
                               pace: double.parse(provider.pace.replaceAll(':', '.')),
                               createRoute: true,
                               route: nuevaRuta,

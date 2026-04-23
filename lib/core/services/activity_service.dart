@@ -13,7 +13,7 @@ class ActivityService {
 
   Future<dynamic> createActivity(Activity activityData) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/users/registeractivity'),
+      Uri.parse('$baseUrl/activities/upload'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(activityData.toJson()),
     );

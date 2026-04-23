@@ -66,7 +66,7 @@ class RouteModel {
       location: json['location'],
       altitude: json['altitude'].toString(),
       elevation_gain: json['elevation_gain'].toString(),
-      modality: json['modality'],
+      modality: json['modality'] ?? 'Running', // Valor por defecto si no viene en el JSON
     );
   }
 
