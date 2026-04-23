@@ -122,7 +122,7 @@ class ProfileScreen extends StatelessWidget {
 
                           // 2. Por cada actividad, conseguimos los detalles de su ruta
                           return FutureBuilder<RouteModel>(
-                            future: RouteService().getRouteById(activitat.routeId as String),
+                            future: RouteService().getRouteById(activitat.route.id),
                             builder: (context, routeSnapshot) {
 
                               if (routeSnapshot.connectionState == ConnectionState.waiting) {

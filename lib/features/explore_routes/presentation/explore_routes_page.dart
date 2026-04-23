@@ -176,6 +176,8 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
       double? minD = double.tryParse(_minDistController.text);
       double? maxD = double.tryParse(_maxDistController.text);
 
+      print('🔍 Cargando rutas con filtros -> Nombre: $rName, Creador: $creator, Localización: $loc, Distancia Min: $minD, Distancia Max: $maxD');
+
       // Llamamos al servicio para obtener las rutas con los filtros aplicados
       List<RouteModel> rutasObtenidas = await RouteService().getPublicRoutes(
         name: rName,

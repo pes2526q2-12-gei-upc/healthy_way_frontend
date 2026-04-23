@@ -9,6 +9,10 @@ import '../../../shared/widgets/custom_map_widget.dart';
 import '../../../shared/models/RouteModel.dart';
 import '../../../core/services/route_service.dart';
 
+import '../../../shared/providers/Auth_provider.dart';
+import '../../../shared/models/Activity.dart';
+import '../../../core/services/activity_service.dart';
+
 
 // ==========================================================
 // --- FORMULARIO PARA GUARDAR RUTA (SaveRouteFormScreen) ---
@@ -157,14 +161,30 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                               startPoint: route.first,
                               endPoint: route.last,
                               distance: double.parse((distance/1000).toStringAsFixed(2)), // <-- Redondear a 2 decimales
-                              creatorName: 'test1',
+                              createdBy: context.read<AuthProvider>().currentUser!.userId,
                               isPrivate: !_isPublic,
                               location: location,
                               createdAt: DateTime.now(),
                               elevation_gain: elevation,
                               altitude: elevation,
+                              modality: provider.getModality(),
                             );
-                            await RouteService().createRoute(nuevaRuta);
+
+                            // Creamos la actividad con la ruta y luego guardamos la ruta en el servidor
+                            final newActivity = Activity(
+                              distance: double.parse((distance/1000).toStringAsFixed(2)),
+                              startTime: provider.startTime,
+                              endTime: DateTime.now(),
+                              modality: provider.modality,
+                              userId: context.read<AuthProvider>().currentUser!.userId,
+                              userTeam: context.read<AuthProvider>().currentUser!.team ?? '',
+                              pace: double.parse(provider.pace.replaceAll(':', '.')),
+                              createRoute: true,
+                              route: nuevaRuta,
+                            );
+
+                            await ActivityService().createActivity(newActivity);
+                            //await RouteService().createRoute(nuevaRuta);
                             provider.reset();
                             provider.routeIsSelected = false;
                             Navigator.pushNamedAndRemoveUntil(
