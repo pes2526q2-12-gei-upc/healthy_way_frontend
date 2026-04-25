@@ -26,7 +26,6 @@ class RouteService {
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {
-        print('Respuesta del servidor: ${response.body}'); // Debug: Ver la respuesta completa
         final List<dynamic> routesJson = json.decode(response.body);
         final List<RouteModel> routes = routesJson.map((json) => RouteModel.fromJson(json)).toList();
         return routes;
