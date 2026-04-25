@@ -189,7 +189,53 @@ class ProfileScreen extends StatelessWidget {
                     });
                   }
                   else if (value == 'delete') {
-                    print("Eliminar Compte clicat");
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext dialogContext) {
+                        return AlertDialog(
+                          title: const Text('Eliminar Compte'),
+                          content: const Text('Estàs segur que vols eliminar el teu compte? Aquesta acció no es pot desfer i perdràs totes les teves dades i rutes.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(dialogContext);
+                              },
+                              child: const Text('Cancel·lar', style: TextStyle(color: Colors.grey)),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.pop(dialogContext);
+
+                                final authProvider = context.read<AuthProvider>();
+                                final user = authProvider.currentUser;
+
+                                if (user != null) {
+                                  try {
+                                    await UserService().eliminarUsuari(user.userId);
+                                    if (!context.mounted) return;
+                                    Navigator.pushNamedAndRemoveUntil(context, AppRouter.loginRoute, (route) => false);
+                                    Future.delayed(const Duration(milliseconds: 400), () async {
+                                      await context.read<AuthProvider>().logout();
+                                    });
+                                  }
+                                  catch (e) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Error al eliminar el compte: $e'),
+                                        backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 4),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                              child: const Text('Eliminar', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        );
+                      },
+                    );
                   }
                 },
                 itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
