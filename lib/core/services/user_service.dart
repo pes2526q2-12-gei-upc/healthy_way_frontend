@@ -85,7 +85,7 @@ class UserService {
   Future<String> importStravaRoutes(int userId) async {
     final url = Uri.https('www.strava.com', '/oauth/mobile/authorize', {
       'client_id': '209168',
-      'redirect_uri': 'http://localhost:52915/auth.html',
+      'redirect_uri': 'http://localhost:50578/auth.html',
       'response_type': 'code',
       'scope': 'activity:read,activity:read_all',
     });
@@ -107,19 +107,19 @@ class UserService {
     if (code != null) {
       final newResponse = await http.post(
         Uri.parse('$baseUrl/import/strava'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            'code': code,
-            'user_id': userId,
-          }),
-        );
-        if(newResponse.statusCode == 200) {
-          return 'Rutes importades correctament des de Strava.';
-        }
-        else {
-          return 'Error al importar les rutes de Strava: ${newResponse.statusCode}';
-        }
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'code': code,
+          'user_id': userId,
+        }),
+      );
+      if(newResponse.statusCode == 201) {
+        return 'Rutes importades correctament des de Strava.';
       }
+      else {
+        return 'Error al importar les rutes de Strava: ${newResponse.statusCode}';
+      }
+    }
     else {
       return 'Error: Problema amb Strava.';
     }
