@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/services/route_service.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/services/user_service.dart';
-import '../../../shared/models/RouteModel.dart';
 import '../../../shared/models/Activity.dart';
 import '../../../shared/providers/Auth_provider.dart';
 import '../../../shared/providers/location_provider.dart';
@@ -160,18 +159,79 @@ class ProfileScreen extends StatelessWidget {
           Positioned(
             top: 50,
             right: 20,
-            child: IconButton(
-              icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 28),
-              onPressed: () {
-                final messenger = ScaffoldMessenger.of(context);
-                final userId = context.read<AuthProvider>().currentUser!.userId;
+            child: Theme(
+              // Forzamos el color del icono principal a blanco
+              data: Theme.of(context).copyWith(
+                iconTheme: const IconThemeData(color: Colors.white),
+              ),
+              child: PopupMenuButton<String>(
+                icon: const Icon(Icons.settings_outlined, size: 28),
+                offset: const Offset(0, 45),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                onSelected: (String value) async {
+                  if (value == 'strava') {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final userId = context.read<AuthProvider>().currentUser!.userId;
 
-                UserService().importStravaRoutes(userId).then((result) {
-                  messenger.showSnackBar(
-                    SnackBar(content: Text(result)),
-                  );
-                });
-              },
+                    UserService().importStravaRoutes(userId).then((result) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                            content: Text(result),
+                            duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    });
+                  }
+                  else if (value == 'logout') {
+                    Navigator.pushNamedAndRemoveUntil(context, AppRouter.loginRoute, (route) => false);
+                    Future.delayed(const Duration(milliseconds: 400), () async {
+                      await context.read<AuthProvider>().logout();
+                    });
+                  }
+                  else if (value == 'delete') {
+                    print("Eliminar Compte clicat");
+                  }
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  // 1. Conectar amb Strava
+                  const PopupMenuItem<String>(
+                    value: 'strava',
+                    child: Row(
+                      children: [
+                        Icon(Icons.sync, color: Colors.orange),
+                        SizedBox(width: 12),
+                        Text('Conectar amb Strava'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  // 2. Tancar Sessió
+                  const PopupMenuItem<String>(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, color: Colors.black54),
+                        SizedBox(width: 12),
+                        Text('Tancar Sessió'),
+                      ],
+                    ),
+                  ),
+                  // 3. Eliminar Compte
+                  const PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, color: Colors.red),
+                        SizedBox(width: 12),
+                        Text(
+                          'Eliminar Compte',
+                          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
