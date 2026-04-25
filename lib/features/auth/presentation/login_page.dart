@@ -64,6 +64,7 @@ class _LoginPageState extends State<LoginPage> {
         const SnackBar(
             content: Text('Inici de sessió correcte!'),
             backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
         ),
       );
 
