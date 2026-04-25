@@ -54,7 +54,7 @@ class ProfileScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Les meves rutes',
+                        'Les meves activitats',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -120,36 +120,15 @@ class ProfileScreen extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final activitat = activitats[index];
 
-                          // 2. Por cada actividad, conseguimos los detalles de su ruta
-                          return FutureBuilder<RouteModel>(
-                            future: RouteService().getRouteById(activitat.route.id),
-                            builder: (context, routeSnapshot) {
-
-                              if (routeSnapshot.connectionState == ConnectionState.waiting) {
-                                return const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 20.0),
-                                  child: Center(child: CircularProgressIndicator(color: Colors.grey)),
-                                );
-                              }
-
-                              if (routeSnapshot.hasError || !routeSnapshot.hasData) {
-                                return const SizedBox.shrink();
-                              }
-
-                              final rutaDatos = routeSnapshot.data!;
-
-                              // 3. Juntamos la info de ambos modelos en tu ActivityCard
-                              return _ActivityCard(
-                                routeName: rutaDatos.name,
-                                location: rutaDatos.location,
-                                imageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=600&auto=format&fit=crop',
-                                distance: activitat.distance.toDouble(),
-                                startTime: activitat.startTime,
-                                endTime: activitat.endTime,
-                                modality: activitat.modality,
-                                pace: activitat.pace.toDouble(),
-                              );
-                            },
+                          return _ActivityCard(
+                            routeName: activitat.route.name,
+                            location: activitat.route.location,
+                            imageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=600&auto=format&fit=crop',
+                            distance: activitat.distance.toDouble(),
+                            startTime: activitat.startTime,
+                            endTime: activitat.endTime,
+                            modality: activitat.modality,
+                            pace: activitat.pace.toDouble(),
                           );
                         },
                       );
