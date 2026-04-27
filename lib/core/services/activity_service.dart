@@ -9,7 +9,7 @@ class ActivityService {
   factory ActivityService() => _instance;
   ActivityService._internal();
 
-  final String baseUrl = 'http://localhost:3000/api/v1';
+  final String baseUrl = 'http://localhost:8080/api/v1';
 
   Future<dynamic> createActivity(Activity activityData) async {
     final response = await http.post(
