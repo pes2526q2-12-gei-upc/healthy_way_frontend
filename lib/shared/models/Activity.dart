@@ -28,6 +28,7 @@ class Activity {
   });
 
   factory Activity.fromJson(Map<String, dynamic> json) {
+    print('DATOS REALES DE LA RUTA: ${json['route']}');
     return Activity(
       distance: json['distance']?.toDouble() ?? 0.0,
       startTime: DateTime.parse(json['start_time']),
@@ -39,7 +40,7 @@ class Activity {
       createRoute: json['create_route'] ?? false,
       route: json['route'] != null ? RouteModel.fromJson(json['route']) : RouteModel(
         id: '',
-        name: '',
+        name: 'Activitat Predeterminada',
         distance: 0.0,
         isPrivate: false,
         createdBy: 99,
@@ -47,10 +48,10 @@ class Activity {
         trajectory: [],
         startPoint: const LatLng(0, 0),
         endPoint: const LatLng(0, 0),
-        location: '',
-        altitude: '',
-        elevation_gain: '',
-        modality: '',
+        location: 'Ubicaió desconeguda',
+        altitude: 'Altitud desconeguda',
+        elevation_gain: 'Elevació desconeguda',
+        modality: 'Modalitat desconeguda',
       ),
     );
   }
