@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../core/services/zone_service.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_filter_chip.dart';
 import '../../../core/router/app_router.dart';
@@ -15,8 +16,11 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  bool isZonesCapturedSelected = true;
+  bool isZonesCapturedSelected = false;
   bool isRunningMode = true;
+
+  List<Polygon> _capturedHexagons = [];
+  bool _isLoadingZones = false;
 
   final MapController _mapController = MapController();
 
@@ -46,6 +50,31 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
+  Future<void> _fetchZones() async {
+    if (!isZonesCapturedSelected) {
+      setState(() => _capturedHexagons = []);
+      return;
+    }
+
+    setState(() => _isLoadingZones = true);
+
+    try {
+      final bounds = _mapController.camera.visibleBounds;
+      final zones = await ZoneService().getZonesCapturades(
+        bounds: bounds,
+        sport: isRunningMode ? 'Running' : 'Cycling',
+        team: '',
+      );
+      setState(() {
+        _capturedHexagons = zones;
+      });
+    } catch (e) {
+      print("Error obteniendo zonas: $e");
+    } finally {
+      setState(() => _isLoadingZones = false);
+    }
+  }
+
   @override
   void dispose() {
     // Detener seguimiento cuando la pantalla se cierra
@@ -64,6 +93,7 @@ class _MapScreenState extends State<MapScreen> {
             initialCenter: _userLocation ?? const LatLng(41.3851, 2.1734),
             initialZoom: 15.0,
             userLocation: _userLocation, // PUNTO AZUL
+            polygons: _capturedHexagons,
           ),
 
           SafeArea(
@@ -85,7 +115,7 @@ class _MapScreenState extends State<MapScreen> {
                           ),
                           child: TextField(
                             decoration: InputDecoration(
-                              hintText: 'Cerca rutes, equips o zones...',
+                              hintText: 'Cercar rutes',
                               prefixIcon: const Icon(Icons.search, color: Colors.grey),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
                               contentPadding: const EdgeInsets.symmetric(vertical: 0),
@@ -123,8 +153,17 @@ class _MapScreenState extends State<MapScreen> {
                             setState(() {
                               isZonesCapturedSelected = !isZonesCapturedSelected;
                             });
+                            _fetchZones();
                           },
                         ),
+                        // Si está cargando, mostramos un pequeño spinner
+                        if (_isLoadingZones) ...[
+                          const SizedBox(width: 8),
+                          const SizedBox(
+                              width: 16, height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2)
+                          )
+                        ]
                       ],
                     ),
                   ),
@@ -148,6 +187,9 @@ class _MapScreenState extends State<MapScreen> {
                     setState(() {
                       isRunningMode = !isRunningMode;
                     });
+                    if(isZonesCapturedSelected) {
+                      _fetchZones();
+                    }
                   },
                 ),
                 const SizedBox(height: 12),
