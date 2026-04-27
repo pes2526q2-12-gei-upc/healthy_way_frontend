@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
 //Modelo activity con los atributos distance: number,start_time: Date,end_time: Date,modality: string,pace: number,route_id: number;
 
 import 'package:latlong2/latlong.dart';
 
-import 'RouteModel.dart';
+import 'route_model.dart';
 
 class Activity {
   final double distance;
@@ -28,7 +29,7 @@ class Activity {
   });
 
   factory Activity.fromJson(Map<String, dynamic> json) {
-    print('DATOS REALES DE LA RUTA: ${json['route']}');
+    debugPrint('DATOS REALES DE LA RUTA: ${json['route']}');
     return Activity(
       distance: json['distance']?.toDouble() ?? 0.0,
       startTime: DateTime.parse(json['start_time']),
@@ -50,7 +51,7 @@ class Activity {
         endPoint: const LatLng(0, 0),
         location: 'Ubicaió desconeguda',
         altitude: 'Altitud desconeguda',
-        elevation_gain: 'Elevació desconeguda',
+        elevationGain: 'Elevació desconeguda',
         modality: 'Modalitat desconeguda',
       ),
     );

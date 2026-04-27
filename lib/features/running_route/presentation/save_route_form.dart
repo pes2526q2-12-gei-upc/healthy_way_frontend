@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -6,11 +5,10 @@ import 'package:latlong2/latlong.dart';
 import '../../../core/router/app_router.dart';
 import '../../../shared/providers/tracking_provider.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
-import '../../../shared/models/RouteModel.dart';
-import '../../../core/services/route_service.dart';
+import '../../../shared/models/route_model.dart';
 
-import '../../../shared/providers/Auth_provider.dart';
-import '../../../shared/models/Activity.dart';
+import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/models/activity.dart';
 import '../../../core/services/activity_service.dart';
 
 
@@ -165,7 +163,7 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                               isPrivate: !_isPublic,
                               location: location,
                               createdAt: DateTime.now(),
-                              elevation_gain: elevation,
+                              elevationGain: elevation,
                               altitude: elevation,
                               modality: provider.getModality(),
                             );
@@ -184,6 +182,7 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                             );
 
                             await ActivityService().createActivity(newActivity);
+                            if (!context.mounted) return;
                             //await RouteService().createRoute(nuevaRuta);
                             provider.reset();
                             provider.routeIsSelected = false;

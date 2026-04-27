@@ -1,5 +1,6 @@
+import 'package:flutter/foundation.dart';
 //Servicio para hacer llamadas a la API de rutas
-import 'package:healthy_way_frontend/shared/models/RouteModel.dart';
+import 'package:healthy_way_frontend/shared/models/route_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -14,12 +15,12 @@ class RouteService {
   // 1. OBTENER TODAS LAS RUTAS PUBLICAS CON POSIBILIDAD DE FILTRAR POR ID DE RUTA, NOMBRE DE RUTA, LOCALIZACION, MAX/MIN DISTANCE, CREADOR
     Future<List<RouteModel>> getPublicRoutes({String? routeId, String? name, String? location, double? minDistance, double? maxDistance, String? creator}) async {
       final queryParameters = {
-        if (routeId != null) 'routeId': routeId,
-        if (name != null) 'routeName': name,
-        if (location != null) 'routeLocation': location,
+        'routeId': ?routeId,
+        'routeName': ?name,
+        'routeLocation': ?location,
         if (minDistance != null) 'minDistance': minDistance.toString(),
         if (maxDistance != null) 'maxDistance': maxDistance.toString(),
-        if (creator != null) 'createdBy': creator,
+        'createdBy': ?creator,
       };
 
       final uri = Uri.parse('$baseUrl/routes').replace(queryParameters: queryParameters);
@@ -58,8 +59,8 @@ class RouteService {
     if (response.statusCode == 201) {
       return json.decode(response.body);
     } else {
-      print('Codigo de error: ${response.statusCode}');
-      print('Mensaje: ${response.body}');
+      debugPrint('Codigo de error: ${response.statusCode}');
+      debugPrint('Mensaje: ${response.body}');
       throw Exception('Error al crear la ruta');
     }
   }

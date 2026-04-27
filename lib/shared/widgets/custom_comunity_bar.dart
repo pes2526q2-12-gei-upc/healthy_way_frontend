@@ -97,7 +97,7 @@ class _CustomTab extends StatelessWidget {
           // 3. AJUSTE VERTICAL: Reducido a 10 para que los botones no sean tan altos
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.white.withOpacity(0.15),
+            color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.15),
             // 4. BOTONES REDONDEADOS: 50 crea la forma de píldora perfecta
             borderRadius: BorderRadius.circular(50),
           ),

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/UserModel.dart';
+import '../models/user_model.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _currentUser;

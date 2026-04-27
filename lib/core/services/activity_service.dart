@@ -1,5 +1,5 @@
-import 'package:healthy_way_frontend/shared/models/RouteModel.dart';
-import 'package:healthy_way_frontend/shared/models/Activity.dart';
+import 'package:flutter/foundation.dart';
+import 'package:healthy_way_frontend/shared/models/activity.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -21,15 +21,15 @@ class ActivityService {
     if (response.statusCode == 201) {
       return json.decode(response.body);
     } else {
-      print('--- DEBUG INFO ---');
-      print('URL: ${response.request?.url}'); // Verifica la URL final (por si hubo redirecciones)
-      print('METODO: ${response.request?.method}'); // Confirma que fue un POST
-      print('STATUS CODE: ${response.statusCode}'); // El número clave (404, 405, 500...)
-      print('BODY DEL ERROR: ${response.body}'); // Aquí el backend suele decir qué campo falla
-      print('HEADERS RESPUESTA: ${response.headers}'); // Ver qué tipo de contenido dice el servidor que envía
-      print('HEADERS ENVIADOS: ${response.request?.headers}'); // ¿Mandaste el Content-Type: application/json?
-      print('JSON ENVIADO: ${jsonEncode(activityData)}'); // Revisa qué estás mandando
-      print('------------------');
+      debugPrint('--- DEBUG INFO ---');
+      debugPrint('URL: ${response.request?.url}'); // Verifica la URL final (por si hubo redirecciones)
+      debugPrint('METODO: ${response.request?.method}'); // Confirma que fue un POST
+      debugPrint('STATUS CODE: ${response.statusCode}'); // El número clave (404, 405, 500...)
+      debugPrint('BODY DEL ERROR: ${response.body}'); // Aquí el backend suele decir qué campo falla
+      debugPrint('HEADERS RESPUESTA: ${response.headers}'); // Ver qué tipo de contenido dice el servidor que envía
+      debugPrint('HEADERS ENVIADOS: ${response.request?.headers}'); // ¿Mandaste el Content-Type: application/json?
+      debugPrint('JSON ENVIADO: ${jsonEncode(activityData)}'); // Revisa qué estás mandando
+      debugPrint('------------------');
       throw Exception('Error al crear la actividad');
     }
   }

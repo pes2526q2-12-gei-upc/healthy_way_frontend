@@ -1,11 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:provider/provider.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
-import '../../shared/models/Activity.dart';
-import '../../shared/models/UserModel.dart';
-import '../../shared/providers/Auth_provider.dart';
+import '../../shared/models/activity.dart';
+import '../../shared/models/user_model.dart';
 
 class UserService {
 
@@ -28,8 +27,8 @@ class UserService {
     );
 
     if (response.statusCode != 201) {
-      print('Error al crear usuario: ${response.statusCode}');
-      print('Mensaje: ${response.body}');
+      debugPrint('Error al crear usuario: ${response.statusCode}');
+      debugPrint('Mensaje: ${response.body}');
       return false;
     }
 
@@ -51,8 +50,8 @@ class UserService {
       return loggedUser;
     }
     else {
-      print('Error al iniciar sesión: ${response.statusCode}');
-      print('Mensaje: ${response.body}');
+      debugPrint('Error al iniciar sesión: ${response.statusCode}');
+      debugPrint('Mensaje: ${response.body}');
       return null;
     }
   }
@@ -64,7 +63,7 @@ class UserService {
       final userJson = json.decode(response.body);
       return User.fromJson(userJson);
     } else {
-      print('Error al obtener perfil del usuario: ${response.statusCode}');
+      debugPrint('Error al obtener perfil del usuario: ${response.statusCode}');
       return null;
     }
   }
@@ -76,7 +75,7 @@ class UserService {
       final List<dynamic> activitiesJson = json.decode(response.body);
       return activitiesJson.map((json) => Activity.fromJson(json)).toList();
     } else {
-      print('Error al obtener actividades del usuario: ${response.statusCode}');
+      debugPrint('Error al obtener actividades del usuario: ${response.statusCode}');
       return [];
     }
   }
@@ -129,14 +128,14 @@ class UserService {
     final response = await http.delete(Uri.parse('$baseUrl/users/$userId'));
 
     if (response.statusCode == 200) {
-      print('Usuari eliminat correctament');
+      debugPrint('Usuari eliminat correctament');
       return true;
     }
     else if (response.statusCode == 404) {
-      print('Usuari no trobat');
+      debugPrint('Usuari no trobat');
     }
     else {
-      print('Error al eliminar usuari: ${response.statusCode}');
+      debugPrint('Error al eliminar usuari: ${response.statusCode}');
     }
     return false;
   }

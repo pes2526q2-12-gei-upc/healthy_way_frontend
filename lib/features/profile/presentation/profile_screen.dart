@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/services/user_service.dart';
-import '../../../shared/models/Activity.dart';
-import '../../../shared/providers/Auth_provider.dart';
+import '../../../shared/models/activity.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/location_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
+import '../../../shared/models/route_model.dart';
+import '../../../core/services/route_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -275,9 +277,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     });
                   }
                   else if (value == 'logout') {
+                    final authProvider = context.read<AuthProvider>();
                     Navigator.pushNamedAndRemoveUntil(context, AppRouter.loginRoute, (route) => false);
                     Future.delayed(const Duration(milliseconds: 400), () async {
-                      await context.read<AuthProvider>().logout();
+                      await authProvider.logout();
                     });
                   }
                   else if (value == 'delete') {
@@ -307,7 +310,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     if (!context.mounted) return;
                                     Navigator.pushNamedAndRemoveUntil(context, AppRouter.loginRoute, (route) => false);
                                     Future.delayed(const Duration(milliseconds: 400), () async {
-                                      await context.read<AuthProvider>().logout();
+                                      await authProvider.logout();
                                     });
                                   }
                                   catch (e) {
@@ -434,7 +437,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -458,7 +461,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -468,9 +471,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildStatColumn('NIVELL', '12', Colors.blue),
-          Container(width: 1, height: 40, color: Colors.grey.withOpacity(0.3)),
+          Container(width: 1, height: 40, color: Colors.grey.withValues(alpha: 0.3)),
           _buildStatColumn('VOLTA AL MÓN', '3.4%', Colors.green, icon: Icons.public),
-          Container(width: 1, height: 40, color: Colors.grey.withOpacity(0.3)),
+          Container(width: 1, height: 40, color: Colors.grey.withValues(alpha: 0.3)),
           _buildStatColumn('PUNTS', '2.450', Colors.amber),
         ],
       ),
@@ -543,7 +546,7 @@ class _ActivityCard extends StatelessWidget {
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     }
-    return '${minutes} min';
+    return '$minutes min';
   }
 
   @override
@@ -555,7 +558,7 @@ class _ActivityCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -585,7 +588,7 @@ class _ActivityCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E65F3).withOpacity(0.9),
+                      color: const Color(0xFF1E65F3).withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -701,7 +704,7 @@ class _RouteCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Row(
@@ -726,7 +729,7 @@ class _RouteCard extends StatelessWidget {
                     Expanded(child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[900]), overflow: TextOverflow.ellipsis)),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: badgeColor.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                      decoration: BoxDecoration(color: badgeColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
                       child: Text(badgeText, style: TextStyle(color: badgeColor, fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   ],

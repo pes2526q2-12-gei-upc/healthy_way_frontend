@@ -4,13 +4,13 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:healthy_way_frontend/core/router/app_router.dart';
-import '../../../shared/providers/Auth_provider.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
 import '../../../shared/providers/tracking_provider.dart';
 
 import '../../../core/services/activity_service.dart';
-import '../../../shared/models/Activity.dart';
-import '../../../shared/models/RouteModel.dart';
+import '../../../shared/models/activity.dart';
+import '../../../shared/models/route_model.dart';
 
 class ResultsRouteScreen extends StatelessWidget {
   const ResultsRouteScreen({super.key});
@@ -197,13 +197,14 @@ class ResultsRouteScreen extends StatelessWidget {
                                 endPoint: const LatLng(0, 0),
                                 location: '',
                                 altitude: '',
-                                elevation_gain: '',
+                                elevationGain: '',
                                 modality: trackingProvider.getModality()
                               ),
                             );
 
                             // Guardamos la actividad sin ruta
                             await ActivityService().createActivity(activity);
+                            if (!context.mounted) return;
 
                             trackingProvider.reset();
                             trackingProvider.routeIsSelected = false;

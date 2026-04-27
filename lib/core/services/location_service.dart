@@ -39,7 +39,7 @@ class LocationService {
     await _checkAndRequestPermission();
 
     final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
     );
 
     return LatLng(position.latitude, position.longitude);
@@ -52,7 +52,7 @@ class LocationService {
     // 1. ¿Está el GPS activado en los ajustes del móvil?
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      print('El GPS está apagado. Necesitamos que enciendas el GPS para que puedas utilizar HealthyWay correctamente.');
+      debugPrint('El GPS está apagado. Necesitamos que enciendas el GPS para que puedas utilizar HealthyWay correctamente.');
       return;
     }
 
@@ -62,13 +62,13 @@ class LocationService {
       // Si no tiene, se lo pedimos ahora mismo
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        print('El usuario ha denegado el permiso.');
+        debugPrint('El usuario ha denegado el permiso.');
         return;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      print('Permisos denegados para siempre. Debe ir a Ajustes.');
+      debugPrint('Permisos denegados para siempre. Debe ir a Ajustes.');
       return;
     }
 
@@ -76,7 +76,7 @@ class LocationService {
       permission = await Geolocator.requestPermission();
       // Si sigue siendo whileInUse, avisamos que puede haber cortes
       if (permission == LocationPermission.whileInUse) {
-        print("Aviso: La ruta podría detenerse al bloquear el teléfono ya que solo tenemos permiso parcial. Para el correcto funcionamiento ve ajustes y permite la ubicacion todo el tiempo.");
+        debugPrint("Aviso: La ruta podría detenerse al bloquear el teléfono ya que solo tenemos permiso parcial. Para el correcto funcionamiento ve ajustes y permite la ubicacion todo el tiempo.");
       }
     }
   }

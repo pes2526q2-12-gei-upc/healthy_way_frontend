@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/chat_service.dart';
-import '../../../shared/models/ChatMessage.dart';
-import '../../../shared/providers/Auth_provider.dart';
+import '../../../shared/models/chat_message.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_comunity_bar.dart';
 
@@ -370,10 +370,10 @@ class _ChatState extends State<Chat> {
                   height: 36,
                   margin: const EdgeInsets.only(right: 8),
                   decoration: BoxDecoration(
-                    color: avatarColor.withOpacity(0.15),
+                    color: avatarColor.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: avatarColor.withOpacity(0.3),
+                      color: avatarColor.withValues(alpha: 0.3),
                       width: 1.5,
                     ),
                   ),
@@ -404,7 +404,7 @@ class _ChatState extends State<Chat> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -430,7 +430,7 @@ class _ChatState extends State<Chat> {
                             style: TextStyle(
                               fontSize: 10,
                               color: isMe
-                                  ? Colors.white.withOpacity(0.65)
+                                  ? Colors.white.withValues(alpha: 0.65)
                                   : Colors.grey,
                             ),
                           ),
@@ -439,7 +439,7 @@ class _ChatState extends State<Chat> {
                             Icon(
                               Icons.done_all,
                               size: 13,
-                              color: Colors.white.withOpacity(0.65),
+                              color: Colors.white.withValues(alpha: 0.65),
                             ),
                           ],
                         ],
@@ -465,7 +465,7 @@ class _ChatState extends State<Chat> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: _primaryBlue.withOpacity(0.08),
+              color: _primaryBlue.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -510,7 +510,7 @@ class _ChatState extends State<Chat> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -581,7 +581,7 @@ class _ChatState extends State<Chat> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: _primaryBlue.withOpacity(0.3),
+                  color: _primaryBlue.withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),

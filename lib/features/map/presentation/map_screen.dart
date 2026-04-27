@@ -69,7 +69,7 @@ class _MapScreenState extends State<MapScreen> {
         _capturedHexagons = zones;
       });
     } catch (e) {
-      print("Error obteniendo zonas: $e");
+      debugPrint("Error obteniendo zonas: $e");
     } finally {
       setState(() => _isLoadingZones = false);
     }
@@ -110,7 +110,7 @@ class _MapScreenState extends State<MapScreen> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4)),
+                              BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4)),
                             ],
                           ),
                           child: TextField(
@@ -240,7 +240,7 @@ class _FloatingMapButton extends StatelessWidget {
         color: color,
         shape: BoxShape.circle,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 4)),
         ],
       ),
       child: IconButton(

@@ -95,7 +95,7 @@ class _TeamManagementViewState extends State<TeamManagementView> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -107,7 +107,7 @@ class _TeamManagementViewState extends State<TeamManagementView> {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: _primaryBlue.withOpacity(0.15),
+              color: _primaryBlue.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.person, color: _primaryBlue),

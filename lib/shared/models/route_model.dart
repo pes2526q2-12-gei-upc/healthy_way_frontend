@@ -14,7 +14,7 @@ class RouteModel {
   final LatLng endPoint;
   final String location;
   final String altitude;
-  final String elevation_gain;
+  final String elevationGain;
   final String modality;
 
   RouteModel({
@@ -29,7 +29,7 @@ class RouteModel {
     required this.endPoint,
     required this.location,
     required this.altitude,
-    required this.elevation_gain,
+    required this.elevationGain,
     required this.modality,
   });
 
@@ -65,7 +65,7 @@ class RouteModel {
           : const LatLng(0, 0), // O pon un LatLng(0,0) como arriba si lo prefieres
       location: json['location'],
       altitude: json['altitude'].toString(),
-      elevation_gain: json['elevation_gain'].toString(),
+      elevationGain: json['elevationGain'].toString(),
       modality: json['modality'] ?? 'Running', // Valor por defecto si no viene en el JSON
     );
   }
@@ -91,7 +91,7 @@ class RouteModel {
       },
       'location': location,
       'altitude': double.tryParse(altitude),
-      'elevation_gain': double.tryParse(elevation_gain),
+      'elevationGain': double.tryParse(elevationGain),
       'modality': modality,
     };
   }

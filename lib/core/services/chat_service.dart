@@ -1,7 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import '../../shared/models/ChatMessage.dart';
+import '../../shared/models/chat_message.dart';
 
 /// Servei singleton per gestionar les crides a la API de xats
 class ChatService {
@@ -25,8 +26,8 @@ class ChatService {
           .map((m) => ChatMessage.fromJson(m as Map<String, dynamic>))
           .toList();
     } else {
-      print('Error al obtenir missatges: ${response.statusCode}');
-      print('Missatge: ${response.body}');
+      debugPrint('Error al obtenir missatges: ${response.statusCode}');
+      debugPrint('Missatge: ${response.body}');
       return [];
     }
   }
@@ -53,8 +54,8 @@ class ChatService {
       }
       return [];
     } else {
-      print('Error al obtenir missatges d\'equip: ${response.statusCode}');
-      print('Missatge: ${response.body}');
+      debugPrint('Error al obtenir missatges d\'equip: ${response.statusCode}');
+      debugPrint('Missatge: ${response.body}');
       return [];
     }
   }
@@ -81,8 +82,8 @@ class ChatService {
     if (response.statusCode == 201) {
       return true;
     } else {
-      print('Error en enviar missatge: ${response.statusCode}');
-      print('Missatge: ${response.body}');
+      debugPrint('Error en enviar missatge: ${response.statusCode}');
+      debugPrint('Missatge: ${response.body}');
       return false;
     }
   }
@@ -103,7 +104,7 @@ class ChatService {
           .map((m) => ChatMessage.fromJson(m as Map<String, dynamic>))
           .toList();
     } else {
-      print('Error al obtenir missatges nous: ${response.statusCode}');
+      debugPrint('Error al obtenir missatges nous: ${response.statusCode}');
       return [];
     }
   }
