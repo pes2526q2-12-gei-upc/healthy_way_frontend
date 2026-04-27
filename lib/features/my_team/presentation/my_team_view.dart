@@ -7,6 +7,7 @@ import '../../../shared/providers/Auth_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_comunity_bar.dart';
 import 'create_team_view.dart';
+import 'team_management_view.dart';
 
 class MyTeam extends StatefulWidget {
   const MyTeam({super.key});
@@ -21,6 +22,13 @@ class _MyTeamState extends State<MyTeam> {
 
   // Future per carregar les dades de l'equip desde el backend
   Future<TeamModel?>? _teamFuture;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -240,14 +248,10 @@ class _MyTeamState extends State<MyTeam> {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Gestió d\'equip pròximament disponible'),
-                    backgroundColor: _primaryBlue,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TeamManagementView(teamName: teamName),
                   ),
                 );
               },
@@ -607,6 +611,75 @@ class _MyTeamState extends State<MyTeam> {
 
           const SizedBox(height: 28),
 
+          // ── Cerca per unir-se a un equip privat ──
+          const Text(
+            'Unir-se a un equip privat',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1D26),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Introdueix el codi de l\'equip',
+                    hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: _primaryBlue),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: () async {
+                  final code = _searchController.text.trim();
+                  if (code.isNotEmpty) {
+                    final success = await TeamService().requestJoinPrivateTeam(code);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(success ? 'Sol·licitud enviada correctament' : 'Error al enviar la sol·licitud'),
+                          backgroundColor: success ? Colors.green : Colors.red,
+                        ),
+                      );
+                      if (success) _searchController.clear();
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primaryBlue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Icon(Icons.search),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 28),
+
           // ── Capçalera llista d'equips ──
           Row(
             children: [
@@ -677,16 +750,25 @@ class _MyTeamState extends State<MyTeam> {
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap: () {
-            // ⚠️ Funcionalitat d'unir-se en construcció
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Unir-se a "${team['name']}" pròximament disponible'),
-                backgroundColor: _primaryBlue,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            );
+          onTap: () async {
+            final success = await TeamService().joinTeam(team['name']);
+            if (context.mounted) {
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('T\'has unit a "${team['name']}" correctament!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Error en unir-se a l\'equip'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            }
           },
           child: Padding(
             padding: const EdgeInsets.all(16),
