@@ -124,4 +124,20 @@ class UserService {
       return 'Error: Problema amb Strava.';
     }
   }
+
+  Future<bool> eliminarUsuari(int userId) async {
+    final response = await http.delete(Uri.parse('$baseUrl/users/$userId'));
+
+    if (response.statusCode == 200) {
+      print('Usuari eliminat correctament');
+      return true;
+    }
+    else if (response.statusCode == 404) {
+      print('Usuari no trobat');
+    }
+    else {
+      print('Error al eliminar usuari: ${response.statusCode}');
+    }
+    return false;
+  }
 }
