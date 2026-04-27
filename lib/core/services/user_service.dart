@@ -13,7 +13,7 @@ class UserService {
   factory UserService() => _instance;
   UserService._internal();
 
-  final String baseUrl = 'http://localhost:3000/api/v1';
+  final String baseUrl = 'http://localhost:8080/api/v1';
 
   Future<bool> crearUsuari(String name, String username, String email, String password) async {
     final response = await http.post(

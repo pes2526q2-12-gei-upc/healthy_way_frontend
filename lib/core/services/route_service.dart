@@ -9,7 +9,7 @@ class RouteService {
   factory RouteService() => _instance;
   RouteService._internal();
 
-  final String baseUrl = 'http://localhost:3000/api/v1';
+  final String baseUrl = 'http://localhost:8080/api/v1';
 
   // 1. OBTENER TODAS LAS RUTAS PUBLICAS CON POSIBILIDAD DE FILTRAR POR ID DE RUTA, NOMBRE DE RUTA, LOCALIZACION, MAX/MIN DISTANCE, CREADOR
     Future<List<RouteModel>> getPublicRoutes({String? routeId, String? name, String? location, double? minDistance, double? maxDistance, String? creator}) async {
