@@ -8,12 +8,22 @@ import '../../../shared/providers/Auth_provider.dart';
 import '../../../shared/providers/location_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 
-
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  // Variable para controlar qué pestaña se está mostrando
+  bool _showActivities = true;
+
+  @override
   Widget build(BuildContext context) {
+    final currentUser = context.watch<AuthProvider>().currentUser;
+    final userId = currentUser?.userId.toString() ?? ''; // Aseguramos que sea String
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       bottomNavigationBar: const CustomBottomNavBar(currentIndex: 3),
@@ -43,18 +53,72 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
 
-            // --- SECCIÓN: LES MEVES RUTES ---
+            // --- SELECTOR DE PESTAÑAS (Actividades / Rutas) ---
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+              child: Container(
+                height: 45,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _showActivities = true),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: _showActivities ? const Color(0xFF1E65F3) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            'Activitats',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: _showActivities ? Colors.white : Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _showActivities = false),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: !_showActivities ? const Color(0xFF1E65F3) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            'Rutes',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: !_showActivities ? Colors.white : Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // --- SECCIÓN: LISTA DINÁMICA ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Les meves activitats',
-                        style: TextStyle(
+                      Text(
+                        _showActivities ? 'Les meves activitats' : 'Les meves rutes',
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF2D3142),
@@ -72,73 +136,101 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 10),
 
-                  // AQUÍ EMPIEZA LA MAGIA DE LAS LLAMADAS AL SERVIDOR
-                  FutureBuilder<List<Activity>>(
-                    future: UserService().getUserActivities(context.read<AuthProvider>().currentUser!.userId),
-                    builder: (context, snapshot) {
+                  // Lógica condicional
+                  _showActivities ? _buildActivitiesList(int.tryParse(userId) ?? 0) : _buildRoutesList(userId),
 
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(20.0),
-                            child: CircularProgressIndicator(color: Color(0xFF1E65F3)),
-                          ),
-                        );
-                      }
-
-                      if (snapshot.hasError) {
-                        return Center(
-                          child: Text(
-                            'Error al carregar activitats: ${snapshot.error}',
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                        );
-                      }
-
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(20.0),
-                            child: Text(
-                              'Encara no has fet cap ruta. Anima\'t!',
-                              style: TextStyle(color: Colors.grey, fontSize: 16),
-                            ),
-                          ),
-                        );
-                      }
-
-                      final activitats = snapshot.data!;
-
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: activitats.length,
-                        itemBuilder: (context, index) {
-                          final activitat = activitats[index];
-
-                          return _ActivityCard(
-                            routeName: activitat.route.name,
-                            location: activitat.route.location,
-                            imageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=600&auto=format&fit=crop',
-                            distance: activitat.distance.toDouble(),
-                            startTime: activitat.startTime,
-                            endTime: activitat.endTime,
-                            modality: activitat.modality,
-                            pace: activitat.pace.toDouble(),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  // --- BUILDER DE ACTIVIDADES ---
+  Widget _buildActivitiesList(int userId) {
+    return FutureBuilder<List<Activity>>(
+      future: UserService().getUserActivities(userId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: Padding(padding: EdgeInsets.all(20.0), child: CircularProgressIndicator(color: Color(0xFF1E65F3))));
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error al carregar activitats: ${snapshot.error}', style: const TextStyle(color: Colors.red)));
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Padding(padding: EdgeInsets.all(20.0), child: Text("Encara no has fet cap activitat. Anima't!", style: TextStyle(color: Colors.grey, fontSize: 16))));
+        }
+
+        final activitats = snapshot.data!;
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: activitats.length,
+          itemBuilder: (context, index) {
+            final activitat = activitats[index];
+            return _ActivityCard(
+              routeName: activitat.route.name,
+              location: activitat.route.location,
+              imageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=600&auto=format&fit=crop',
+              distance: activitat.distance.toDouble(),
+              startTime: activitat.startTime,
+              endTime: activitat.endTime,
+              modality: activitat.modality,
+              pace: activitat.pace.toDouble(),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // --- BUILDER DE RUTAS ---
+  Widget _buildRoutesList(String userId) {
+    return FutureBuilder<List<RouteModel>>(
+      future: RouteService().getPublicRoutes(creator: userId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: Padding(padding: EdgeInsets.all(20.0), child: CircularProgressIndicator(color: Color(0xFF1E65F3))));
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error al carregar rutes: ${snapshot.error}', style: const TextStyle(color: Colors.red)));
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Padding(padding: EdgeInsets.all(20.0), child: Text("Encara no has creat cap ruta.", style: TextStyle(color: Colors.grey, fontSize: 16))));
+        }
+
+        final routes = snapshot.data!;
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: routes.length,
+          itemBuilder: (context, index) {
+            final ruta = routes[index];
+
+            Color badgeColor = Colors.blue;
+            if (ruta.modality.toLowerCase() == 'cycling') {
+              badgeColor = Colors.green;
+            }
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: _RouteCard(
+                title: ruta.name.isEmpty ? 'Ruta sense nom' : ruta.name,
+                distance: '${ruta.distance.toStringAsFixed(2)} km',
+                location: ruta.location.isEmpty ? '--' : ruta.location,
+                badgeText: ruta.modality.isEmpty ? 'RUTA' : ruta.modality.toUpperCase(),
+                badgeColor: badgeColor,
+                teamControl: ruta.isPrivate ? 'Ruta Privada' : 'Ruta Pública',
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -286,6 +378,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildProfileInfo(BuildContext context) {
+    final currentUser = context.watch<AuthProvider>().currentUser!;
     return Column(
       children: [
         Stack(
@@ -316,7 +409,7 @@ class ProfileScreen extends StatelessWidget {
         const SizedBox(height: 15),
 
         Text(
-          context.watch<AuthProvider>().currentUser!.nom,
+          currentUser.nom,
           style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -328,7 +421,7 @@ class ProfileScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildTag(Icons.people_alt_outlined, context.watch<AuthProvider>().currentUser!.team ?? 'Sense Equip'),
+            _buildTag(Icons.people_alt_outlined, currentUser.team ?? 'Sense Equip'),
             const SizedBox(width: 10),
             _buildTag(Icons.location_on_outlined, context.watch<LocationProvider>().placeName),
           ],
@@ -420,6 +513,7 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
+// --- CARD DE ACTIVIDAD ---
 class _ActivityCard extends StatelessWidget {
   final String routeName;
   final String location;
@@ -577,6 +671,91 @@ class _ActivityCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// --- CARD DE RUTA ---
+class _RouteCard extends StatelessWidget {
+  final String title;
+  final String distance;
+  final String location;
+  final String badgeText;
+  final Color badgeColor;
+  final String teamControl;
+
+  const _RouteCard({
+    required this.title,
+    required this.distance,
+    required this.location,
+    required this.badgeText,
+    required this.badgeColor,
+    required this.teamControl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: 80,
+              height: 80,
+              color: Colors.grey[300],
+              child: const Icon(Icons.landscape, color: Colors.grey),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[900]), overflow: TextOverflow.ellipsis)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(color: badgeColor.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                      child: Text(badgeText, style: TextStyle(color: badgeColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(location, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    const SizedBox(width: 12),
+                    const Icon(Icons.directions_run, size: 14, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(distance, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.people, size: 14, color: Colors.blue[700]),
+                    const SizedBox(width: 4),
+                    Text(teamControl, style: TextStyle(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
