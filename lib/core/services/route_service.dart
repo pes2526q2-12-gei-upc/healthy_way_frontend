@@ -84,7 +84,7 @@ class RouteService {
   Future<void> deleteRoute(String routeId) async {
     final response = await http.delete(Uri.parse('$baseUrl/routes/$routeId'));
 
-    if (response.statusCode != 204) {
+    if (response.statusCode != 200) {
       throw Exception('Error al eliminar la ruta');
     }
   }

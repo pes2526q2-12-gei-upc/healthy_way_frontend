@@ -192,6 +192,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // --- BUILDER DE RUTAS ---
+  // --- BUILDER DE RUTAS ---
   Widget _buildRoutesList(String userId) {
     return FutureBuilder<List<RouteModel>>(
       future: RouteService().getPublicRoutes(creator: userId),
@@ -222,15 +223,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
               child: _RouteCard(
+                id: ruta.id, // <-- Pasamos el ID
                 title: ruta.name.isEmpty ? 'Ruta sense nom' : ruta.name,
                 distance: '${ruta.distance.toStringAsFixed(2)} km',
                 location: ruta.location.isEmpty ? '--' : ruta.location,
                 badgeText: ruta.modality.isEmpty ? 'RUTA' : ruta.modality.toUpperCase(),
                 badgeColor: badgeColor,
                 teamControl: ruta.isPrivate ? 'Ruta Privada' : 'Ruta Pública',
+                onDelete: () => _confirmarBorradoRuta(ruta.id), // <-- Nueva función
               ),
             );
           },
+        );
+      },
+    );
+  }
+
+  // --- LÓGICA DE BORRADO ---
+  void _confirmarBorradoRuta(String id) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Eliminar Ruta'),
+          content: const Text('Estàs segur que vols eliminar aquesta ruta?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel·lar', style: TextStyle(color: Colors.grey)),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+
+                // Aquí llamas a tu función
+                await RouteService().deleteRoute(id);
+
+                // Refrescamos la pantalla
+                setState(() {});
+              },
+              child: const Text('Eliminar', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            ),
+          ],
         );
       },
     );
@@ -679,21 +713,26 @@ class _ActivityCard extends StatelessWidget {
 }
 
 // --- CARD DE RUTA ---
+// --- CARD DE RUTA ---
 class _RouteCard extends StatelessWidget {
+  final String id; // <-- Añadido
   final String title;
   final String distance;
   final String location;
   final String badgeText;
   final Color badgeColor;
   final String teamControl;
+  final VoidCallback onDelete; // <-- Añadido
 
   const _RouteCard({
+    required this.id,
     required this.title,
     required this.distance,
     required this.location,
     required this.badgeText,
     required this.badgeColor,
     required this.teamControl,
+    required this.onDelete,
   });
 
   @override
@@ -748,10 +787,27 @@ class _RouteCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Para empujar el botón a la derecha
                   children: [
-                    Icon(Icons.people, size: 14, color: Colors.blue[700]),
-                    const SizedBox(width: 4),
-                    Text(teamControl, style: TextStyle(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.w500)),
+                    Row(
+                      children: [
+                        Icon(Icons.people, size: 14, color: Colors.blue[700]),
+                        const SizedBox(width: 4),
+                        Text(teamControl, style: TextStyle(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                    // BOTÓN DE BORRAR
+                    GestureDetector(
+                      onTap: onDelete,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                      ),
+                    ),
                   ],
                 ),
               ],
