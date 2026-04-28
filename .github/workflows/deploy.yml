@@ -10,12 +10,12 @@ jobs:
   analyze-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0 
 
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@f2c650741249fa6b3068e1a8e807185df19f56a5
         with:
           channel: 'stable'
           cache: true
@@ -31,7 +31,7 @@ jobs:
 
       # --- SONARQUBE / SONARCLOUD STEP ---
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v3
+        uses: SonarSource/sonarcloud-github-action@e6b4ef8d616621448b61c37b98f2191564757134
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
