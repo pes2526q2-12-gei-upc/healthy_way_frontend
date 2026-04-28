@@ -10,7 +10,7 @@ class ChatService {
   factory ChatService() => _instance;
   ChatService._internal();
 
-  final String baseUrl = 'http://localhost:3000/api/v1';
+  final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
   /// Obté tots els missatges d'un xat
   /// GET /api/v1/chats/messages?chatId={chatId}

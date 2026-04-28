@@ -10,7 +10,7 @@ class TeamService {
   factory TeamService() => _instance;
   TeamService._internal();
 
-  final String baseUrl = 'http://localhost:8080/api/v1';
+  final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
   /// Obté la informació d'un equip pel seu nom/id
   /// GET /api/v1/teams/{id}

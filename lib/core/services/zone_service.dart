@@ -5,7 +5,7 @@ class ZoneService {
   factory ZoneService() => _instance;
   ZoneService._internal();
 
-  final String baseUrl = 'http://localhost:8080/api/v1';
+  final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
   Future<List<Polygon>> getZonesCapturades({
     required LatLngBounds bounds,
