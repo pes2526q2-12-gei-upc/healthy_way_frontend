@@ -31,13 +31,13 @@ class Activity {
   factory Activity.fromJson(Map<String, dynamic> json) {
     debugPrint('DATOS REALES DE LA RUTA: ${json['route']}');
     return Activity(
-      distance: json['distance']?.toDouble() ?? 0.0,
+      distance: json['distance']?.toDouble() ?? 1,
       startTime: DateTime.parse(json['start_time']),
       endTime: DateTime.parse(json['end_time']),
       modality: json['modality'] ?? 'Running',
-      pace: json['pace']?.toDouble() ?? 0.0,
+      pace: json['pace']?.toDouble() ?? 1,
       userId: json['user_id'] ?? 99,
-      userTeam: json['user_team'] ?? 'No team',
+      userTeam: json['user_team'] ?? '',
       createRoute: json['create_route'] ?? false,
       route: json['route'] != null ? RouteModel.fromJson(json['route']) : RouteModel(
         id: '',
@@ -52,7 +52,6 @@ class Activity {
         location: 'Ubicaió desconeguda',
         altitude: 'Altitud desconeguda',
         elevationGain: 'Elevació desconeguda',
-        modality: 'Modalitat desconeguda',
       ),
     );
   }
@@ -66,7 +65,7 @@ class Activity {
       'pace': pace,
       'user_id': userId,
       'create_route': createRoute,
-      'route': route.toJson(),
+      'route': route.toJson(modality),
     };
   }
 }

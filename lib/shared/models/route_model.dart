@@ -15,7 +15,6 @@ class RouteModel {
   final String location;
   final String altitude;
   final String elevationGain;
-  final String modality;
 
   RouteModel({
     required this.id,
@@ -30,7 +29,6 @@ class RouteModel {
     required this.location,
     required this.altitude,
     required this.elevationGain,
-    required this.modality,
   });
 
   factory RouteModel.fromJson(Map<String, dynamic> json) {
@@ -66,11 +64,10 @@ class RouteModel {
       location: json['location'],
       altitude: json['altitude'].toString(),
       elevationGain: json['elevationGain'].toString(),
-      modality: json['modality'] ?? 'Running', // Valor por defecto si no viene en el JSON
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson(String modality) {
     return {
       'name': name,
       'distance': distance,

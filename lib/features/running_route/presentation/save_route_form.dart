@@ -165,7 +165,6 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                               createdAt: DateTime.now(),
                               elevationGain: elevation,
                               altitude: elevation,
-                              modality: provider.getModality(),
                             );
 
                             // Creamos la actividad con la ruta y luego guardamos la ruta en el servidor
@@ -176,7 +175,7 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                               modality: provider.modality,
                               userId: context.read<AuthProvider>().currentUser!.userId,
                               userTeam: context.read<AuthProvider>().currentUser!.team ?? '',
-                              pace: double.parse(provider.pace.replaceAll(':', '.')),
+                              pace: double.parse(provider.pace.replaceAll(':', '.').replaceAll('>', '')),
                               createRoute: true,
                               route: nuevaRuta,
                             );

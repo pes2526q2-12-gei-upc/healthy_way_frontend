@@ -181,7 +181,7 @@ class ResultsRouteScreen extends StatelessWidget {
                               startTime: trackingProvider.startTime,
                               endTime: DateTime.now(),
                               modality: trackingProvider.modality,
-                              pace: double.parse(trackingProvider.pace),
+                              pace: double.parse(trackingProvider.pace.replaceAll(':', '.').replaceAll('>', '')),
                               userId: context.read<AuthProvider>().currentUser!.userId,
                               userTeam: '',
                               createRoute: false,
@@ -195,10 +195,9 @@ class ResultsRouteScreen extends StatelessWidget {
                                 trajectory: [],
                                 startPoint: const LatLng(0, 0),
                                 endPoint: const LatLng(0, 0),
-                                location: '',
-                                altitude: '',
-                                elevationGain: '',
-                                modality: trackingProvider.getModality()
+                                location: 'string',
+                                altitude: '1',
+                                elevationGain: '1',
                               ),
                             );
 
