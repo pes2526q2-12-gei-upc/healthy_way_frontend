@@ -8,7 +8,7 @@ import '../../features/running_route/presentation/results_route_screen.dart';
 import '../../features/route_view/presentation/route_view_screen.dart';
 import '../../features/explore_routes/presentation/explore_routes_page.dart';
 import '../../features/running_route/presentation/save_route_form.dart';
-import '../../features/profile/presentation/ProfileScreen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
 // 1. IMPORTAMOS LA NUEVA PANTALLA DEL MAPA (Asegúrate de que la ruta coincida con tus carpetas)
 import '../../features/map/presentation/map_screen.dart';
 import '../../features/chat/presentation/chat_view.dart';

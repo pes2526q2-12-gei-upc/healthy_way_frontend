@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import '../../../shared/providers/Auth_provider.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '/core/services/user_service.dart';
 import '/core/router/app_router.dart';
 
@@ -256,7 +256,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.redAccent.withOpacity(0.5)),
+                            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.5)),
                           ),
                           child: SingleChildScrollView(
                             physics: const NeverScrollableScrollPhysics(),
@@ -303,7 +303,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           elevation: 5,
-                          shadowColor: Colors.blue.withOpacity(0.5),
+                          shadowColor: Colors.blue.withValues(alpha: 0.5),
                         ),
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,

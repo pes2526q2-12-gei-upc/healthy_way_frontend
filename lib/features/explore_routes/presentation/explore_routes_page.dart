@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:healthy_way_frontend/shared/models/RouteModel.dart';
+import 'package:healthy_way_frontend/shared/models/route_model.dart';
 import 'package:provider/provider.dart';
 // IMPORTA AQUÍ TU WIDGET COMPARTIDO (ajusta la ruta si es necesario)
 import '../../../core/router/app_router.dart';
@@ -194,7 +194,7 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
       setState(() {
         _isLoading = false;
       });
-      print('🚨 ERROR AL CARGAR DATOS: $e');
+      debugPrint('ERROR AL CARGAR DATOS: $e');
     }
   }
 
@@ -296,8 +296,8 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Cerca rutes, zones...',
-                hintStyle: TextStyle(color: _inactiveFilterTextColor.withOpacity(0.6)),
-                prefixIcon: Icon(Icons.search, color: _inactiveFilterTextColor.withOpacity(0.6)),
+                hintStyle: TextStyle(color: _inactiveFilterTextColor.withValues(alpha: 0.6)),
+                prefixIcon: Icon(Icons.search, color: _inactiveFilterTextColor.withValues(alpha: 0.6)),
                 filled: true,
                 fillColor: _backgroundGray,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -394,7 +394,7 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                                 // Utilizamos una imagen hardcodeada por ahora, pero aquí se debería cargar la imagen real de la ruta (ruta.imageUrl)
                                 Container(width: 100, height: 100, color: _backgroundGray, child: const Icon(Icons.image, color: Color(0xFF94A3B8), size: 40)),
                                 //Image.network(, width: 100, height: 100, fit: BoxFit.cover, errorBuilder: (c, e, s) => Container(width: 100, height: 100, color: Colors.grey[200], child: const Icon(Icons.image, color: Colors.grey))),
-                                Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.star, color: Color(0xFFFFB800), size: 14), const SizedBox(width: 4), Text('4.8', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))],))),
+                                Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.8), borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.star, color: Color(0xFFFFB800), size: 14), const SizedBox(width: 4), Text('4.8', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))],))),
                               ],
                             ),
                           ),

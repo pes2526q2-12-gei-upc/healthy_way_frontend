@@ -85,61 +85,97 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Card(
-                  color: Colors.white, elevation: 0,
+                  color: Colors.white,
+                  elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   child: Padding(
                     padding: const EdgeInsets.all(14.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Stack( // <-- Añadimos un Stack para posicionar el botón
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        // 1. EL CONTENIDO ACTUAL (Tu Column)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
-                                const SizedBox(width: 8),
-                                Text(trackingProvider.isRunning ? 'ENREGISTRANT' : 'PAUSAT', style: TextStyle(color: Colors.green[700], fontWeight: FontWeight.bold, fontSize: 12)),
+                                Row(
+                                  children: [
+                                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
+                                    const SizedBox(width: 8),
+                                    Text(trackingProvider.isRunning ? 'ENREGISTRANT' : 'PAUSAT', style: TextStyle(color: Colors.green[700], fontWeight: FontWeight.bold, fontSize: 12)),
+                                  ],
+                                ),
+                                const Icon(Icons.terrain, color: Colors.blueAccent, size: 20),
                               ],
                             ),
-                            const Icon(Icons.terrain, color: Colors.blueAccent, size: 20),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          trackingProvider.routeIsSelected
-                              ? trackingProvider.rutaSeleccionada.name
-                              : 'RUTA PERSONALITZADA',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
-                            const SizedBox(width: 6),
+                            const SizedBox(height: 6),
                             Text(
                               trackingProvider.routeIsSelected
-                                  ? trackingProvider.rutaSeleccionada.location
-                                  : trackingProvider.placeName,
+                                  ? trackingProvider.rutaSeleccionada.name
+                                  : 'RUTA PERSONALITZADA',
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
+                                const SizedBox(width: 6),
+                                Text(
+                                  trackingProvider.routeIsSelected
+                                      ? trackingProvider.rutaSeleccionada.location
+                                      : trackingProvider.placeName,
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              height: 36,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: List.generate(10, (i) {
+                                  final heights = [6, 12, 18, 26, 18, 14, 10, 20, 8, 16];
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                                    child: Container(
+                                      width: 6, height: heights[i].toDouble(),
+                                      decoration: BoxDecoration(color: Colors.blueAccent.withAlpha(((0.8 - i * 0.05).clamp(0.0, 1.0) * 255).round()), borderRadius: BorderRadius.circular(3)),
+                                    ),
+                                  );
+                                }),
+                              ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          height: 36,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: List.generate(10, (i) {
-                              final heights = [6, 12, 18, 26, 18, 14, 10, 20, 8, 16];
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                                child: Container(
-                                  width: 6, height: heights[i].toDouble(),
-                                  decoration: BoxDecoration(color: Colors.blueAccent.withAlpha(((0.8 - i * 0.05).clamp(0.0, 1.0) * 255).round()), borderRadius: BorderRadius.circular(3)),
-                                ),
-                              );
-                            }),
+
+                        // 2. EL BOTÓN FLOTANTE ABAJO A LA DERECHA
+                        Positioned(
+                          bottom: 10, // Ajusta según prefieras
+                          right: 10,  // Ajusta según prefieras
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                if (!trackingProvider.running & !trackingProvider.routeIsSelected) {
+                                  trackingProvider.toggleModality();
+                                }
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1058E5).withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                // Cambiamos el icono dinámicamente
+                                trackingProvider.modality == 'Running'
+                                    ? Icons.directions_run
+                                    : Icons.directions_bike,
+                                color: const Color(0xFF1058E5),
+                                size: 30,
+                              ),
+                            ),
                           ),
                         ),
                       ],

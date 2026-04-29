@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../shared/models/RouteModel.dart';
-import '../../../shared/providers/Auth_provider.dart';
+import '../../../shared/models/route_model.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/location_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../core/services/route_service.dart';
-import '../../../core/router/app_router.dart';
 import '../../../core/services/location_service.dart';
 
 class HomePage extends StatefulWidget {
@@ -68,7 +67,7 @@ class _HomePage extends State<HomePage> {
                         children: [
                           CircleAvatar(
                             radius: 24,
-                            backgroundColor: Colors.white.withOpacity(0.2),
+                            backgroundColor: Colors.white.withValues(alpha: 0.2),
                             child: const Icon(Icons.person, color: Colors.white),
                           ),
                           const SizedBox(width: 12),
@@ -92,7 +91,7 @@ class _HomePage extends State<HomePage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                      color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -109,7 +108,7 @@ class _HomePage extends State<HomePage> {
                                 Row(
                                   children: [
                                     const Text('Excel·lent ', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                                    Text('(AQI 25)', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14)),
+                                    Text('(AQI 25)', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 14)),
                                   ],
                                 ),
                               ],
@@ -143,7 +142,7 @@ class _HomePage extends State<HomePage> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
                       ],
                     ),
                     child: Column(
@@ -222,13 +221,13 @@ class _HomePage extends State<HomePage> {
                         color: Colors.blue[700],
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
-                          BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4)),
+                          BoxShadow(color: Colors.blue.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
                         ],
                       ),
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: Colors.white.withOpacity(0.2),
+                            backgroundColor: Colors.white.withValues(alpha: 0.2),
                             child: const Icon(Icons.search, color: Colors.white),
                           ),
                           const SizedBox(width: 16),
@@ -332,7 +331,7 @@ class _RouteCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Row(
@@ -358,7 +357,7 @@ class _RouteCard extends StatelessWidget {
                     Expanded(child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[900]), overflow: TextOverflow.ellipsis)),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: badgeColor.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                      decoration: BoxDecoration(color: badgeColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
                       child: Text(badgeText, style: TextStyle(color: badgeColor, fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   ],

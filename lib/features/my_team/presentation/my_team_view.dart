@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/team_service.dart';
-import '../../../shared/models/TeamModel.dart';
-import '../../../shared/providers/Auth_provider.dart';
+import '../../../shared/models/team_model.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_comunity_bar.dart';
-import 'create_team_view.dart';
 import 'team_management_view.dart';
 
 class MyTeam extends StatefulWidget {
@@ -129,7 +128,7 @@ class _MyTeamState extends State<MyTeam> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -153,7 +152,7 @@ class _MyTeamState extends State<MyTeam> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: _primaryBlue.withOpacity(0.3),
+                      color: _primaryBlue.withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -228,7 +227,7 @@ class _MyTeamState extends State<MyTeam> {
               Container(
                 width: 1,
                 height: 40,
-                color: Colors.grey.withOpacity(0.2),
+                color: Colors.grey.withValues(alpha: 0.2),
               ),
               Expanded(
                 child: _buildStatItem(
@@ -259,8 +258,8 @@ class _MyTeamState extends State<MyTeam> {
               label: const Text('Gestionar Equip'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: _primaryBlue,
-                side: BorderSide(color: _primaryBlue.withOpacity(0.3)),
-                backgroundColor: _primaryBlue.withOpacity(0.05),
+                side: BorderSide(color: _primaryBlue.withValues(alpha: 0.3)),
+                backgroundColor: _primaryBlue.withValues(alpha: 0.05),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -336,7 +335,7 @@ class _MyTeamState extends State<MyTeam> {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -405,7 +404,7 @@ class _MyTeamState extends State<MyTeam> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: _primaryBlue.withOpacity(0.1),
+                color: _primaryBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Text(
@@ -449,7 +448,7 @@ class _MyTeamState extends State<MyTeam> {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -462,7 +461,7 @@ class _MyTeamState extends State<MyTeam> {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: avatarColor.withOpacity(0.15),
+              color: avatarColor.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.person_outline, color: avatarColor, size: 24),
@@ -547,7 +546,7 @@ class _MyTeamState extends State<MyTeam> {
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: _primaryBlue.withOpacity(0.3),
+                  color: _primaryBlue.withValues(alpha: 0.3),
                   blurRadius: 16,
                   offset: const Offset(0, 8),
                 ),
@@ -559,7 +558,7 @@ class _MyTeamState extends State<MyTeam> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.people_alt_rounded, color: Colors.white, size: 28),
@@ -695,7 +694,7 @@ class _MyTeamState extends State<MyTeam> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _primaryBlue.withOpacity(0.1),
+                  color: _primaryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 // ⚠️ Hardcoded: nombre d'equips
@@ -739,7 +738,7 @@ class _MyTeamState extends State<MyTeam> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -781,7 +780,7 @@ class _MyTeamState extends State<MyTeam> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        _primaryBlue.withOpacity(0.7),
+                        _primaryBlue.withValues(alpha: 0.7),
                         _primaryBlue,
                       ],
                       begin: Alignment.topLeft,
@@ -836,7 +835,7 @@ class _MyTeamState extends State<MyTeam> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: modalityColor.withOpacity(0.1),
+                              color: modalityColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -863,8 +862,8 @@ class _MyTeamState extends State<MyTeam> {
                                 horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: isOpen
-                                  ? Colors.green.withOpacity(0.1)
-                                  : Colors.grey.withOpacity(0.1),
+                                  ? Colors.green.withValues(alpha: 0.1)
+                                  : Colors.grey.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:healthy_way_frontend/core/services/user_service.dart';
 import 'package:provider/provider.dart';
-import '../../../shared/providers/Auth_provider.dart';
+import '../../../shared/providers/auth_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -64,6 +64,7 @@ class _LoginPageState extends State<LoginPage> {
         const SnackBar(
             content: Text('Inici de sessió correcte!'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
         ),
       );
 
@@ -212,7 +213,7 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           elevation: 5,
-                          shadowColor: Colors.blue.withOpacity(0.5),
+                          shadowColor: Colors.blue.withValues(alpha: 0.5),
                         ),
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -239,7 +240,7 @@ class _LoginPageState extends State<LoginPage> {
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           side: const BorderSide(color: Colors.blue, width: 1.5),
-                          backgroundColor: Colors.blue.withOpacity(0.1),
+                          backgroundColor: Colors.blue.withValues(alpha: 0.1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

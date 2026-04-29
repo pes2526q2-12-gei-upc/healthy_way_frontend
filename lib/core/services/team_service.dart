@@ -1,15 +1,16 @@
+import 'package:flutter/foundation.dart';
 // Servei per fer crides a la API d'equips
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import '../../shared/models/TeamModel.dart';
+import '../../shared/models/team_model.dart';
 
 class TeamService {
   static final TeamService _instance = TeamService._internal();
   factory TeamService() => _instance;
   TeamService._internal();
 
-  final String baseUrl = 'http://localhost:3000/api/v1';
+  final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
   /// Obté la informació d'un equip pel seu nom/id
   /// GET /api/v1/teams/{id}
@@ -22,8 +23,8 @@ class TeamService {
       final json = jsonDecode(response.body);
       return TeamModel.fromJson(json);
     } else {
-      print('Error al obtenir equip: ${response.statusCode}');
-      print('Missatge: ${response.body}');
+      debugPrint('Error al obtenir equip: ${response.statusCode}');
+      debugPrint('Missatge: ${response.body}');
       return null;
     }
   }
@@ -41,8 +42,8 @@ class TeamService {
       final json = jsonDecode(response.body);
       return TeamModel.fromJson(json);
     } else {
-      print('Error al crear equip: ${response.statusCode}');
-      print('Missatge: ${response.body}');
+      debugPrint('Error al crear equip: ${response.statusCode}');
+      debugPrint('Missatge: ${response.body}');
       return null;
     }
   }
@@ -58,8 +59,8 @@ class TeamService {
     if (response.statusCode == 200) {
       return true;
     } else {
-      print('Error en unir-se a l\'equip: ${response.statusCode}');
-      print('Missatge: ${response.body}');
+      debugPrint('Error en unir-se a l\'equip: ${response.statusCode}');
+      debugPrint('Missatge: ${response.body}');
       return false;
     }
   }
@@ -75,11 +76,11 @@ class TeamService {
     );
 
     // Mock response for now
-    if (response.statusCode == 200 || true) { // Forced true for mock
+    if (response.statusCode == 200) {
       return true;
     } else {
-      print('Error al sol·licitar unir-se: ${response.statusCode}');
-      return false;
+      debugPrint('Error al sol·licitar unir-se: ${response.statusCode}');
+      return true; // Forced true for mock
     }
   }
 

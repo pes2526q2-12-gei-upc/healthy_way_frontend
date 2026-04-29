@@ -8,6 +8,8 @@ class CustomMapWidget extends StatelessWidget {
   final double initialZoom;
   final CameraFit? initialCameraFit;
 
+  final List<Polygon>? polygons;
+
   final List<LatLng> plannedRoute;   // Ruta a seguir entera (fondo gris)
   final List<LatLng> traversedRoute; // Ruta real hecha por el usuario (azul por encima)
 
@@ -31,6 +33,7 @@ class CustomMapWidget extends StatelessWidget {
     this.polylines = const [],
     this.markers = const [],
     this.userLocation,
+    this.polygons,
   });
 
   @override
@@ -89,17 +92,23 @@ class CustomMapWidget extends StatelessWidget {
         maxZoom: 18.0, // <-- NUEVO: Límite para que no desaparezca el fondo (mapa gris)
       ),
       children: [
-        // 🌍 MAPA OSM
+        // MAPA OSM
         TileLayer(
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.healthy_way.app',
         ),
 
-        // 📍 POLYLINES
+        // POLÍGONOS (si se proporcionan)
+        if (polygons != null && polygons!.isNotEmpty)
+          PolygonLayer(
+            polygons: polygons!,
+          ),
+
+        // POLYLINES
         if (allPolylines.isNotEmpty)
           PolylineLayer(polylines: allPolylines),
 
-        // 📍 MARKERS
+        // MARKERS
         if (allMarkers.isNotEmpty)
           MarkerLayer(markers: allMarkers),
       ],
@@ -148,7 +157,7 @@ class CustomMapWidget extends StatelessWidget {
           Container(
             width: 50,
             height: 50,
-            decoration: BoxDecoration(color: Colors.blue.withOpacity(0.2), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.2), shape: BoxShape.circle),
           ),
           Container(
             width: 16,
