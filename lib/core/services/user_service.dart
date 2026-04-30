@@ -5,6 +5,8 @@ import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
 import '../../shared/models/activity.dart';
 import '../../shared/models/user_model.dart';
+import '../../shared/providers/auth_provider.dart';
+import 'token_service.dart';
 
 class UserService {
 
@@ -32,6 +34,12 @@ class UserService {
       return false;
     }
 
+    else if (response.statusCode == 201) {
+      final responseBody = json.decode(response.body);
+      final token = responseBody['authToken'];
+      await SecureStorageService().saveToken(token);
+    }
+
     return true;
   }
 
@@ -46,6 +54,8 @@ class UserService {
     );
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
+      final token = responseBody['authToken'];
+      await SecureStorageService().saveToken(token);
       final loggedUser = User.fromJson(responseBody['user']);
       return loggedUser;
     }
@@ -57,7 +67,9 @@ class UserService {
   }
 
   Future<User?> getUserProfile(int userId) async {
-    final response = await http.get(Uri.parse('$baseUrl/users/$userId'));
+    final response = await http.get(
+        Uri.parse('$baseUrl/users/$userId'),
+        headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
     if (response.statusCode == 200) {
       final userJson = json.decode(response.body);
@@ -69,7 +81,9 @@ class UserService {
   }
 
   Future<List<Activity>> getUserActivities(int userId) async {
-    final response = await http.get(Uri.parse('$baseUrl/users/$userId/activities'));
+    final response = await http.get(
+        Uri.parse('$baseUrl/users/$userId/activities'),
+        headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
     if (response.statusCode == 200) {
       final List<dynamic> activitiesJson = json.decode(response.body);
@@ -108,13 +122,13 @@ class UserService {
     if (code != null) {
       final newResponse = await http.post(
         Uri.parse('$baseUrl/import/strava'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
         body: json.encode({
           'code': code,
           'user_id': userId,
         }),
       );
-      if(newResponse.statusCode == 201) {
+      if(newResponse.statusCode == 200) {
         return 'Rutes importades correctament des de Strava.';
       }
       else {
@@ -127,7 +141,10 @@ class UserService {
   }
 
   Future<bool> eliminarUsuari(int userId) async {
-    final response = await http.delete(Uri.parse('$baseUrl/users/$userId'));
+    final response = await http.delete(
+        Uri.parse('$baseUrl/users/$userId'),
+        headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'}
+    );
 
     if (response.statusCode == 200) {
       debugPrint('Usuari eliminat correctament');
