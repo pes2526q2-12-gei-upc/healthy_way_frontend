@@ -759,12 +759,11 @@ class _MyTeamState extends State<MyTeam> {
   }
 
   Widget _buildTeamListCard(BuildContext context, TeamModel team) {
-    final isOpen = team.open;
     final modality = team.modality;
     final modalityIcon =
-        modality == 'cycling' ? Icons.directions_bike : Icons.directions_run;
+    modality == 'cycling' ? Icons.directions_bike : Icons.directions_run;
     final modalityColor =
-        modality == 'cycling' ? const Color(0xFFFF9500) : const Color(0xFF34C759);
+    modality == 'cycling' ? const Color(0xFFFF9500) : const Color(0xFF34C759);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -798,7 +797,9 @@ class _MyTeamState extends State<MyTeam> {
                   ),
                   ElevatedButton(
                     onPressed: () => Navigator.of(ctx).pop(true),
-                    style: ElevatedButton.styleFrom(backgroundColor: _primaryBlue, foregroundColor: Colors.white),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryBlue,
+                        foregroundColor: Colors.white),
                     child: const Text('Confirmar'),
                   ),
                 ],
@@ -848,7 +849,8 @@ class _MyTeamState extends State<MyTeam> {
                     ),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(Icons.people_rounded, color: Colors.white, size: 26),
+                  child: const Icon(Icons.people_rounded,
+                      color: Colors.white, size: 26),
                 ),
                 const SizedBox(width: 14),
 
@@ -874,7 +876,8 @@ class _MyTeamState extends State<MyTeam> {
                           const SizedBox(width: 3),
                           Text(
                             team.zone,
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                           const SizedBox(width: 10),
                           // Membres
@@ -883,7 +886,8 @@ class _MyTeamState extends State<MyTeam> {
                           const SizedBox(width: 3),
                           Text(
                             '${team.numMembers} membres',
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                         ],
                       ),
@@ -913,28 +917,6 @@ class _MyTeamState extends State<MyTeam> {
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          // Obert/Tancat
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: isOpen
-                                  ? Colors.green.withValues(alpha: 0.1)
-                                  : Colors.grey.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              isOpen ? 'Obert' : 'Tancat',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: isOpen
-                                    ? Colors.green[700]
-                                    : Colors.grey,
-                                fontWeight: FontWeight.w600,
-                              ),
                             ),
                           ),
                         ],
