@@ -157,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildActivitiesList(int userId) {
     return FutureBuilder<List<Activity>>(
       future: UserService().getUserActivities(userId),
-      builder: (context, snapshot) {
+      builder: (BuildContext context, AsyncSnapshot<List<Activity>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: Padding(padding: EdgeInsets.all(20.0), child: CircularProgressIndicator(color: Color(0xFF1E65F3))));
         }
@@ -579,25 +579,6 @@ class _ActivityCard extends StatelessWidget {
     return '$minutes min';
   }
 
-  // --- NUEVA FUNCIÓN PARA OBTENER LA UBICACIÓN ---
-  Future<String> _fetchLocation() async {
-    if (routeId == -9) {
-      return 'Ubicació desconeguda';
-    }
-
-    try {
-      // Llamas a tu servicio. Asumo que devuelve una lista de RouteModel
-      // y que la primera es la que buscas.
-      final routes = await RouteService().getPublicRoutes(routeId: routeId.toString());
-      if (routes.isNotEmpty && routes.first.location.isNotEmpty) {
-        return routes.first.location;
-      }
-      return 'Sense ubicació definida';
-    } catch (e) {
-      return 'Error carregant ubicació';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -669,33 +650,7 @@ class _ActivityCard extends StatelessWidget {
                   const SizedBox(height: 4),
 
                   // --- AQUI ESTÁ LA MAGIA: FUTURE BUILDER SOLO PARA ESTA FILA ---
-                  FutureBuilder<String>(
-                    future: _fetchLocation(),
-                    builder: (context, snapshot) {
-                      String textToShow = 'Carregant...';
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        textToShow = snapshot.data ?? 'Desconeguda';
-                      }
-
-                      return Row(
-                        children: [
-                          const Icon(Icons.location_on, size: 14, color: Colors.grey),
-                          const SizedBox(width: 4),
-                          Expanded( // Expanded para evitar overflow si el texto es muy largo
-                            child: Text(
-                              textToShow,
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 13,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+                  _LocationRow(routeId: routeId),
                   // -----------------------------------------------------------
 
                   const Padding(
@@ -845,6 +800,60 @@ class _RouteCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LocationRow extends StatelessWidget {
+  final int routeId;
+
+  const _LocationRow({required this.routeId});
+
+  Future<String> _fetchLocation() async {
+    if (routeId == -9) {
+      return 'Ubicació desconeguda';
+    }
+
+    try {
+      final routes = await RouteService().getPublicRoutes(routeId: routeId.toString());
+      if (routes.isNotEmpty && routes.first.location.isNotEmpty) {
+        return routes.first.location;
+      }
+      return 'Sense ubicació definida';
+    } catch (e) {
+      return 'Error carregant ubicació';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: _fetchLocation(),
+      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+        String textToShow = 'Carregant...';
+
+        if (snapshot.connectionState == ConnectionState.done) {
+          textToShow = snapshot.data ?? 'Desconeguda';
+        }
+
+        return Row(
+          children: [
+            const Icon(Icons.location_on, size: 14, color: Colors.grey),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                textToShow,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 13,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
