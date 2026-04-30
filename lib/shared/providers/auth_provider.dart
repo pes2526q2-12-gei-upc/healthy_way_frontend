@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/UserModel.dart';
+import '../models/user_model.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _currentUser;
@@ -23,10 +23,10 @@ class AuthProvider extends ChangeNotifier {
 
   // Se llama al cerrar sesión
   Future<void> logout() async {
-    _currentUser = null;
-    notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('saved_user');
+    _currentUser = null;
+    notifyListeners();
   }
 
   Future<void> loadSavedUser() async {

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 // Servei per fer crides a la API d'equips
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -24,8 +25,8 @@ class TeamService {
       final json = jsonDecode(response.body);
       return TeamModel.fromJson(json);
     } else {
-      print('Error al obtenir equip: ${response.statusCode}');
-      print('Missatge: ${response.body}');
+      debugPrint('Error al obtenir equip: ${response.statusCode}');
+      debugPrint('Missatge: ${response.body}');
       return null;
     }
   }
@@ -43,8 +44,8 @@ class TeamService {
       final json = jsonDecode(response.body);
       return TeamModel.fromJson(json);
     } else {
-      print('Error al crear equip: ${response.statusCode}');
-      print('Missatge: ${response.body}');
+      debugPrint('Error al crear equip: ${response.statusCode}');
+      debugPrint('Missatge: ${response.body}');
       return null;
     }
   }
@@ -60,9 +61,77 @@ class TeamService {
     if (response.statusCode == 200) {
       return true;
     } else {
-      print('Error en unir-se a l\'equip: ${response.statusCode}');
-      print('Missatge: ${response.body}');
+      debugPrint('Error en unir-se a l\'equip: ${response.statusCode}');
+      debugPrint('Missatge: ${response.body}');
       return false;
     }
+  }
+
+  /// Sol·licitar unir-se a un equip privat mitjançant un codi
+  /// POST /api/v1/teams/join-private
+  Future<bool> requestJoinPrivateTeam(String code) async {
+    // ⚠️ Endpoint no implementat realment al backend encara
+    final response = await http.post(
+      Uri.parse('$baseUrl/teams/join-private'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'code': code}),
+    );
+
+    // Mock response for now
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      debugPrint('Error al sol·licitar unir-se: ${response.statusCode}');
+      return true; // Forced true for mock
+    }
+  }
+
+  /// Obtenir les sol·licituds d'unió a l'equip
+  /// GET /api/v1/teams/{id}/requests
+  Future<List<Map<String, dynamic>>> getJoinRequests(String teamId) async {
+    // ⚠️ Endpoint no implementat realment al backend encara
+    /*
+    final response = await http.get(
+      Uri.parse('$baseUrl/teams/${Uri.encodeComponent(teamId)}/requests'),
+    );
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    }
+    */
+    
+    // Retornem dades simulades
+    await Future.delayed(const Duration(seconds: 1));
+    return [
+      {'userId': 'u1', 'userName': 'Marc Riera', 'requestDate': 'Avui, 10:30'},
+      {'userId': 'u2', 'userName': 'Laura Gómez', 'requestDate': 'Ahir, 18:45'},
+    ];
+  }
+
+  /// Acceptar una sol·licitud d'unió
+  /// POST /api/v1/teams/{id}/requests/{userId}/accept
+  Future<bool> acceptJoinRequest(String teamId, String userId) async {
+    // ⚠️ Endpoint no implementat realment al backend encara
+    /*
+    final response = await http.post(
+      Uri.parse('$baseUrl/teams/${Uri.encodeComponent(teamId)}/requests/${Uri.encodeComponent(userId)}/accept'),
+    );
+    return response.statusCode == 200;
+    */
+    await Future.delayed(const Duration(milliseconds: 500));
+    return true; // Mock success
+  }
+
+  /// Denegar una sol·licitud d'unió
+  /// POST /api/v1/teams/{id}/requests/{userId}/deny
+  Future<bool> denyJoinRequest(String teamId, String userId) async {
+    // ⚠️ Endpoint no implementat realment al backend encara
+    /*
+    final response = await http.post(
+      Uri.parse('$baseUrl/teams/${Uri.encodeComponent(teamId)}/requests/${Uri.encodeComponent(userId)}/deny'),
+    );
+    return response.statusCode == 200;
+    */
+    await Future.delayed(const Duration(milliseconds: 500));
+    return true; // Mock success
   }
 }

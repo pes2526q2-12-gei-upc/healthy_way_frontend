@@ -1,12 +1,10 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:healthy_way_frontend/core/router/app_router.dart';
-import 'package:healthy_way_frontend/shared/models/RouteModel.dart';
-import '../../../shared/models/UserModel.dart';
+import 'package:healthy_way_frontend/shared/models/route_model.dart';
+import '../../../shared/models/user_model.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
 import '../../../shared/providers/tracking_provider.dart';
 
@@ -248,7 +246,7 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                         children: [
                           _buildMetricCard('DISTANCIA', rutaSeleccionada.distance.toString(), 'km'),
                           const SizedBox(width: 12),
-                          _buildMetricCard('ALTITUD', rutaSeleccionada.elevation_gain, 'm'),
+                          _buildMetricCard('ALTITUD', rutaSeleccionada.elevationGain, 'm'),
                           const SizedBox(width: 12),
 
                           // Usamos FutureBuilder para manejar la llamada asíncrona
@@ -312,7 +310,7 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
           shape: BoxShape.circle,
           boxShadow: [
             if (bgColor == Colors.white)
-              BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))
+              BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 2))
           ],
         ),
         child: Icon(icon, color: iconColor, size: 22),

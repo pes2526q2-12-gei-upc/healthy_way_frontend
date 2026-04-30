@@ -104,7 +104,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 15, offset: const Offset(0, 5))
                         ],
                       ),
                       child: Row(
@@ -149,7 +149,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
         decoration: BoxDecoration(
             color: bgColor,
             shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 3))]
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 3))]
         ),
         child: Icon(icon, color: iconColor, size: 24),
       ),

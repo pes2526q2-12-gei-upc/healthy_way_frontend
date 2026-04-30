@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:healthy_way_frontend/shared/models/RouteModel.dart';
+import 'package:healthy_way_frontend/shared/models/route_model.dart';
 import 'package:latlong2/latlong.dart';
 import '../../core/services/location_service.dart';
 import 'package:geocoding/geocoding.dart';
@@ -188,7 +188,7 @@ class TrackingProvider extends ChangeNotifier {
       pace = '0:00';
     }
 
-    if(distance == 0) {
+    if(distanceDouble == 0.0) {
       calories = '0';
     } else {
       calories =

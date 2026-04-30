@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/team_service.dart';
-import '../../../shared/models/TeamModel.dart';
-import '../../../shared/models/UserModel.dart';
-import '../../../shared/providers/Auth_provider.dart';
+import '../../../shared/models/team_model.dart';
+import '../../../shared/models/user_model.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_comunity_bar.dart';
 
@@ -369,7 +369,7 @@ class _CreateTeamViewState extends State<CreateTeamView> {
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: _primaryBlue.withOpacity(0.2),
+                          color: _primaryBlue.withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         )
@@ -415,8 +415,8 @@ class _CreateTeamViewState extends State<CreateTeamView> {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: _isOpen
-                  ? Colors.green.withOpacity(0.1)
-                  : Colors.grey.withOpacity(0.1),
+                  ? Colors.green.withValues(alpha: 0.1)
+                  : Colors.grey.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -450,7 +450,7 @@ class _CreateTeamViewState extends State<CreateTeamView> {
           Switch(
             value: _isOpen,
             onChanged: (v) => setState(() => _isOpen = v),
-            activeColor: _primaryBlue,
+            activeThumbColor: _primaryBlue,
           ),
         ],
       ),

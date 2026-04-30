@@ -1,5 +1,6 @@
+import 'package:flutter/foundation.dart';
 //Servicio para hacer llamadas a la API de rutas
-import 'package:healthy_way_frontend/shared/models/RouteModel.dart';
+import 'package:healthy_way_frontend/shared/models/route_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:healthy_way_frontend/core/services/token_service.dart';
@@ -15,19 +16,18 @@ class RouteService {
   // 1. OBTENER TODAS LAS RUTAS PUBLICAS CON POSIBILIDAD DE FILTRAR POR ID DE RUTA, NOMBRE DE RUTA, LOCALIZACION, MAX/MIN DISTANCE, CREADOR
     Future<List<RouteModel>> getPublicRoutes({String? routeId, String? name, String? location, double? minDistance, double? maxDistance, String? creator}) async {
       final queryParameters = {
-        if (routeId != null) 'routeId': routeId,
-        if (name != null) 'routeName': name,
-        if (location != null) 'routeLocation': location,
+        'routeId': ?routeId,
+        'routeName': ?name,
+        'routeLocation': ?location,
         if (minDistance != null) 'minDistance': minDistance.toString(),
         if (maxDistance != null) 'maxDistance': maxDistance.toString(),
-        if (creator != null) 'createdBy': creator,
+        'createdBy': ?creator,
       };
 
       final uri = Uri.parse('$baseUrl/routes').replace(queryParameters: queryParameters);
       final response = await http.get(uri, headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
       if (response.statusCode == 200) {
-        print('Respuesta del servidor: ${response.body}'); // Debug: Ver la respuesta completa
         final List<dynamic> routesJson = json.decode(response.body);
         final List<RouteModel> routes = routesJson.map((json) => RouteModel.fromJson(json)).toList();
         return routes;
@@ -61,8 +61,8 @@ class RouteService {
     if (response.statusCode == 201) {
       return json.decode(response.body);
     } else {
-      print('Codigo de error: ${response.statusCode}');
-      print('Mensaje: ${response.body}');
+      debugPrint('Codigo de error: ${response.statusCode}');
+      debugPrint('Mensaje: ${response.body}');
       throw Exception('Error al crear la ruta');
     }
   }
@@ -87,7 +87,7 @@ class RouteService {
     final response = await http.delete(Uri.parse('$baseUrl/routes/$routeId'),
     headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
-    if (response.statusCode != 204) {
+    if (response.statusCode != 200) {
       throw Exception('Error al eliminar la ruta');
     }
   }

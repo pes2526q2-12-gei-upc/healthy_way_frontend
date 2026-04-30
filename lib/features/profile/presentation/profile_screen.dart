@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/services/route_service.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/services/user_service.dart';
-import '../../../shared/models/RouteModel.dart';
-import '../../../shared/models/Activity.dart';
-import '../../../shared/providers/Auth_provider.dart';
+import '../../../shared/models/activity.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/location_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
+import '../../../shared/models/route_model.dart';
+import '../../../core/services/route_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -191,6 +192,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // --- BUILDER DE RUTAS ---
+  // --- BUILDER DE RUTAS ---
   Widget _buildRoutesList(String userId) {
     return FutureBuilder<List<RouteModel>>(
       future: RouteService().getPublicRoutes(creator: userId),
@@ -221,15 +223,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
               child: _RouteCard(
+                id: ruta.id, // <-- Pasamos el ID
                 title: ruta.name.isEmpty ? 'Ruta sense nom' : ruta.name,
                 distance: '${ruta.distance.toStringAsFixed(2)} km',
                 location: ruta.location.isEmpty ? '--' : ruta.location,
                 badgeText: ruta.modality.isEmpty ? 'RUTA' : ruta.modality.toUpperCase(),
                 badgeColor: badgeColor,
                 teamControl: ruta.isPrivate ? 'Ruta Privada' : 'Ruta Pública',
+                onDelete: () => _confirmarBorradoRuta(ruta.id), // <-- Nueva función
               ),
             );
           },
+        );
+      },
+    );
+  }
+
+  // --- LÓGICA DE BORRADO ---
+  void _confirmarBorradoRuta(String id) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Eliminar Ruta'),
+          content: const Text('Estàs segur que vols eliminar aquesta ruta?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel·lar', style: TextStyle(color: Colors.grey)),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+
+                // Aquí llamas a tu función
+                await RouteService().deleteRoute(id);
+
+                // Refrescamos la pantalla
+                setState(() {});
+              },
+              child: const Text('Eliminar', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            ),
+          ],
         );
       },
     );
@@ -252,18 +287,126 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Positioned(
             top: 50,
             right: 20,
-            child: IconButton(
-              icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 28),
-              onPressed: () {
-                final messenger = ScaffoldMessenger.of(context);
-                final userId = context.read<AuthProvider>().currentUser!.userId;
+            child: Theme(
+              // Forzamos el color del icono principal a blanco
+              data: Theme.of(context).copyWith(
+                iconTheme: const IconThemeData(color: Colors.white),
+              ),
+              child: PopupMenuButton<String>(
+                icon: const Icon(Icons.settings_outlined, size: 28),
+                offset: const Offset(0, 45),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                onSelected: (String value) async {
+                  if (value == 'strava') {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final userId = context.read<AuthProvider>().currentUser!.userId;
 
-                UserService().importStravaRoutes(userId).then((result) {
-                  messenger.showSnackBar(
-                    SnackBar(content: Text(result)),
-                  );
-                });
-              },
+                    UserService().importStravaRoutes(userId).then((result) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                            content: Text(result),
+                            duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    });
+                  }
+                  else if (value == 'logout') {
+                    final authProvider = context.read<AuthProvider>();
+                    Navigator.pushNamedAndRemoveUntil(context, AppRouter.loginRoute, (route) => false);
+                    Future.delayed(const Duration(milliseconds: 400), () async {
+                      await authProvider.logout();
+                    });
+                  }
+                  else if (value == 'delete') {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext dialogContext) {
+                        return AlertDialog(
+                          title: const Text('Eliminar Compte'),
+                          content: const Text('Estàs segur que vols eliminar el teu compte? Aquesta acció no es pot desfer i perdràs totes les teves dades i rutes.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(dialogContext);
+                              },
+                              child: const Text('Cancel·lar', style: TextStyle(color: Colors.grey)),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.pop(dialogContext);
+
+                                final authProvider = context.read<AuthProvider>();
+                                final user = authProvider.currentUser;
+
+                                if (user != null) {
+                                  try {
+                                    await UserService().eliminarUsuari(user.userId);
+                                    if (!context.mounted) return;
+                                    Navigator.pushNamedAndRemoveUntil(context, AppRouter.loginRoute, (route) => false);
+                                    Future.delayed(const Duration(milliseconds: 400), () async {
+                                      await authProvider.logout();
+                                    });
+                                  }
+                                  catch (e) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Error al eliminar el compte: $e'),
+                                        backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 4),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                              child: const Text('Eliminar', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  // 1. Conectar amb Strava
+                  const PopupMenuItem<String>(
+                    value: 'strava',
+                    child: Row(
+                      children: [
+                        Icon(Icons.sync, color: Colors.orange),
+                        SizedBox(width: 12),
+                        Text('Conectar amb Strava'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  // 2. Tancar Sessió
+                  const PopupMenuItem<String>(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, color: Colors.black54),
+                        SizedBox(width: 12),
+                        Text('Tancar Sessió'),
+                      ],
+                    ),
+                  ),
+                  // 3. Eliminar Compte
+                  const PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, color: Colors.red),
+                        SizedBox(width: 12),
+                        Text(
+                          'Eliminar Compte',
+                          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -328,7 +471,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -352,7 +495,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -362,9 +505,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildStatColumn('NIVELL', '12', Colors.blue),
-          Container(width: 1, height: 40, color: Colors.grey.withOpacity(0.3)),
+          Container(width: 1, height: 40, color: Colors.grey.withValues(alpha: 0.3)),
           _buildStatColumn('VOLTA AL MÓN', '3.4%', Colors.green, icon: Icons.public),
-          Container(width: 1, height: 40, color: Colors.grey.withOpacity(0.3)),
+          Container(width: 1, height: 40, color: Colors.grey.withValues(alpha: 0.3)),
           _buildStatColumn('PUNTS', '2.450', Colors.amber),
         ],
       ),
@@ -437,7 +580,7 @@ class _ActivityCard extends StatelessWidget {
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     }
-    return '${minutes} min';
+    return '$minutes min';
   }
 
   @override
@@ -449,7 +592,7 @@ class _ActivityCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -479,7 +622,7 @@ class _ActivityCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E65F3).withOpacity(0.9),
+                      color: const Color(0xFF1E65F3).withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -570,21 +713,26 @@ class _ActivityCard extends StatelessWidget {
 }
 
 // --- CARD DE RUTA ---
+// --- CARD DE RUTA ---
 class _RouteCard extends StatelessWidget {
+  final String id; // <-- Añadido
   final String title;
   final String distance;
   final String location;
   final String badgeText;
   final Color badgeColor;
   final String teamControl;
+  final VoidCallback onDelete; // <-- Añadido
 
   const _RouteCard({
+    required this.id,
     required this.title,
     required this.distance,
     required this.location,
     required this.badgeText,
     required this.badgeColor,
     required this.teamControl,
+    required this.onDelete,
   });
 
   @override
@@ -595,7 +743,7 @@ class _RouteCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Row(
@@ -620,7 +768,7 @@ class _RouteCard extends StatelessWidget {
                     Expanded(child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[900]), overflow: TextOverflow.ellipsis)),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: badgeColor.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                      decoration: BoxDecoration(color: badgeColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
                       child: Text(badgeText, style: TextStyle(color: badgeColor, fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   ],
@@ -639,10 +787,27 @@ class _RouteCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Para empujar el botón a la derecha
                   children: [
-                    Icon(Icons.people, size: 14, color: Colors.blue[700]),
-                    const SizedBox(width: 4),
-                    Text(teamControl, style: TextStyle(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.w500)),
+                    Row(
+                      children: [
+                        Icon(Icons.people, size: 14, color: Colors.blue[700]),
+                        const SizedBox(width: 4),
+                        Text(teamControl, style: TextStyle(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                    // BOTÓN DE BORRAR
+                    GestureDetector(
+                      onTap: onDelete,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                      ),
+                    ),
                   ],
                 ),
               ],

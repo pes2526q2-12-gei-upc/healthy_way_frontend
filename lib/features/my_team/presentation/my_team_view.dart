@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/team_service.dart';
-import '../../../shared/models/TeamModel.dart';
-import '../../../shared/providers/Auth_provider.dart';
+import '../../../shared/models/team_model.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_comunity_bar.dart';
-import 'create_team_view.dart';
+import 'team_management_view.dart';
 
 class MyTeam extends StatefulWidget {
   const MyTeam({super.key});
@@ -21,6 +21,13 @@ class _MyTeamState extends State<MyTeam> {
 
   // Future per carregar les dades de l'equip desde el backend
   Future<TeamModel?>? _teamFuture;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -121,7 +128,7 @@ class _MyTeamState extends State<MyTeam> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -145,7 +152,7 @@ class _MyTeamState extends State<MyTeam> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: _primaryBlue.withOpacity(0.3),
+                      color: _primaryBlue.withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -220,7 +227,7 @@ class _MyTeamState extends State<MyTeam> {
               Container(
                 width: 1,
                 height: 40,
-                color: Colors.grey.withOpacity(0.2),
+                color: Colors.grey.withValues(alpha: 0.2),
               ),
               Expanded(
                 child: _buildStatItem(
@@ -240,14 +247,10 @@ class _MyTeamState extends State<MyTeam> {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Gestió d\'equip pròximament disponible'),
-                    backgroundColor: _primaryBlue,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TeamManagementView(teamName: teamName),
                   ),
                 );
               },
@@ -255,8 +258,8 @@ class _MyTeamState extends State<MyTeam> {
               label: const Text('Gestionar Equip'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: _primaryBlue,
-                side: BorderSide(color: _primaryBlue.withOpacity(0.3)),
-                backgroundColor: _primaryBlue.withOpacity(0.05),
+                side: BorderSide(color: _primaryBlue.withValues(alpha: 0.3)),
+                backgroundColor: _primaryBlue.withValues(alpha: 0.05),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -332,7 +335,7 @@ class _MyTeamState extends State<MyTeam> {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -401,7 +404,7 @@ class _MyTeamState extends State<MyTeam> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: _primaryBlue.withOpacity(0.1),
+                color: _primaryBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Text(
@@ -445,7 +448,7 @@ class _MyTeamState extends State<MyTeam> {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -458,7 +461,7 @@ class _MyTeamState extends State<MyTeam> {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: avatarColor.withOpacity(0.15),
+              color: avatarColor.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.person_outline, color: avatarColor, size: 24),
@@ -543,7 +546,7 @@ class _MyTeamState extends State<MyTeam> {
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: _primaryBlue.withOpacity(0.3),
+                  color: _primaryBlue.withValues(alpha: 0.3),
                   blurRadius: 16,
                   offset: const Offset(0, 8),
                 ),
@@ -555,7 +558,7 @@ class _MyTeamState extends State<MyTeam> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.people_alt_rounded, color: Colors.white, size: 28),
@@ -607,6 +610,75 @@ class _MyTeamState extends State<MyTeam> {
 
           const SizedBox(height: 28),
 
+          // ── Cerca per unir-se a un equip privat ──
+          const Text(
+            'Unir-se a un equip privat',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1D26),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Introdueix el codi de l\'equip',
+                    hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: _primaryBlue),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: () async {
+                  final code = _searchController.text.trim();
+                  if (code.isNotEmpty) {
+                    final success = await TeamService().requestJoinPrivateTeam(code);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(success ? 'Sol·licitud enviada correctament' : 'Error al enviar la sol·licitud'),
+                          backgroundColor: success ? Colors.green : Colors.red,
+                        ),
+                      );
+                      if (success) _searchController.clear();
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primaryBlue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Icon(Icons.search),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 28),
+
           // ── Capçalera llista d'equips ──
           Row(
             children: [
@@ -622,7 +694,7 @@ class _MyTeamState extends State<MyTeam> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _primaryBlue.withOpacity(0.1),
+                  color: _primaryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 // ⚠️ Hardcoded: nombre d'equips
@@ -666,7 +738,7 @@ class _MyTeamState extends State<MyTeam> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -677,16 +749,25 @@ class _MyTeamState extends State<MyTeam> {
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap: () {
-            // ⚠️ Funcionalitat d'unir-se en construcció
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Unir-se a "${team['name']}" pròximament disponible'),
-                backgroundColor: _primaryBlue,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            );
+          onTap: () async {
+            final success = await TeamService().joinTeam(team['name']);
+            if (context.mounted) {
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('T\'has unit a "${team['name']}" correctament!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Error en unir-se a l\'equip'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            }
           },
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -699,7 +780,7 @@ class _MyTeamState extends State<MyTeam> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        _primaryBlue.withOpacity(0.7),
+                        _primaryBlue.withValues(alpha: 0.7),
                         _primaryBlue,
                       ],
                       begin: Alignment.topLeft,
@@ -754,7 +835,7 @@ class _MyTeamState extends State<MyTeam> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: modalityColor.withOpacity(0.1),
+                              color: modalityColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -781,8 +862,8 @@ class _MyTeamState extends State<MyTeam> {
                                 horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: isOpen
-                                  ? Colors.green.withOpacity(0.1)
-                                  : Colors.grey.withOpacity(0.1),
+                                  ? Colors.green.withValues(alpha: 0.1)
+                                  : Colors.grey.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
