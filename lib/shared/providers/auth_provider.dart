@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
+import '../../core/services/token_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _currentUser;
@@ -26,6 +27,7 @@ class AuthProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('saved_user');
     _currentUser = null;
+    SecureStorageService().deleteToken();
     notifyListeners();
   }
 

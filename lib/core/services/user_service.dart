@@ -148,6 +148,7 @@ class UserService {
 
     if (response.statusCode == 200) {
       debugPrint('Usuari eliminat correctament');
+      SecureStorageService().deleteToken();
       return true;
     }
     else if (response.statusCode == 404) {

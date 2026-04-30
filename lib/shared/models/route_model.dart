@@ -63,7 +63,7 @@ class RouteModel {
           : const LatLng(0, 0), // O pon un LatLng(0,0) como arriba si lo prefieres
       location: json['location'],
       altitude: json['altitude'].toString(),
-      elevationGain: json['elevationGain'].toString(),
+      elevationGain: json['elevation_gain'].toString(),
     );
   }
 
@@ -88,8 +88,8 @@ class RouteModel {
       },
       'location': location,
       'altitude': double.tryParse(altitude),
-      'elevationGain': double.tryParse(elevationGain),
-      'modality': modality,
+      'elevation_gain': double.tryParse(elevationGain),
+      'modality': modality.toLowerCase(),
     };
   }
 }

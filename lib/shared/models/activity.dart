@@ -37,18 +37,18 @@ class Activity {
       userId: json['user_id'] ?? 99,
       createRoute: json['create_route'] ?? false,
       route: json['route'] != null ? RouteModel.fromJson(json['route']) : RouteModel(
-        id: '',
+        id: '99',
         name: 'Activitat Predeterminada',
-        distance: 0.0,
+        distance: 1.0,
         isPrivate: false,
         createdBy: 99,
         createdAt: DateTime.now(),
         trajectory: [],
         startPoint: const LatLng(0, 0),
         endPoint: const LatLng(0, 0),
-        location: 'Ubicaió desconeguda',
-        altitude: 'Altitud desconeguda',
-        elevationGain: 'Elevació desconeguda',
+        location: 'Ubicació desconeguda',
+        altitude: '1',
+        elevationGain: '1',
       ),
     );
   }
