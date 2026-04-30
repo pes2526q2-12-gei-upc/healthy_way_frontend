@@ -2,6 +2,7 @@ import 'package:healthy_way_frontend/shared/models/RouteModel.dart';
 import 'package:healthy_way_frontend/shared/models/Activity.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:healthy_way_frontend/core/services/token_service.dart';
 
 class ActivityService {
 
@@ -9,12 +10,12 @@ class ActivityService {
   factory ActivityService() => _instance;
   ActivityService._internal();
 
-  final String baseUrl = 'http://localhost:8080/api/v1';
+  final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
   Future<dynamic> createActivity(Activity activityData) async {
     final response = await http.post(
       Uri.parse('$baseUrl/activities/upload'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
       body: json.encode(activityData.toJson()),
     );
 

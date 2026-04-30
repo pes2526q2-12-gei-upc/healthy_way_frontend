@@ -2,6 +2,7 @@
 import 'package:healthy_way_frontend/shared/models/RouteModel.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:healthy_way_frontend/core/services/token_service.dart';
 
 class RouteService {
 
@@ -9,7 +10,7 @@ class RouteService {
   factory RouteService() => _instance;
   RouteService._internal();
 
-  final String baseUrl = 'http://localhost:8080/api/v1';
+  final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
   // 1. OBTENER TODAS LAS RUTAS PUBLICAS CON POSIBILIDAD DE FILTRAR POR ID DE RUTA, NOMBRE DE RUTA, LOCALIZACION, MAX/MIN DISTANCE, CREADOR
     Future<List<RouteModel>> getPublicRoutes({String? routeId, String? name, String? location, double? minDistance, double? maxDistance, String? creator}) async {
@@ -23,7 +24,7 @@ class RouteService {
       };
 
       final uri = Uri.parse('$baseUrl/routes').replace(queryParameters: queryParameters);
-      final response = await http.get(uri);
+      final response = await http.get(uri, headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
       if (response.statusCode == 200) {
         print('Respuesta del servidor: ${response.body}'); // Debug: Ver la respuesta completa
@@ -37,7 +38,8 @@ class RouteService {
 
   // 2. OBTENER TODAS LAS RUTAS RECOMENDADAS
   Future<List<RouteModel>> getRecommendedRoutes() async {
-    final response = await http.get(Uri.parse('$baseUrl/routes/recommendations'));
+    final response = await http.get(Uri.parse('$baseUrl/routes/recommendations'),
+    headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
     if (response.statusCode == 200) {
       final List<dynamic> routesJson = json.decode(response.body);
@@ -52,7 +54,7 @@ class RouteService {
   Future<dynamic> createRoute(RouteModel routeData) async {
     final response = await http.post(
       Uri.parse('$baseUrl/routes'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
       body: json.encode(routeData.toJson()),
     );
 
@@ -69,7 +71,7 @@ class RouteService {
   Future<dynamic> updateRoute(String routeId, RouteModel routeData) async {
     final response = await http.put(
       Uri.parse('$baseUrl/routes/$routeId'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
       body: json.encode(routeData.toJson()),
     );
 
@@ -82,7 +84,8 @@ class RouteService {
 
   // 5. ELIMINAR UNA RUTA
   Future<void> deleteRoute(String routeId) async {
-    final response = await http.delete(Uri.parse('$baseUrl/routes/$routeId'));
+    final response = await http.delete(Uri.parse('$baseUrl/routes/$routeId'),
+    headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
     if (response.statusCode != 204) {
       throw Exception('Error al eliminar la ruta');
@@ -90,7 +93,8 @@ class RouteService {
   }
 
   Future<RouteModel> getRouteById(String routeId) async {
-    final response = await http.get(Uri.parse('$baseUrl/routes/$routeId'));
+    final response = await http.get(Uri.parse('$baseUrl/routes/$routeId'),
+    headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> routeJson = json.decode(response.body);
