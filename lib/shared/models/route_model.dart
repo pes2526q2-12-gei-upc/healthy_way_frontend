@@ -76,15 +76,15 @@ class RouteModel {
       'created_at': createdAt.toIso8601String(),
       'trajectory': {
         'type': 'LineString',
-        'coordinates' : trajectory.map((point) => [point.latitude, point.longitude]).toList()
+        'coordinates' : trajectory.map((point) => [point.longitude, point.latitude]).toList()
       },
       'start_point': {
         'type': 'Point',
-        'coordinates': [startPoint.latitude, startPoint.longitude]
+        'coordinates': [startPoint.longitude, startPoint.latitude]
       },
       'end_point': {
         'type': 'Point',
-        'coordinates': [endPoint.latitude, endPoint.longitude]
+        'coordinates': [endPoint.longitude, endPoint.latitude]
       },
       'location': location,
       'altitude': double.tryParse(altitude),
