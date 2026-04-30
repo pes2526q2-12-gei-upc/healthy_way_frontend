@@ -5,16 +5,21 @@ import 'dart:convert';
 import 'package:healthy_way_frontend/core/services/token_service.dart';
 
 class ActivityService {
-
+  final http.Client client;
   static final ActivityService _instance = ActivityService._internal();
-  factory ActivityService() => _instance;
-  ActivityService._internal();
+  factory ActivityService({http.Client? client}) {
+    if (client != null) {
+      return ActivityService._internal(client: client);
+    }
+    return _instance;
+  }
+  ActivityService._internal({http.Client? client}) : client = client ?? http.Client();
 
   final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
   Future<dynamic> createActivity(Activity activityData) async {
     debugPrint('JSON ENVIADO: ${jsonEncode(activityData)}');
-    final response = await http.post(
+    final response = await client.post(
       Uri.parse('$baseUrl/activities/upload'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
       body: json.encode(activityData.toJson()),

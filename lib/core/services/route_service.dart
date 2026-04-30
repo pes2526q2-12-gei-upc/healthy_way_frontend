@@ -6,10 +6,15 @@ import 'dart:convert';
 import 'package:healthy_way_frontend/core/services/token_service.dart';
 
 class RouteService {
-
+  final http.Client client;
   static final RouteService _instance = RouteService._internal();
-  factory RouteService() => _instance;
-  RouteService._internal();
+  factory RouteService({http.Client? client}) {
+    if (client != null) {
+      return RouteService._internal(client: client);
+    }
+    return _instance;
+  }
+  RouteService._internal({http.Client? client}) : client = client ?? http.Client();
 
   final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
@@ -25,7 +30,7 @@ class RouteService {
       };
 
       final uri = Uri.parse('$baseUrl/routes').replace(queryParameters: queryParameters);
-      final response = await http.get(uri, headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
+      final response = await client.get(uri, headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
       if (response.statusCode == 200) {
         final List<dynamic> routesJson = json.decode(response.body);
@@ -38,7 +43,7 @@ class RouteService {
 
   // 2. OBTENER TODAS LAS RUTAS RECOMENDADAS
   Future<List<RouteModel>> getRecommendedRoutes() async {
-    final response = await http.get(Uri.parse('$baseUrl/routes/recommendations'),
+    final response = await client.get(Uri.parse('$baseUrl/routes/recommendations'),
     headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
     if (response.statusCode == 200) {
@@ -52,7 +57,7 @@ class RouteService {
 
   // 3. CREAR UNA NUEVA RUTA. Devuelve la ruta creada con su ID asignado por el backend
   Future<dynamic> createRoute(RouteModel routeData, String modality) async {
-    final response = await http.post(
+    final response = await client.post(
       Uri.parse('$baseUrl/routes'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
       body: json.encode(routeData.toJson(modality)),
@@ -69,7 +74,7 @@ class RouteService {
 
   // 4. ACTUALIZAR UNA RUTA EXISTENTE
   Future<dynamic> updateRoute(String routeId, RouteModel routeData, String modality) async {
-    final response = await http.put(
+    final response = await client.put(
       Uri.parse('$baseUrl/routes/$routeId'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
       body: json.encode(routeData.toJson(modality)),
@@ -84,7 +89,7 @@ class RouteService {
 
   // 5. ELIMINAR UNA RUTA
   Future<void> deleteRoute(String routeId) async {
-    final response = await http.delete(Uri.parse('$baseUrl/routes/$routeId'),
+    final response = await client.delete(Uri.parse('$baseUrl/routes/$routeId'),
     headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
     if (response.statusCode != 200) {
@@ -93,7 +98,7 @@ class RouteService {
   }
 
   Future<RouteModel> getRouteById(String routeId) async {
-    final response = await http.get(Uri.parse('$baseUrl/routes/$routeId'),
+    final response = await client.get(Uri.parse('$baseUrl/routes/$routeId'),
     headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
     if (response.statusCode == 200) {

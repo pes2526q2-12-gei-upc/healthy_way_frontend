@@ -8,15 +8,20 @@ import '../../shared/models/user_model.dart';
 import 'token_service.dart';
 
 class UserService {
-
+  final http.Client client;
   static final UserService _instance = UserService._internal();
-  factory UserService() => _instance;
-  UserService._internal();
+  factory UserService({http.Client? client}) {
+    if (client != null) {
+      return UserService._internal(client: client);
+    }
+    return _instance;
+  }
+  UserService._internal({http.Client? client}) : client = client ?? http.Client();
 
   final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
   Future<bool> crearUsuari(String name, String username, String email, String password) async {
-    final response = await http.post(
+    final response = await client.post(
       Uri.parse('$baseUrl/auth/register'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
@@ -43,7 +48,7 @@ class UserService {
   }
 
   Future<User?> login(String identifier, String password) async {
-    final response = await http.post(
+    final response = await client.post(
       Uri.parse('$baseUrl/auth/login'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
@@ -66,7 +71,7 @@ class UserService {
   }
 
   Future<User?> getUserProfile(int userId) async {
-    final response = await http.get(
+    final response = await client.get(
         Uri.parse('$baseUrl/users/$userId'),
         headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
@@ -80,7 +85,7 @@ class UserService {
   }
 
   Future<List<Activity>> getUserActivities(int userId) async {
-    final response = await http.get(
+    final response = await client.get(
         Uri.parse('$baseUrl/users/$userId/activities'),
         headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
@@ -117,7 +122,7 @@ class UserService {
         .queryParameters['code'];
 
     if (code != null) {
-      final newResponse = await http.post(
+      final newResponse = await client.post(
         Uri.parse('$baseUrl/import/strava'),
         headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
         body: json.encode({
@@ -138,7 +143,7 @@ class UserService {
   }
 
   Future<bool> eliminarUsuari(int userId) async {
-    final response = await http.delete(
+    final response = await client.delete(
         Uri.parse('$baseUrl/users/$userId'),
         headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'}
     );
