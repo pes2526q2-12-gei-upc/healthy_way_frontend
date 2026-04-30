@@ -3,8 +3,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
-import '../../shared/models/activity.dart';
-import '../../shared/models/user_model.dart';
+import '../../shared/models/Activity.dart';
+import '../../shared/models/UserModel.dart';
+import '../../shared/providers/Auth_provider.dart';
+import 'token_service.dart';
 
 class UserService {
 
@@ -32,6 +34,13 @@ class UserService {
       return false;
     }
 
+    else if (response.statusCode == 201) {
+      // guardamos el token que nos devuelve el backend para futuras peticiones autenticadas
+      final responseBody = json.decode(response.body);
+      final token = responseBody['authToken'];
+      await SecureStorageService().saveToken(token);
+    }
+
     return true;
   }
 
@@ -46,6 +55,8 @@ class UserService {
     );
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
+      final token = responseBody['authToken'];
+      await SecureStorageService().saveToken(token);
       final loggedUser = User.fromJson(responseBody['user']);
       return loggedUser;
     }
@@ -57,7 +68,9 @@ class UserService {
   }
 
   Future<User?> getUserProfile(int userId) async {
-    final response = await http.get(Uri.parse('$baseUrl/users/$userId'));
+    final response = await http.get(
+        Uri.parse('$baseUrl/users/$userId'),
+        headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
     if (response.statusCode == 200) {
       final userJson = json.decode(response.body);
@@ -69,7 +82,9 @@ class UserService {
   }
 
   Future<List<Activity>> getUserActivities(int userId) async {
-    final response = await http.get(Uri.parse('$baseUrl/users/$userId/activities'));
+    final response = await http.get(
+        Uri.parse('$baseUrl/users/$userId/activities'),
+        headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
     if (response.statusCode == 200) {
       final List<dynamic> activitiesJson = json.decode(response.body);
@@ -106,14 +121,18 @@ class UserService {
     if (code != null) {
       final newResponse = await http.post(
         Uri.parse('$baseUrl/import/strava'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'code': code,
-          'user_id': userId,
-        }),
-      );
-      if(newResponse.statusCode == 201) {
-        return 'Rutes importades correctament des de Strava.';
+          headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
+          body: json.encode({
+            'code': code,
+            'user_id': userId,
+          }),
+        );
+        if(newResponse.statusCode == 200) {
+          return 'Rutes importades correctament des de Strava.';
+        }
+        else {
+          return 'Error al importar les rutes de Strava: ${newResponse.statusCode}';
+        }
       }
       else {
         return 'Error al importar les rutes de Strava: ${newResponse.statusCode}';

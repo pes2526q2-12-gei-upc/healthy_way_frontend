@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import '../../shared/models/team_model.dart';
+import '../../shared/models/TeamModel.dart';
+import 'token_service.dart';
 
 class TeamService {
   static final TeamService _instance = TeamService._internal();
@@ -17,6 +18,7 @@ class TeamService {
   Future<TeamModel?> getTeamByName(String teamName) async {
     final response = await http.get(
       Uri.parse('$baseUrl/teams/${Uri.encodeComponent(teamName)}'),
+      headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
     );
 
     if (response.statusCode == 200) {
@@ -34,7 +36,7 @@ class TeamService {
   Future<TeamModel?> createTeam(TeamModel team) async {
     final response = await http.post(
       Uri.parse('$baseUrl/teams'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
       body: jsonEncode(team.toJson()),
     );
 
@@ -53,7 +55,7 @@ class TeamService {
   Future<bool> joinTeam(String teamId) async {
     final response = await http.post(
       Uri.parse('$baseUrl/teams/${Uri.encodeComponent(teamId)}/join'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
     );
 
     if (response.statusCode == 200) {

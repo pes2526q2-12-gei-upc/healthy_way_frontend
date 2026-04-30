@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:healthy_way_frontend/shared/models/activity.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:healthy_way_frontend/core/services/token_service.dart';
 
 class ActivityService {
 
@@ -14,7 +15,7 @@ class ActivityService {
   Future<dynamic> createActivity(Activity activityData) async {
     final response = await http.post(
       Uri.parse('$baseUrl/activities/upload'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
       body: json.encode(activityData.toJson()),
     );
 
