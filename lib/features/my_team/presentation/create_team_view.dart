@@ -3,13 +3,13 @@ import 'package:provider/provider.dart';
 
 import '../../../core/services/team_service.dart';
 import '../../../shared/models/team_model.dart';
-import '../../../shared/models/user_model.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_comunity_bar.dart';
 
 class CreateTeamView extends StatefulWidget {
-  const CreateTeamView({super.key});
+  final TeamModel? team;
+  const CreateTeamView({super.key, this.team});
 
   @override
   State<CreateTeamView> createState() => _CreateTeamViewState();
@@ -26,6 +26,18 @@ class _CreateTeamViewState extends State<CreateTeamView> {
   String _selectedZone = 'Barcelona';
   String _selectedModality = 'running';
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.team != null) {
+      _nameController.text = widget.team!.name;
+      _descriptionController.text = widget.team!.description ?? '';
+      _isOpen = widget.team!.open;
+      _selectedZone = widget.team!.zone.isNotEmpty ? widget.team!.zone : 'Barcelona';
+      _selectedModality = widget.team!.modality.isNotEmpty ? widget.team!.modality : 'running';
+    }
+  }
 
   static const Color _primaryBlue = Color(0xFF1058E5);
   static const Color _bgColor = Color(0xFFF4F6F9);
@@ -48,6 +60,11 @@ class _CreateTeamViewState extends State<CreateTeamView> {
 
     setState(() => _isLoading = true);
 
+    final authProvider = context.read<AuthProvider>();
+    final currentUser = authProvider.currentUser;
+    
+    if (currentUser == null) return;
+
     final newTeam = TeamModel(
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim().isEmpty
@@ -57,31 +74,36 @@ class _CreateTeamViewState extends State<CreateTeamView> {
       zone: _selectedZone,
       modality: _selectedModality,
       numMembers: 1,
+      creatorUsername: currentUser.username,
     );
 
     try {
-      final createdTeam = await TeamService().createTeam(newTeam);
-
-      if (!mounted) return;
-
-      if (createdTeam != null) {
-        // Actualitzem l'usuari amb el nou equip
-        final authProvider = context.read<AuthProvider>();
-        final currentUser = authProvider.currentUser!;
-        final updatedUser = User(
-          userId: currentUser.userId,
-          nom: currentUser.nom,
-          username: currentUser.username,
-          email: currentUser.email,
-          team: createdTeam.name,
-        );
-        await authProvider.login(updatedUser);
+      if (widget.team != null) {
+        // Mode edició
+        final updatedTeam = await TeamService().updateTeam(widget.team!.name, newTeam);
+        if (!mounted) return;
+        
+        if (updatedTeam != null) {
+          Navigator.of(context).pop();
+        } else {
+          _showErrorSnackbar('No s\'ha pogut actualitzar l\'equip.');
+        }
+      } else {
+        // Mode creació
+        final createdTeam = await TeamService().createTeam(newTeam);
 
         if (!mounted) return;
-        // Tornem a my_team, substituint aquesta pantalla
-        Navigator.of(context).pop();
-      } else {
-        _showErrorSnackbar('No s\'ha pogut crear l\'equip. Torna-ho a intentar.');
+
+        if (createdTeam != null) {
+          // Actualitzem l'usuari amb el nou equip
+          await authProvider.updateTeam(createdTeam.name);
+
+          if (!mounted) return;
+          // Tornem a my_team, substituint aquesta pantalla
+          Navigator.of(context).pop();
+        } else {
+          _showErrorSnackbar('No s\'ha pogut crear l\'equip. Torna-ho a intentar.');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -134,9 +156,9 @@ class _CreateTeamViewState extends State<CreateTeamView> {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        const Text(
-                          'Crea el teu equip',
-                          style: TextStyle(
+                        Text(
+                          widget.team != null ? 'Edita el teu equip' : 'Crea el teu equip',
+                          style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF1A1D26),
@@ -145,11 +167,11 @@ class _CreateTeamViewState extends State<CreateTeamView> {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 14),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 14),
                       child: Text(
-                        'Omple la informació per crear el teu equip',
-                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                        widget.team != null ? 'Modifica les dades de l\'equip' : 'Omple la informació per crear el teu equip',
+                        style: const TextStyle(fontSize: 13, color: Colors.grey),
                       ),
                     ),
                     const SizedBox(height: 28),
@@ -161,6 +183,7 @@ class _CreateTeamViewState extends State<CreateTeamView> {
                       controller: _nameController,
                       hintText: 'Ex: Els Llampecs',
                       maxLength: 50,
+                      enabled: widget.team == null, // No permetem canviar el nom si estem editant
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) {
                           return 'El nom és obligatori';
@@ -223,9 +246,9 @@ class _CreateTeamViewState extends State<CreateTeamView> {
                                   strokeWidth: 2.5,
                                 ),
                               )
-                            : const Text(
-                                'Crear Equip',
-                                style: TextStyle(
+                            : Text(
+                                widget.team != null ? 'Guardar Canvis' : 'Crear Equip',
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 0.5,
@@ -280,12 +303,14 @@ class _CreateTeamViewState extends State<CreateTeamView> {
     required String hintText,
     int? maxLength,
     int maxLines = 1,
+    bool enabled = true,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       maxLength: maxLength,
       maxLines: maxLines,
+      enabled: enabled,
       validator: validator,
       decoration: InputDecoration(
         hintText: hintText,
