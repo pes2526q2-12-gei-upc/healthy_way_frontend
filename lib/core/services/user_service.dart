@@ -5,7 +5,6 @@ import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
 import '../../shared/models/activity.dart';
 import '../../shared/models/user_model.dart';
-import '../../shared/providers/auth_provider.dart';
 import 'token_service.dart';
 
 class UserService {
