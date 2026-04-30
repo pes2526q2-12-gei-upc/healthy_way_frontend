@@ -7,6 +7,7 @@ import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_comunity_bar.dart';
 import 'team_management_view.dart';
+import 'create_team_view.dart';
 
 class MyTeam extends StatefulWidget {
   const MyTeam({super.key});
@@ -21,6 +22,7 @@ class _MyTeamState extends State<MyTeam> {
 
   // Future per carregar les dades de l'equip desde el backend
   Future<TeamModel?>? _teamFuture;
+  Future<List<TeamModel>>? _publicTeamsFuture;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -32,14 +34,18 @@ class _MyTeamState extends State<MyTeam> {
   @override
   void initState() {
     super.initState();
-    _loadTeam();
+    _loadTeamData();
   }
 
-  void _loadTeam() {
-    final teamName = context.read<AuthProvider>().currentUser?.team;
-    if (teamName != null && teamName.isNotEmpty) {
+  void _loadTeamData() {
+    final user = context.read<AuthProvider>().currentUser;
+    if (user != null && user.hasTeam && user.team!.isNotEmpty) {
       setState(() {
-        _teamFuture = TeamService().getTeamByName(teamName);
+        _teamFuture = TeamService().getTeamByName(user.team!);
+      });
+    } else {
+      setState(() {
+        _publicTeamsFuture = TeamService().getAllTeams();
       });
     }
   }
@@ -199,7 +205,7 @@ class _MyTeamState extends State<MyTeam> {
           ),
           const SizedBox(height: 4),
 
-          // Zona i nivell (nivell hardcoded — no hi ha endpoint)
+          // Zona i descripció
           isLoading
               ? const SizedBox(
                   height: 16,
@@ -207,7 +213,7 @@ class _MyTeamState extends State<MyTeam> {
                   child: LinearProgressIndicator(borderRadius: BorderRadius.all(Radius.circular(4))),
                 )
               : Text(
-                  'Nivell 1 · $zone', // ⚠️ Hardcoded: Nivell, ja que no hi ha endpoint
+                  '${team?.description ?? 'Sense descripció'} · $zone',
                   style: const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
 
@@ -240,32 +246,62 @@ class _MyTeamState extends State<MyTeam> {
             ],
           ),
 
-          const SizedBox(height: 20),
-
-          // Botó Gestionar Equip
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TeamManagementView(teamName: teamName),
+          // Botons d'accions
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TeamManagementView(teamName: teamName),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.people_outline, size: 16),
+                  label: const Text('Gestionar', style: TextStyle(fontSize: 13)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _primaryBlue,
+                    side: BorderSide(color: _primaryBlue.withValues(alpha: 0.3)),
+                    backgroundColor: _primaryBlue.withValues(alpha: 0.05),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                );
-              },
-              icon: const Icon(Icons.edit_outlined, size: 16),
-              label: const Text('Gestionar Equip'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: _primaryBlue,
-                side: BorderSide(color: _primaryBlue.withValues(alpha: 0.3)),
-                backgroundColor: _primaryBlue.withValues(alpha: 0.05),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    if (team != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CreateTeamView(team: team),
+                        ),
+                      ).then((_) {
+                         // Recarregar les dades de l'equip a l'anar enrere
+                         _loadTeamData();
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.edit_outlined, size: 16),
+                  label: const Text('Editar Equip', style: TextStyle(fontSize: 13)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _primaryBlue,
+                    side: BorderSide(color: _primaryBlue.withValues(alpha: 0.3)),
+                    backgroundColor: _primaryBlue.withValues(alpha: 0.05),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -520,212 +556,211 @@ class _MyTeamState extends State<MyTeam> {
   // ─── VISTA: USUARI SENSE EQUIP ───────────────────────────────────────────────
 
   Widget _buildNoTeamView(BuildContext context) {
-    // ⚠️ Hardcoded: llista d'equips, ja que no hi ha endpoint per llistar equips
-    final hardcodedTeams = [
-      {'name': 'Els Llampecs', 'zone': 'Barcelona', 'modality': 'running', 'members': 8, 'open': true},
-      {'name': 'Velocitat Girona', 'zone': 'Girona', 'modality': 'cycling', 'members': 5, 'open': true},
-      {'name': 'Corredors Tarragona', 'zone': 'Tarragona', 'modality': 'running', 'members': 12, 'open': false},
-      {'name': 'Pedalers Lleida', 'zone': 'Lleida', 'modality': 'cycling', 'members': 3, 'open': true},
-    ];
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Missatge d'inici ──
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1058E5), Color(0xFF4A85F6)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: _primaryBlue.withValues(alpha: 0.3),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
+    return FutureBuilder<List<TeamModel>>(
+      future: _publicTeamsFuture,
+      builder: (context, snapshot) {
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+        final publicTeams = snapshot.data ?? [];
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Missatge d'inici ──
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1058E5), Color(0xFF4A85F6)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  child: const Icon(Icons.people_alt_rounded, color: Colors.white, size: 28),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Encara no tens equip',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Uneix-te a un equip existent o crea el teu propi per competir amb altres equips de la teva zona.',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Botó crear equip
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => Navigator.pushNamed(context, '/create_team'),
-                    icon: const Icon(Icons.add_rounded, size: 18),
-                    label: const Text(
-                      'Crear nou equip',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _primaryBlue.withValues(alpha: 0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: _primaryBlue,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      elevation: 0,
+                      child: const Icon(Icons.people_alt_rounded, color: Colors.white, size: 28),
                     ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Encara no tens equip',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Uneix-te a un equip existent o crea el teu propi per competir amb altres equips de la teva zona.',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
 
-          const SizedBox(height: 28),
-
-          // ── Cerca per unir-se a un equip privat ──
-          const Text(
-            'Unir-se a un equip privat',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1A1D26),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Introdueix el codi de l\'equip',
-                    hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: _primaryBlue),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              ElevatedButton(
-                onPressed: () async {
-                  final code = _searchController.text.trim();
-                  if (code.isNotEmpty) {
-                    final success = await TeamService().requestJoinPrivateTeam(code);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(success ? 'Sol·licitud enviada correctament' : 'Error al enviar la sol·licitud'),
-                          backgroundColor: success ? Colors.green : Colors.red,
+                    // Botó crear equip
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => Navigator.pushNamed(context, '/create_team'),
+                        icon: const Icon(Icons.add_rounded, size: 18),
+                        label: const Text(
+                          'Crear nou equip',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                      );
-                      if (success) _searchController.clear();
-                    }
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _primaryBlue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 0,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: _primaryBlue,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                child: const Icon(Icons.search),
               ),
-            ],
-          ),
 
-          const SizedBox(height: 28),
+              const SizedBox(height: 28),
 
-          // ── Capçalera llista d'equips ──
-          Row(
-            children: [
+              // ── Cerca per unir-se a un equip privat ──
               const Text(
-                'Equips disponibles',
+                'Unir-se a un equip privat',
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF1A1D26),
                 ),
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: _primaryBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                // ⚠️ Hardcoded: nombre d'equips
-                child: Text(
-                  '${hardcodedTeams.length}',
-                  style: const TextStyle(
-                    color: _primaryBlue,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Introdueix el nom de l\'equip',
+                        hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: _primaryBlue),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final teamName = _searchController.text.trim();
+                      if (teamName.isNotEmpty) {
+                        final success = await TeamService().requestJoinPrivateTeam(teamName);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(success ? 'Sol·licitud enviada correctament' : 'Error al enviar la sol·licitud'),
+                              backgroundColor: success ? Colors.green : Colors.red,
+                            ),
+                          );
+                          if (success) _searchController.clear();
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryBlue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Icon(Icons.search),
+                  ),
+                ],
               ),
+
+              const SizedBox(height: 28),
+
+              // ── Capçalera llista d'equips ──
+              Row(
+                children: [
+                  const Text(
+                    'Equips disponibles',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1D26),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  if (!isLoading)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: _primaryBlue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${publicTeams.length}',
+                        style: const TextStyle(
+                          color: _primaryBlue,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // ── Llista de targetes d'equips ──
+              if (isLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (publicTeams.isEmpty)
+                const Text('No hi ha equips públics disponibles.', style: TextStyle(color: Colors.grey))
+              else
+                ...publicTeams.map((team) => _buildTeamListCard(context, team)),
             ],
           ),
-          const SizedBox(height: 4),
-          const Text(
-            '(Dades de prova — el llistat real estarà disponible aviat)',
-            style: TextStyle(fontSize: 11, color: Colors.grey),
-          ),
-          const SizedBox(height: 14),
-
-          // ── Llista de targetes d'equips ──
-          ...hardcodedTeams.map((team) => _buildTeamListCard(context, team)),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildTeamListCard(BuildContext context, Map<String, dynamic> team) {
-    final isOpen = team['open'] as bool;
-    final modality = team['modality'] as String;
+  Widget _buildTeamListCard(BuildContext context, TeamModel team) {
+    final isOpen = team.open;
+    final modality = team.modality;
     final modalityIcon =
         modality == 'cycling' ? Icons.directions_bike : Icons.directions_run;
     final modalityColor =
@@ -750,22 +785,47 @@ class _MyTeamState extends State<MyTeam> {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () async {
-            final success = await TeamService().joinTeam(team['name']);
-            if (context.mounted) {
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('T\'has unit a "${team['name']}" correctament!'),
-                    backgroundColor: Colors.green,
+            // Confirm dialog
+            final shouldJoin = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Unir-se a l\'equip'),
+                content: Text('Vols unir-te a l\'equip "${team.name}"?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    child: const Text('Cancel·lar'),
                   ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Error en unir-se a l\'equip'),
-                    backgroundColor: Colors.red,
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    style: ElevatedButton.styleFrom(backgroundColor: _primaryBlue, foregroundColor: Colors.white),
+                    child: const Text('Confirmar'),
                   ),
-                );
+                ],
+              ),
+            );
+
+            if (shouldJoin == true && context.mounted) {
+              final success = await TeamService().joinTeam(team.name);
+              if (context.mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('T\'has unit a "${team.name}" correctament!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  // Update current user
+                  await context.read<AuthProvider>().updateTeam(team.name);
+                  _loadTeamData();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Error en unir-se a l\'equip'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               }
             }
           },
@@ -798,7 +858,7 @@ class _MyTeamState extends State<MyTeam> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        team['name'] as String,
+                        team.name,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
@@ -813,7 +873,7 @@ class _MyTeamState extends State<MyTeam> {
                               size: 12, color: Colors.grey),
                           const SizedBox(width: 3),
                           Text(
-                            team['zone'] as String,
+                            team.zone,
                             style: const TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                           const SizedBox(width: 10),
@@ -822,7 +882,7 @@ class _MyTeamState extends State<MyTeam> {
                               size: 12, color: Colors.grey),
                           const SizedBox(width: 3),
                           Text(
-                            '${team['members']} membres',
+                            '${team.numMembers} membres',
                             style: const TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                         ],

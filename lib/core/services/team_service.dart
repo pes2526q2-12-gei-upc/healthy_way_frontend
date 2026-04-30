@@ -65,71 +65,88 @@ class TeamService {
     }
   }
 
-  /// Sol·licitar unir-se a un equip privat mitjançant un codi
-  /// POST /api/v1/teams/join-private
-  Future<bool> requestJoinPrivateTeam(String code) async {
-    // ⚠️ Endpoint no implementat realment al backend encara
+  /// Sol·licitar unir-se a un equip privat pel seu nom
+  /// POST /api/v1/teams/{teamName}/requests
+  Future<bool> requestJoinPrivateTeam(String teamName) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/teams/join-private'),
+      Uri.parse('$baseUrl/teams/${Uri.encodeComponent(teamName)}/requests'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'code': code}),
     );
 
-    // Mock response for now
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       return true;
     } else {
       debugPrint('Error al sol·licitar unir-se: ${response.statusCode}');
-      return true; // Forced true for mock
+      return false; 
     }
   }
 
   /// Obtenir les sol·licituds d'unió a l'equip
   /// GET /api/v1/teams/{id}/requests
-  Future<List<Map<String, dynamic>>> getJoinRequests(String teamId) async {
-    // ⚠️ Endpoint no implementat realment al backend encara
-    /*
+  Future<List<Map<String, dynamic>>> getJoinRequests(String teamName) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/teams/${Uri.encodeComponent(teamId)}/requests'),
+      Uri.parse('$baseUrl/teams/${Uri.encodeComponent(teamName)}/requests'),
     );
     if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((e) => e as Map<String, dynamic>).toList();
+    } else {
+      debugPrint('Error al obtenir sol·licituds: ${response.statusCode}');
+      return [];
     }
-    */
-    
-    // Retornem dades simulades
-    await Future.delayed(const Duration(seconds: 1));
-    return [
-      {'userId': 'u1', 'userName': 'Marc Riera', 'requestDate': 'Avui, 10:30'},
-      {'userId': 'u2', 'userName': 'Laura Gómez', 'requestDate': 'Ahir, 18:45'},
-    ];
   }
 
   /// Acceptar una sol·licitud d'unió
   /// POST /api/v1/teams/{id}/requests/{userId}/accept
-  Future<bool> acceptJoinRequest(String teamId, String userId) async {
-    // ⚠️ Endpoint no implementat realment al backend encara
-    /*
+  Future<bool> acceptJoinRequest(String teamName, String userId) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/teams/${Uri.encodeComponent(teamId)}/requests/${Uri.encodeComponent(userId)}/accept'),
+      Uri.parse('$baseUrl/teams/${Uri.encodeComponent(teamName)}/requests/${Uri.encodeComponent(userId)}/accept'),
     );
-    return response.statusCode == 200;
-    */
-    await Future.delayed(const Duration(milliseconds: 500));
-    return true; // Mock success
+    return response.statusCode == 200 || response.statusCode == 201;
   }
 
-  /// Denegar una sol·licitud d'unió
-  /// POST /api/v1/teams/{id}/requests/{userId}/deny
-  Future<bool> denyJoinRequest(String teamId, String userId) async {
+  /// Denegar una sol·licitud d'unió (de moment s'elimina de forma temporal, no fa trucada a l'API)
+  Future<bool> denyJoinRequest(String teamName, String userId) async {
     // ⚠️ Endpoint no implementat realment al backend encara
-    /*
-    final response = await http.post(
-      Uri.parse('$baseUrl/teams/${Uri.encodeComponent(teamId)}/requests/${Uri.encodeComponent(userId)}/deny'),
+    await Future.delayed(const Duration(milliseconds: 200));
+    return true; // Retorna true per eliminar de la llista localment
+  }
+
+  /// Obtenir tots els equips públics
+  /// GET /api/v1/teams
+  Future<List<TeamModel>> getAllTeams() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/teams'),
     );
-    return response.statusCode == 200;
-    */
-    await Future.delayed(const Duration(milliseconds: 500));
-    return true; // Mock success
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => TeamModel.fromJson(json)).toList();
+    } else {
+      debugPrint('Error al obtenir equips públics: ${response.statusCode}');
+      return [];
+    }
+  }
+
+  /// Actualitzar un equip existent
+  /// PUT /api/v1/teams/{name}
+  Future<TeamModel?> updateTeam(String teamName, TeamModel team) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/teams/${Uri.encodeComponent(teamName)}'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(team.toJson()),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      // 204 typically means success but no body, if 200 we might get the team back.
+      if (response.body.isNotEmpty) {
+        return TeamModel.fromJson(jsonDecode(response.body));
+      }
+      return team;
+    } else {
+      debugPrint('Error al actualitzar equip: ${response.statusCode}');
+      debugPrint('Missatge: ${response.body}');
+      return null;
+    }
   }
 }

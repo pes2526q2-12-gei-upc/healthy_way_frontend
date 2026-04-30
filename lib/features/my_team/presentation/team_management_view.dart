@@ -52,7 +52,9 @@ class _TeamManagementViewState extends State<TeamManagementView> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sol·licitud denegada')),
       );
-      _loadRequests();
+      setState(() {
+        _requests.removeWhere((req) => req['userId'] == userId);
+      });
     }
   }
 

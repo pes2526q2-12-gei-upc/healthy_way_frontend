@@ -39,4 +39,16 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // Actualitza l'equip de l'usuari actual
+  Future<void> updateTeam(String? teamName) async {
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(team: teamName);
+      notifyListeners();
+
+      final prefs = await SharedPreferences.getInstance();
+      final userJsonString = jsonEncode(_currentUser!.toJson());
+      await prefs.setString('saved_user', userJsonString);
+    }
+  }
 }

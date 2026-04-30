@@ -18,6 +18,22 @@ class User {
   /// Retorna true si l'usuari pertany a un equip
   bool get hasTeam => team != null && team!.isNotEmpty;
 
+  User copyWith({
+    int? userId,
+    String? nom,
+    String? username,
+    String? email,
+    String? team,
+  }) {
+    return User(
+      userId: userId ?? this.userId,
+      nom: nom ?? this.nom,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      team: team ?? this.team,
+    );
+  }
+
   factory User.fromJson(Map<String, dynamic> json) {
     // El backend pot usar 'team_name' (UserDTO) o 'team' (dèsat localment)
     final teamValue = json['team_name'] ?? json['team'];
