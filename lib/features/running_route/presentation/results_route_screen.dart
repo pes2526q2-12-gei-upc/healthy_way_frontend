@@ -198,6 +198,7 @@ class ResultsRouteScreen extends StatelessWidget {
                                 altitude: '1',
                                 elevationGain: '1',
                               ),
+                              routeId: 99,
                             );
 
                             // Guardamos la actividad sin ruta

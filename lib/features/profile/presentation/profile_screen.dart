@@ -157,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildActivitiesList(int userId) {
     return FutureBuilder<List<Activity>>(
       future: UserService().getUserActivities(userId),
-      builder: (context, snapshot) {
+      builder: (BuildContext context, AsyncSnapshot<List<Activity>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: Padding(padding: EdgeInsets.all(20.0), child: CircularProgressIndicator(color: Color(0xFF1E65F3))));
         }
@@ -177,7 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             final activitat = activitats[index];
             return _ActivityCard(
               routeName: activitat.route.name,
-              location: activitat.route.location,
+              routeId: activitat.routeId,
               imageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=600&auto=format&fit=crop',
               distance: activitat.distance.toDouble(),
               startTime: activitat.startTime,
@@ -549,7 +549,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 // --- CARD DE ACTIVIDAD ---
 class _ActivityCard extends StatelessWidget {
   final String routeName;
-  final String location;
+  final int routeId; // <-- Ahora recibimos el ID de la ruta
   final String imageUrl;
   final double distance;
   final DateTime startTime;
@@ -559,7 +559,7 @@ class _ActivityCard extends StatelessWidget {
 
   const _ActivityCard({
     required this.routeName,
-    required this.location,
+    required this.routeId, // <-- Asegúrate de pedirlo en el constructor
     required this.imageUrl,
     required this.distance,
     required this.startTime,
@@ -648,19 +648,11 @@ class _ActivityCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, size: 14, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Text(
-                        location,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
+
+                  // --- AQUI ESTÁ LA MAGIA: FUTURE BUILDER SOLO PARA ESTA FILA ---
+                  _LocationRow(routeId: routeId),
+                  // -----------------------------------------------------------
+
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 12),
                     child: Divider(height: 1, color: Color(0xFFEEEEEE)),
@@ -808,6 +800,60 @@ class _RouteCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LocationRow extends StatelessWidget {
+  final int routeId;
+
+  const _LocationRow({required this.routeId});
+
+  Future<String> _fetchLocation() async {
+    if (routeId == -9) {
+      return 'Ubicació desconeguda';
+    }
+
+    try {
+      final routes = await RouteService().getPublicRoutes(routeId: routeId.toString());
+      if (routes.isNotEmpty && routes.first.location.isNotEmpty) {
+        return routes.first.location;
+      }
+      return 'Sense ubicació definida';
+    } catch (e) {
+      return 'Error carregant ubicació';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: _fetchLocation(),
+      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+        String textToShow = 'Carregant...';
+
+        if (snapshot.connectionState == ConnectionState.done) {
+          textToShow = snapshot.data ?? 'Desconeguda';
+        }
+
+        return Row(
+          children: [
+            const Icon(Icons.location_on, size: 14, color: Colors.grey),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                textToShow,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 13,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
