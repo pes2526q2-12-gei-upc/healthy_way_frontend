@@ -107,8 +107,6 @@ class UserService {
       callbackUrlScheme: "http",
     );
 
-    print('Resultat de l\'autenticació amb Strava: $result');
-
     final scope = Uri.parse(result).queryParameters['scope'] ?? '';
     if (!scope.contains('activity:read') || !scope.contains('activity:read_all')) {
       return 'Error: No se han otorgat els permissos necessaris per importar les rutas de Strava.';
