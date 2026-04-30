@@ -177,7 +177,7 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                               pace: double.parse(provider.pace.replaceAll(':', '.').replaceAll('>', '')),
                               createRoute: true,
                               route: nuevaRuta,
-                              route_id: 99,
+                              routeId: 99,
                             );
 
                             await ActivityService().createActivity(newActivity);

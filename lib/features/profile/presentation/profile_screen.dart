@@ -177,7 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             final activitat = activitats[index];
             return _ActivityCard(
               routeName: activitat.route.name,
-              routeId: activitat.route_id,
+              routeId: activitat.routeId,
               imageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=600&auto=format&fit=crop',
               distance: activitat.distance.toDouble(),
               startTime: activitat.startTime,
