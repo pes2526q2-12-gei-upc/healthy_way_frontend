@@ -183,7 +183,6 @@ class ResultsRouteScreen extends StatelessWidget {
                               modality: trackingProvider.modality,
                               pace: double.parse(trackingProvider.pace.replaceAll(':', '.').replaceAll('>', '')),
                               userId: context.read<AuthProvider>().currentUser!.userId,
-                              userTeam: '',
                               createRoute: false,
                               route: RouteModel(
                                 id: '',
