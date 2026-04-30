@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:latlong2/latlong.dart';
+/*import 'package:latlong2/latlong.dart';
 import 'package:healthy_way_frontend/shared/models/activity.dart';
-import 'package:healthy_way_frontend/shared/models/route_model.dart';
+import 'package:healthy_way_frontend/shared/models/route_model.dart';*/
 
 void main() {
   group('Activity Model Tests', () {
