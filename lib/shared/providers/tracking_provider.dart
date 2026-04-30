@@ -6,6 +6,8 @@ import 'package:latlong2/latlong.dart';
 import '../../core/services/location_service.dart';
 import 'package:geocoding/geocoding.dart';
 
+final senseLocationMessage = 'Ubicació desconeguda';
+
 class TrackingProvider extends ChangeNotifier {
   final LocationService _locationService = LocationService();
 
@@ -26,7 +28,7 @@ class TrackingProvider extends ChangeNotifier {
   String pace = '0.00';
   String elevation = '40';
   String calories = '0';
-  String placeName = 'Ubicació desconeguda';
+  String placeName = senseLocationMessage;
 
   DateTime startTime = DateTime.now();
   String modality = 'Running';
@@ -56,10 +58,10 @@ class TrackingProvider extends ChangeNotifier {
         final p = placemarks.first;
         placeName = '${p.locality}';
       } else {
-        placeName = 'Ubicació desconeguda';
+        placeName = senseLocationMessage;
       }
     } catch (e) {
-      placeName = 'Ubicació desconeguda';
+      placeName = senseLocationMessage;
     }
   }
 
@@ -113,7 +115,7 @@ class TrackingProvider extends ChangeNotifier {
     distance = '0.00';
     pace = '0:00';
     calories = '0';
-    placeName = 'Ubicació desconeguda';
+    placeName =  senseLocationMessage;
     isFinished = false; // Reiniciamos la bandera
     _stopwatch.reset();
     running = false;
@@ -145,11 +147,10 @@ class TrackingProvider extends ChangeNotifier {
           newPos.latitude, newPos.longitude,
           endPoint.latitude, endPoint.longitude);
 
-      // Si estamos a menos de 30 metros de la meta...
       if (distanceToEnd < 30.0) {
         isFinished = true;
-        stopRun(); // Detenemos todo internamente
-        notifyListeners(); // Avisamos a las vistas para que naveguen
+        stopRun();
+        notifyListeners();
       }
     }
   }
@@ -187,7 +188,7 @@ class TrackingProvider extends ChangeNotifier {
           (70 * 9 * (_stopwatch.elapsed.inSeconds / 3600)).toStringAsFixed(0);
     }
 
-    if(placeName == 'Ubicació desconeguda' && traversedRoute.isNotEmpty) {
+    if(placeName == senseLocationMessage && traversedRoute.isNotEmpty) {
       _updatePlaceName(traversedRoute.first);
     }
   }
