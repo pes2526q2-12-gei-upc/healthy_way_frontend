@@ -12,7 +12,6 @@ class Activity {
   final String modality;
   final double pace;
   final int userId;
-  final String userTeam;
   final bool createRoute;
   final RouteModel route;
 
@@ -23,7 +22,6 @@ class Activity {
     required this.modality,
     required this.pace,
     required this.userId,
-    required this.userTeam,
     required this.createRoute,
     required this.route,
   });
@@ -31,28 +29,26 @@ class Activity {
   factory Activity.fromJson(Map<String, dynamic> json) {
     debugPrint('DATOS REALES DE LA RUTA: ${json['route']}');
     return Activity(
-      distance: json['distance']?.toDouble() ?? 0.0,
+      distance: json['distance']?.toDouble() ?? 1,
       startTime: DateTime.parse(json['start_time']),
       endTime: DateTime.parse(json['end_time']),
       modality: json['modality'] ?? 'Running',
-      pace: json['pace']?.toDouble() ?? 0.0,
+      pace: json['pace']?.toDouble() ?? 1,
       userId: json['user_id'] ?? 99,
-      userTeam: json['user_team'] ?? 'No team',
       createRoute: json['create_route'] ?? false,
       route: json['route'] != null ? RouteModel.fromJson(json['route']) : RouteModel(
-        id: '',
+        id: '99',
         name: 'Activitat Predeterminada',
-        distance: 0.0,
+        distance: 1.0,
         isPrivate: false,
         createdBy: 99,
         createdAt: DateTime.now(),
         trajectory: [],
         startPoint: const LatLng(0, 0),
         endPoint: const LatLng(0, 0),
-        location: 'Ubicaió desconeguda',
-        altitude: 'Altitud desconeguda',
-        elevationGain: 'Elevació desconeguda',
-        modality: 'Modalitat desconeguda',
+        location: 'Ubicació desconeguda',
+        altitude: '1',
+        elevationGain: '1',
       ),
     );
   }
@@ -66,7 +62,7 @@ class Activity {
       'pace': pace,
       'user_id': userId,
       'create_route': createRoute,
-      'route': route.toJson(),
+      'route': route.toJson(modality),
     };
   }
 }

@@ -13,6 +13,7 @@ class ActivityService {
   final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
   Future<dynamic> createActivity(Activity activityData) async {
+    debugPrint('JSON ENVIADO: ${jsonEncode(activityData)}');
     final response = await http.post(
       Uri.parse('$baseUrl/activities/upload'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},

@@ -177,28 +177,26 @@ class ResultsRouteScreen extends StatelessWidget {
                           onPressed: () async {
                             // Creamos una actividad con todos los datos pero sin ruta, ya que created_route tiene que ser false para que no intente guardar la ruta
                             final activity = Activity(
-                              distance: trackingProvider.distanceDouble,
+                              distance: double.parse((trackingProvider.distanceDouble/1000).toStringAsFixed(2)),
                               startTime: trackingProvider.startTime,
                               endTime: DateTime.now(),
                               modality: trackingProvider.modality,
-                              pace: double.parse(trackingProvider.pace),
+                              pace: double.parse(trackingProvider.pace.replaceAll(':', '.').replaceAll('>', '')),
                               userId: context.read<AuthProvider>().currentUser!.userId,
-                              userTeam: '',
                               createRoute: false,
                               route: RouteModel(
-                                id: '',
-                                name: '',
-                                distance: 0.0,
+                                id: '99',
+                                name: 'noCrearRuta',
+                                distance: 1.0,
                                 isPrivate: false,
                                 createdBy: 99,
                                 createdAt: DateTime.now(),
                                 trajectory: [],
                                 startPoint: const LatLng(0, 0),
                                 endPoint: const LatLng(0, 0),
-                                location: '',
-                                altitude: '',
-                                elevationGain: '',
-                                modality: trackingProvider.getModality()
+                                location: 'string',
+                                altitude: '1',
+                                elevationGain: '1',
                               ),
                             );
 

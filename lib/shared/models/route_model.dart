@@ -15,7 +15,6 @@ class RouteModel {
   final String location;
   final String altitude;
   final String elevationGain;
-  final String modality;
 
   RouteModel({
     required this.id,
@@ -30,7 +29,6 @@ class RouteModel {
     required this.location,
     required this.altitude,
     required this.elevationGain,
-    required this.modality,
   });
 
   factory RouteModel.fromJson(Map<String, dynamic> json) {
@@ -65,12 +63,11 @@ class RouteModel {
           : const LatLng(0, 0), // O pon un LatLng(0,0) como arriba si lo prefieres
       location: json['location'],
       altitude: json['altitude'].toString(),
-      elevationGain: json['elevationGain'].toString(),
-      modality: json['modality'] ?? 'Running', // Valor por defecto si no viene en el JSON
+      elevationGain: json['elevation_gain'].toString(),
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson(String modality) {
     return {
       'name': name,
       'distance': distance,
@@ -79,20 +76,20 @@ class RouteModel {
       'created_at': createdAt.toIso8601String(),
       'trajectory': {
         'type': 'LineString',
-        'coordinates' : trajectory.map((point) => [point.latitude, point.longitude]).toList()
+        'coordinates' : trajectory.map((point) => [point.longitude, point.latitude]).toList()
       },
       'start_point': {
         'type': 'Point',
-        'coordinates': [startPoint.latitude, startPoint.longitude]
+        'coordinates': [startPoint.longitude, startPoint.latitude]
       },
       'end_point': {
         'type': 'Point',
-        'coordinates': [endPoint.latitude, endPoint.longitude]
+        'coordinates': [endPoint.longitude, endPoint.latitude]
       },
       'location': location,
       'altitude': double.tryParse(altitude),
-      'elevationGain': double.tryParse(elevationGain),
-      'modality': modality,
+      'elevation_gain': double.tryParse(elevationGain),
+      'modality': modality.toLowerCase(),
     };
   }
 }

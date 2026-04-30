@@ -97,7 +97,7 @@ class UserService {
   Future<String> importStravaRoutes(int userId) async {
     final url = Uri.https('www.strava.com', '/oauth/mobile/authorize', {
       'client_id': '209168',
-      'redirect_uri': 'http://localhost:50578/auth.html',
+      'redirect_uri': 'http://localhost:55342/auth.html',
       'response_type': 'code',
       'scope': 'activity:read,activity:read_all',
     });
@@ -145,6 +145,7 @@ class UserService {
 
     if (response.statusCode == 200) {
       debugPrint('Usuari eliminat correctament');
+      SecureStorageService().deleteToken();
       return true;
     }
     else if (response.statusCode == 404) {

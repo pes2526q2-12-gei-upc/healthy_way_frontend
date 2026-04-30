@@ -20,7 +20,7 @@ class RouteViewScreen extends StatefulWidget {
 class _RouteViewScreenState extends State<RouteViewScreen> {
   bool _isFavorite = false;
   final MapController _mapController = MapController();
-  // NUEVO: Variable fija y constante para almacenar la ruta seleccionada
+  // Variable fija y constante para almacenar la ruta seleccionada
   late RouteModel rutaSeleccionada;
 
   bool _isLoadingRoute = true;
@@ -32,18 +32,13 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
   }
 
   // 1. OBTENER LA RUTA SELECCIONADA DEL PROVIDER
-
   Future<void> getRutaSeleccionada() async {
-    // Aquí deberías obtener la ruta real del TrackingProvider o de tu API
     final trackingProvider = context.read<TrackingProvider>();
     setState(() {
       rutaSeleccionada = trackingProvider.rutaSeleccionada;
       _isLoadingRoute = false;
     });
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -54,20 +49,35 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
       body: Stack(
         children: [
           // 1. EL MAPA COMPARTIDO
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: size.height * 0.65,
-            child: CustomMapWidget(
-              mapController: _mapController,
-              initialZoom: 16.0,
-              initialCenter: LatLng((rutaSeleccionada.startPoint.latitude + rutaSeleccionada.endPoint.latitude)/2, (rutaSeleccionada.startPoint.longitude + rutaSeleccionada.endPoint.longitude)/2),
-              traversedRoute: rutaSeleccionada.trajectory,
-              showStartMarker: true,
-              showEndMarker: rutaSeleccionada.trajectory.length > 1,
+          if (!_isLoadingRoute) // Nos aseguramos de que haya ruta antes de pintar el mapa
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: size.height * 0.65,
+              child: CustomMapWidget(
+                mapController: _mapController,
+
+                // SOLUCIÓN DEL MAPA GRIS: Dejamos que haga auto-zoom a los puntos de la ruta
+                initialCameraFit: rutaSeleccionada.trajectory.isNotEmpty
+                    ? CameraFit.bounds(
+                  bounds: LatLngBounds.fromPoints(rutaSeleccionada.trajectory),
+                  padding: const EdgeInsets.all(40.0),
+                  maxZoom: 18.0, // Previene el error de OpenStreetMap
+                )
+                    : null,
+
+                // Valores de rescate
+                initialCenter: rutaSeleccionada.trajectory.isNotEmpty
+                    ? rutaSeleccionada.trajectory.first
+                    : const LatLng(41.3851, 2.1734),
+                initialZoom: 15.0,
+
+                traversedRoute: rutaSeleccionada.trajectory,
+                showStartMarker: true,
+                showEndMarker: rutaSeleccionada.trajectory.length > 1,
+              ),
             ),
-          ),
 
           if (_isLoadingRoute)
             Positioned(
@@ -94,7 +104,6 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                     _buildMapOverlayButton(
                       icon: Icons.arrow_back,
                       onTap: () {
-                        // Al volver, reseteamos la ruta seleccionada para evitar inconsistencias
                         context.read<TrackingProvider>().routeIsSelected = false;
                         Navigator.pushNamed(context, AppRouter.exploreRoute);
                       },
@@ -140,7 +149,10 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                   iconColor: Colors.blueAccent,
                   bgColor: Colors.white,
                   onTap: () {
-                    _mapController.move(const LatLng(41.4260, 2.1460), 15.5);
+                    // Si tiene ruta, nos centramos en ella, sino por defecto
+                    if(rutaSeleccionada.trajectory.isNotEmpty){
+                      _mapController.move(rutaSeleccionada.trajectory.first, 16.0);
+                    }
                   },
                 ),
               ],
@@ -148,138 +160,137 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
           ),
 
           // 3. PANEL BLANCO INFERIOR (Detalles de la ruta)
-          Positioned(
-            top: size.height * 0.65,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2)),
-                  ]
-              ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 80),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 12),
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(4),
+          if (!_isLoadingRoute)
+            Positioned(
+              top: size.height * 0.65,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2)),
+                    ]
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 80),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 12),
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                rutaSeleccionada.name,
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF0B233B),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(Icons.location_on_outlined, size: 16, color: Colors.blueAccent),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    rutaSeleccionada.location,
-                                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade50,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Text(
-                                  'Mitjana',
-                                  style: TextStyle(
-                                    color: Colors.blue.shade700,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  rutaSeleccionada.name,
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF0B233B),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Text('4.8', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                  const SizedBox(width: 4),
-                                  Icon(Icons.star, color: Colors.amber.shade400, size: 18),
-                                ],
-                              ),
-                            ],
-                          )
-                        ],
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.location_on_outlined, size: 16, color: Colors.blueAccent),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      rutaSeleccionada.location,
+                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade50,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Text(
+                                    'Mitjana',
+                                    style: TextStyle(
+                                      color: Colors.blue.shade700,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Text('4.8', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    const SizedBox(width: 4),
+                                    Icon(Icons.star, color: Colors.amber.shade400, size: 18),
+                                  ],
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Row(
-                        children: [
-                          _buildMetricCard('DISTANCIA', rutaSeleccionada.distance.toString(), 'km'),
-                          const SizedBox(width: 12),
-                          _buildMetricCard('ALTITUD', rutaSeleccionada.elevationGain, 'm'),
-                          const SizedBox(width: 12),
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Row(
+                          children: [
+                            _buildMetricCard('DISTANCIA', rutaSeleccionada.distance.toString(), 'km'),
+                            const SizedBox(width: 12),
+                            _buildMetricCard('ALTITUD', rutaSeleccionada.elevationGain, 'm'),
+                            const SizedBox(width: 12),
 
-                          // Usamos FutureBuilder para manejar la llamada asíncrona
-                          Expanded(
-                            child: FutureBuilder<User?>(
+                            // SOLUCIÓN DEL ERROR DE INTERFAZ:
+                            // Quitamos el Expanded de aquí y dejamos solo el FutureBuilder
+                            FutureBuilder<User?>(
                               future: UserService().getUserProfile(rutaSeleccionada.createdBy),
                               builder: (context, snapshot) {
                                 String nombreCreador;
 
                                 if (snapshot.connectionState == ConnectionState.waiting) {
-                                  nombreCreador = 'Carregant...'; // Mientras espera la API
+                                  nombreCreador = 'Carregant...';
                                 } else if (snapshot.hasError || snapshot.data == null) {
-                                  nombreCreador = 'Desconegut';   // Si hay error o no existe
+                                  nombreCreador = 'Desconegut';
                                 } else {
-                                  nombreCreador = snapshot.data!.nom; // ¡Éxito! Tenemos el nombre
+                                  nombreCreador = snapshot.data!.nom;
                                 }
 
+                                // _buildMetricCard ya devuelve un Expanded internamente
                                 return _buildMetricCard('CREADOR', nombreCreador, '');
                               },
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    // ... (El resto de tus tarjetas de aire y elevación se mantienen igual)
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
-      // Añadimos un boton para iniciar ruta parecido al de google maps, pero con un diseño más moderno y adaptado a nuestra app
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.pushNamed(context, AppRouter.runningRoute);

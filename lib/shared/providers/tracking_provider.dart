@@ -40,14 +40,6 @@ class TrackingProvider extends ChangeNotifier {
     return modality == 'Running' || modality == 'Cycling';
   }
 
-  String getModality() {
-    if (modality == 'Running') {
-      return 'running';
-    } else {
-      return 'cycling';
-    }
-  }
-
   void toggleModality() {
     if (modality == 'Running') {
       modality = 'Cycling';

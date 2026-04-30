@@ -51,11 +51,11 @@ class RouteService {
   }
 
   // 3. CREAR UNA NUEVA RUTA. Devuelve la ruta creada con su ID asignado por el backend
-  Future<dynamic> createRoute(RouteModel routeData) async {
+  Future<dynamic> createRoute(RouteModel routeData, String modality) async {
     final response = await http.post(
       Uri.parse('$baseUrl/routes'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
-      body: json.encode(routeData.toJson()),
+      body: json.encode(routeData.toJson(modality)),
     );
 
     if (response.statusCode == 201) {
@@ -68,11 +68,11 @@ class RouteService {
   }
 
   // 4. ACTUALIZAR UNA RUTA EXISTENTE
-  Future<dynamic> updateRoute(String routeId, RouteModel routeData) async {
+  Future<dynamic> updateRoute(String routeId, RouteModel routeData, String modality) async {
     final response = await http.put(
       Uri.parse('$baseUrl/routes/$routeId'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
-      body: json.encode(routeData.toJson()),
+      body: json.encode(routeData.toJson(modality)),
     );
 
     if (response.statusCode == 200) {

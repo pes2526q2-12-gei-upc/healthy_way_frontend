@@ -216,9 +216,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             final ruta = routes[index];
 
             Color badgeColor = Colors.blue;
-            if (ruta.modality.toLowerCase() == 'cycling') {
-              badgeColor = Colors.green;
-            }
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
@@ -227,7 +224,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 title: ruta.name.isEmpty ? 'Ruta sense nom' : ruta.name,
                 distance: '${ruta.distance.toStringAsFixed(2)} km',
                 location: ruta.location.isEmpty ? '--' : ruta.location,
-                badgeText: ruta.modality.isEmpty ? 'RUTA' : ruta.modality.toUpperCase(),
                 badgeColor: badgeColor,
                 teamControl: ruta.isPrivate ? 'Ruta Privada' : 'Ruta Pública',
                 onDelete: () => _confirmarBorradoRuta(ruta.id), // <-- Nueva función
@@ -719,7 +715,6 @@ class _RouteCard extends StatelessWidget {
   final String title;
   final String distance;
   final String location;
-  final String badgeText;
   final Color badgeColor;
   final String teamControl;
   final VoidCallback onDelete; // <-- Añadido
@@ -729,7 +724,6 @@ class _RouteCard extends StatelessWidget {
     required this.title,
     required this.distance,
     required this.location,
-    required this.badgeText,
     required this.badgeColor,
     required this.teamControl,
     required this.onDelete,
@@ -769,7 +763,6 @@ class _RouteCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(color: badgeColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                      child: Text(badgeText, style: TextStyle(color: badgeColor, fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
