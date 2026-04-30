@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import '../../shared/models/TeamModel.dart';
+import '../../shared/models/team_model.dart';
 import 'token_service.dart';
 
 class TeamService {
