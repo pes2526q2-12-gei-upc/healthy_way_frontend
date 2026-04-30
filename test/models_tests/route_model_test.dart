@@ -61,11 +61,11 @@ void main() {
       expect(json['trajectory']['type'], 'LineString');
 
       // El toJson debe generar arrays de [Longitud, Latitud] para el backend
-      expect(json['trajectory']['coordinates'][0][0], 42.0);
-      expect(json['trajectory']['coordinates'][0][1], 3.0);
+      expect(json['trajectory']['coordinates'][0][0], 3.0);
+      expect(json['trajectory']['coordinates'][0][1], 42.0);
 
       expect(json['start_point']['type'], 'Point');
-      expect(json['start_point']['coordinates'][0], 42.0);
+      expect(json['start_point']['coordinates'][0], 3.0);
     });
   });
 }

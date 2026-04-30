@@ -7,9 +7,12 @@ import 'package:latlong2/latlong.dart';
 import 'package:healthy_way_frontend/shared/models/activity.dart';
 import 'package:healthy_way_frontend/shared/models/route_model.dart';
 import 'package:healthy_way_frontend/core/services/activity_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
   group('ActivityService Tests', () {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    FlutterSecureStorage.setMockInitialValues({'auth_token': 'token_falso_para_tests'});
 
     final dummyRoute = RouteModel(
         id: '1', name: 'Ruta Test', distance: 10.0, isPrivate: false,

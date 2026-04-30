@@ -5,9 +5,13 @@ import 'package:http/testing.dart';
 
 import 'package:healthy_way_frontend/shared/models/route_model.dart';
 import 'package:healthy_way_frontend/core/services/route_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
   group('RouteService Tests', () {
+
+    TestWidgetsFlutterBinding.ensureInitialized();
+    FlutterSecureStorage.setMockInitialValues({'auth_token': 'token_falso_para_tests'});
 
     test('getRouteById retorna un RouteModel válido cuando el status es 200', () async {
       // 1. Arrange

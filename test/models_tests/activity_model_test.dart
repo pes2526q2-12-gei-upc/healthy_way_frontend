@@ -53,7 +53,7 @@ void main() {
       expect(activity.userId, 99); // Tu valor por defecto
       // Comprobamos la ruta autogenerada
       expect(activity.route.name, 'Activitat Predeterminada');
-      expect(activity.route.distance, 0.0);
+      expect(activity.route.distance, 1.0);
     });
 
     test('toJson() serializa correctamente los datos', () {

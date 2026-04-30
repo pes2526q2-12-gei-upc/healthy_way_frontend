@@ -5,9 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Importa las rutas correctas de tu proyecto
 import 'package:healthy_way_frontend/shared/models/user_model.dart';
 import 'package:healthy_way_frontend/shared/providers/auth_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
   group('AuthProvider Tests', () {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    FlutterSecureStorage.setMockInitialValues({'auth_token': 'token_falso_para_tests'});
 
     setUp(() {
       SharedPreferences.setMockInitialValues({});

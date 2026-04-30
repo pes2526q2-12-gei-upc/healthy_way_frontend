@@ -3,9 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:healthy_way_frontend/core/services/user_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
   group('UserService Tests', () {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    FlutterSecureStorage.setMockInitialValues({});
 
     test('login() debe devolver un User si las credenciales son correctas (200)', () async {
       // 1. ARRANGE: Preparamos un servidor falso que siempre responda OK (200)
