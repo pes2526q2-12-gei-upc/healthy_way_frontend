@@ -14,6 +14,7 @@ class Activity {
   final int userId;
   final bool createRoute;
   final RouteModel route;
+  final int route_id;
 
   Activity({
     required this.distance,
@@ -24,6 +25,7 @@ class Activity {
     required this.userId,
     required this.createRoute,
     required this.route,
+    required this.route_id,
   });
 
   factory Activity.fromJson(Map<String, dynamic> json) {
@@ -50,6 +52,7 @@ class Activity {
         altitude: '1',
         elevationGain: '1',
       ),
+      route_id: json['route_id'] ?? -9,
     );
   }
 
