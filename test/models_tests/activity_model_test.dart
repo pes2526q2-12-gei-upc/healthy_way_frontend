@@ -1,4 +1,4 @@
-/*import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:healthy_way_frontend/shared/models/activity.dart';
 import 'package:healthy_way_frontend/shared/models/route_model.dart';
@@ -23,7 +23,7 @@ void main() {
       expect(activity.distance, 15.5);
       expect(activity.modality, 'Cycling');
       expect(activity.userId, 1);
-      expect(activity.route.id, '10');
+      expect(activity.route_id, '10');
     });
 
     test('fromJson() genera la ruta por defecto si el backend manda null', () {
@@ -70,4 +70,4 @@ void main() {
       expect(json['route'], isNotNull);
     });
   });
-}*/
+}
