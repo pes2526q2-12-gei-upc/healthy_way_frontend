@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import '../../shared/models/chat_message.dart';
+import 'token_service.dart';
 
 /// Servei singleton per gestionar les crides a la API de xats
 class ChatService {
@@ -17,6 +18,7 @@ class ChatService {
   Future<List<ChatMessage>> getMessages(int chatId) async {
     final response = await http.get(
       Uri.parse('$baseUrl/chats/messages?chatId=$chatId'),
+      headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
     );
 
     if (response.statusCode == 200) {
@@ -37,6 +39,7 @@ class ChatService {
   Future<List<ChatMessage>> getTeamMessages(String teamId) async {
     final response = await http.get(
       Uri.parse('$baseUrl/chats/teams/${Uri.encodeComponent(teamId)}/messages'),
+      headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
     );
 
     if (response.statusCode == 200) {
@@ -70,7 +73,7 @@ class ChatService {
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/chats/'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
       body: jsonEncode({
         'chatId': chatId,
         'senderId': senderId,
@@ -95,6 +98,7 @@ class ChatService {
       Uri.parse(
         '$baseUrl/chats/messages/since?chatId=$chatId&datetime=${since.toUtc().toIso8601String()}',
       ),
+      headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
     );
 
     if (response.statusCode == 200) {
