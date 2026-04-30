@@ -1,8 +1,5 @@
 import 'package:flutter/foundation.dart';
-//Modelo activity con los atributos distance: number,start_time: Date,end_time: Date,modality: string,pace: number,route_id: number;
-
 import 'package:latlong2/latlong.dart';
-
 import 'route_model.dart';
 
 class Activity {

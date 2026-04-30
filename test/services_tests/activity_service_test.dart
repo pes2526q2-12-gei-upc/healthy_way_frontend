@@ -1,22 +1,17 @@
-//import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-/*import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:healthy_way_frontend/shared/models/activity.dart';
 import 'package:healthy_way_frontend/shared/models/route_model.dart';
 import 'package:healthy_way_frontend/core/services/activity_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';*/
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
   group('ActivityService Tests', () {
-    // Devolver true en el test por ahora
-    test('Prueba de ejemplo que siempre pasa', () {
-      expect(true, true);
-    });
-
-    /*TestWidgetsFlutterBinding.ensureInitialized();
+    TestWidgetsFlutterBinding.ensureInitialized();
     FlutterSecureStorage.setMockInitialValues({'auth_token': 'token_falso_para_tests'});
 
     final dummyRoute = RouteModel(
@@ -27,7 +22,7 @@ void main() {
     );
 
     final dummyActivity = Activity(
-        distance: 10.0, startTime: DateTime.now(), endTime: DateTime.now(),
+        routeId: 10, distance: 10.0, startTime: DateTime.now(), endTime: DateTime.now(),
         modality: 'Running', pace: 5.0, userId: 1,
         createRoute: false, route: dummyRoute
     );
@@ -60,6 +55,5 @@ void main() {
           throwsA(isA<Exception>())
       );
     });
-    */
   });
 }
