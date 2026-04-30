@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: ['develop2']
+  pull_request:
+    branches: ['develop2']
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0 
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Static Analysis (Linter)
+        run: flutter analyze 
+
+      - name: Run Unit Tests
+        run: flutter test
