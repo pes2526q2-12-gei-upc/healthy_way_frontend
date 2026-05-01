@@ -12,9 +12,9 @@ class ChatMessage {
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
-      senderUsername: json['sender_username'] ?? '',
+      senderUsername: json['sender_username'] ?? json['senderUsername'] ?? '',
       content: json['content'] ?? '',
-      timestamp: DateTime.tryParse(json['timestamp'] ?? '') ?? DateTime.now(),
+      timestamp: DateTime.tryParse(json['timestamp'] ?? json['datetime'] ?? '') ?? DateTime.now(),
     );
   }
 

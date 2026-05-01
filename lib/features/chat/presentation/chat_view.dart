@@ -220,8 +220,7 @@ class _ChatState extends State<Chat> {
         }
 
         final msg = _messages[index - 1];
-        final isMe = msg.senderUsername == currentUsername ||
-            msg.senderUsername == '_self_';
+        final isMe = msg.senderUsername == currentUsername;
 
         // Decidim si mostrem el nom de l'emissor (agrupació)
         final showSenderName = index == 1 ||
