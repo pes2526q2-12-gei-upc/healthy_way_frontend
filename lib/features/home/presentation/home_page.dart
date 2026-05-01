@@ -75,7 +75,7 @@ class _HomePage extends State<HomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text('Benvingut de nou,', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                              Text(context.watch<AuthProvider>().currentUser!.nom, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                              Text(context.watch<AuthProvider>().currentUser?.nom ?? 'Desconegut', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ],

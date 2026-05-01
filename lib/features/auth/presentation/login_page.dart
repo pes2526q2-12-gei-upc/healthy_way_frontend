@@ -287,11 +287,33 @@ class _LoginPageState extends State<LoginPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            _SocialButton(icon: FontAwesomeIcons.facebook, onTap: () {}),
                             const SizedBox(width: 16),
-                            _SocialButton(icon: FontAwesomeIcons.google, onTap: () {}),
+                            _SocialButton(
+                              icon: FontAwesomeIcons.google,
+                              onTap: () async {
+                                final success = await context.read<AuthProvider>().enterWithGoogle();
+                                if (!context.mounted) return;
+                                if (success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Inici de sessió amb Google correcte!'),
+                                      backgroundColor: Colors.green,
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                  Navigator.pushReplacementNamed(context, '/home');
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Error en iniciar sessió amb Google. Torna-ho a provar.'),
+                                      backgroundColor: Colors.redAccent,
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
                             const SizedBox(width: 16),
-                            _SocialButton(icon: FontAwesomeIcons.github, onTap: () {}),
                           ],
                         ),
                       ],
