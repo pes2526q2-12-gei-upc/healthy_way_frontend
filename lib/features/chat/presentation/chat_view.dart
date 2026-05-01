@@ -26,7 +26,6 @@ class _ChatState extends State<Chat> {
   List<ChatMessage> _messages = [];
   bool _isLoading = true;
   bool _isSending = false;
-  bool _useHardcoded = false; // Si la API falla, usem missatges de prova
   Timer? _pollTimer;
 
 
@@ -167,26 +166,6 @@ class _ChatState extends State<Chat> {
       body: Column(
         children: [
           CommunityHeader(selectedIndex: 2),
-
-          // Banner informatiu si estem en mode hardcoded
-          if (_useHardcoded && !_isLoading)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Colors.amber.shade50,
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, size: 14, color: Colors.amber[800]),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Mode de prova — els missatges no es guarden al servidor',
-                      style: TextStyle(fontSize: 11, color: Colors.amber[900]),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
           // Cos del xat
           Expanded(
