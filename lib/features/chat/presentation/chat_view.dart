@@ -60,13 +60,12 @@ class _ChatState extends State<Chat> {
 
     try {
       final messages = await ChatService().getTeamMessages(user.team!);
+      // Ordenar cronològicament (més antics a dalt)
+      messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      
       if (mounted) {
         setState(() {
-          if (messages.isEmpty) {
-            _messages = [];
-          } else {
-            _messages = messages;
-          }
+          _messages = messages;
           _isLoading = false;
         });
         _scrollToBottom();
@@ -94,6 +93,8 @@ class _ChatState extends State<Chat> {
           _messages.last.timestamp,
         );
         if (mounted && newMessages.isNotEmpty) {
+          // Ordenar els nous missatges també
+          newMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
           setState(() => _messages.addAll(newMessages));
           _scrollToBottom();
         }
