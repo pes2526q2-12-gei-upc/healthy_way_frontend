@@ -92,7 +92,7 @@ class RouteService {
     final response = await client.delete(Uri.parse('$baseUrl/routes/$routeId'),
     headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
-    if (response.statusCode != 200) {
+    if (response.statusCode != 204) {
       throw Exception('Error al eliminar la ruta');
     }
   }

@@ -226,7 +226,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 location: ruta.location.isEmpty ? '--' : ruta.location,
                 badgeColor: badgeColor,
                 teamControl: ruta.isPrivate ? 'Ruta Privada' : 'Ruta Pública',
-                onDelete: () => _confirmarBorradoRuta(ruta.id), // <-- Nueva función
+                onDelete: () {
+                  _confirmarBorradoRuta(ruta.id);
+                }
               ),
             );
           },
@@ -252,11 +254,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () async {
                 Navigator.pop(dialogContext);
 
-                // Aquí llamas a tu función
-                await RouteService().deleteRoute(id);
+                try {
+                  await RouteService().deleteRoute(id);
 
-                // Refrescamos la pantalla
-                setState(() {});
+                  if (!mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Ruta eliminada correctament'),
+                      backgroundColor: Colors.green,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+
+                  // Recargamos la página
+                  setState(() {});
+
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error al eliminar la ruta: $e'),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
               },
               child: const Text('Eliminar', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
             ),
@@ -300,8 +323,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     UserService().importStravaRoutes(userId).then((result) {
                       messenger.showSnackBar(
                         SnackBar(
-                            content: Text(result),
-                            duration: const Duration(seconds: 2),
+                          content: Text(result),
+                          duration: const Duration(seconds: 2),
                         ),
                       );
                     });
@@ -547,19 +570,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 }
 
 // --- CARD DE ACTIVIDAD ---
+// --- CARD DE ACTIVIDAD ---
 class _ActivityCard extends StatelessWidget {
   final String routeName;
-  final int routeId; // <-- Ahora recibimos el ID de la ruta
+  final int routeId;
   final String imageUrl;
   final double distance;
   final DateTime startTime;
-  final DateTime endTime;
+  final DateTime endTime; // Dart ya maneja esto gracias a tu modelo
   final String modality;
   final double pace;
 
   const _ActivityCard({
     required this.routeName,
-    required this.routeId, // <-- Asegúrate de pedirlo en el constructor
+    required this.routeId,
     required this.imageUrl,
     required this.distance,
     required this.startTime,
@@ -577,6 +601,16 @@ class _ActivityCard extends StatelessWidget {
       return '${hours}h ${minutes}m';
     }
     return '$minutes min';
+  }
+
+  // --- NUEVA FUNCIÓN PARA FORMATEAR LA FECHA ---
+  String _formatDate(DateTime date) {
+    // padLeft(2, '0') asegura que los días y meses de un dígito tengan un 0 delante (ej. 01/05/2026)
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+
+    return '$day/$month/$year';
   }
 
   @override
@@ -639,19 +673,38 @@ class _ActivityCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    routeName,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D3142),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
+                  _RouteNameRow(routeId: routeId),
 
-                  // --- AQUI ESTÁ LA MAGIA: FUTURE BUILDER SOLO PARA ESTA FILA ---
-                  _LocationRow(routeId: routeId),
-                  // -----------------------------------------------------------
+                  const SizedBox(height: 8),
+
+                  // --- FILA ACTUALIZADA: UBICACIÓN + FECHA ---
+                  Row(
+                    children: [
+                      // El Expanded hace que la ubicación ocupe el espacio disponible
+                      // y empuja la fecha hacia la derecha
+                      Expanded(
+                        child: _LocationRow(routeId: routeId),
+                      ),
+                      const SizedBox(width: 8),
+                      // Etiqueta de la fecha
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3B82F6), // Azul similar al diseño
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          _formatDate(endTime),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // -------------------------------------------
 
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 12),
@@ -852,6 +905,54 @@ class _LocationRow extends StatelessWidget {
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+}
+
+class _RouteNameRow extends StatelessWidget {
+  final int routeId;
+
+  const _RouteNameRow({required this.routeId});
+
+  Future<String> _fetchRouteName() async {
+    if (routeId == -9) {
+      return 'Activitat Predeterminada';
+    }
+
+    try {
+      final routes = await RouteService().getPublicRoutes(routeId: routeId.toString());
+      if (routes.isNotEmpty && routes.first.name.isNotEmpty) {
+        return routes.first.name;
+      }
+      return 'Sense nom definit';
+    } catch (e) {
+      return 'Error carregant el nom';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: _fetchRouteName(),
+      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+        String textToShow = 'Carregant...';
+
+        if (snapshot.connectionState == ConnectionState.done) {
+          textToShow = snapshot.data ?? 'Desconegut';
+        }
+
+        // Exactamente el diseño de texto que querías, limpio y directo.
+        return Text(
+          textToShow,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2D3142),
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         );
       },
     );
