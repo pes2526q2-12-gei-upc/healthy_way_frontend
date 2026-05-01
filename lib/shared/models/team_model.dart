@@ -4,8 +4,9 @@ class TeamModel {
   final String? description;
   final bool open;
   final String zone; // 'Barcelona' | 'Girona' | 'Lleida' | 'Tarragona'
-  final String modality; // 'running' | 'cycling'
+  final List<String> modality; // 'running' | 'cycling'
   final int numMembers;
+  final String creatorUsername;
 
   const TeamModel({
     required this.name,
@@ -14,6 +15,7 @@ class TeamModel {
     required this.zone,
     required this.modality,
     this.numMembers = 0,
+    required this.creatorUsername,
   });
 
   factory TeamModel.fromJson(Map<String, dynamic> json) {
@@ -24,6 +26,7 @@ class TeamModel {
       zone: json['zone'] ?? '',
       modality: json['modality'] ?? '',
       numMembers: json['numMembers'] ?? 0,
+      creatorUsername: json['creatorUsername'] ?? '',
     );
   }
 
@@ -35,6 +38,7 @@ class TeamModel {
       'zone': zone,
       'modality': modality,
       'numMembers': numMembers,
+      'creatorUsername': creatorUsername,
     };
   }
 }

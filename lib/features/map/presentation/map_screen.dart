@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:healthy_way_frontend/shared/providers/auth_provider.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
 import '../../../core/services/zone_service.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_filter_chip.dart';
@@ -19,7 +21,8 @@ class _MapScreenState extends State<MapScreen> {
   bool isZonesCapturedSelected = false;
   bool isRunningMode = true;
 
-  List<Polygon> _capturedHexagons = [];
+  List<Polygon> _visibleHexagons = [];
+  List<Polygon> _allCapturedHexagons = [];
   bool _isLoadingZones = false;
 
   final MapController _mapController = MapController();
@@ -52,26 +55,37 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _fetchZones() async {
     if (!isZonesCapturedSelected) {
-      setState(() => _capturedHexagons = []);
+      setState(() => _allCapturedHexagons = []);
       return;
     }
 
     setState(() => _isLoadingZones = true);
 
     try {
-      final bounds = _mapController.camera.visibleBounds;
       final zones = await ZoneService().getZonesCapturades(
-        bounds: bounds,
-        sport: isRunningMode ? 'Running' : 'Cycling',
-        team: '',
+        modality: isRunningMode ? 'running' : 'cycling',
       );
       setState(() {
-        _capturedHexagons = zones;
+        _allCapturedHexagons = zones;
       });
     } catch (e) {
       debugPrint("Error obteniendo zonas: $e");
     } finally {
       setState(() => _isLoadingZones = false);
+    }
+  }
+
+  void _filterVisibleHexagons() {
+    try {
+      final bounds = _mapController.camera.visibleBounds;
+
+      setState(() {
+        _visibleHexagons = _allCapturedHexagons.where((polygon) {
+          return polygon.points.any((point) => bounds.contains(point));
+        }).toList();
+      });
+    } catch (e) {
+      debugPrint("Error filtrando hexágonos visibles: $e");
     }
   }
 
@@ -93,7 +107,7 @@ class _MapScreenState extends State<MapScreen> {
             initialCenter: _userLocation ?? const LatLng(41.3851, 2.1734),
             initialZoom: 15.0,
             userLocation: _userLocation, // PUNTO AZUL
-            polygons: _capturedHexagons,
+            polygons: _visibleHexagons,
           ),
 
           SafeArea(
@@ -154,6 +168,9 @@ class _MapScreenState extends State<MapScreen> {
                               isZonesCapturedSelected = !isZonesCapturedSelected;
                             });
                             _fetchZones();
+                            _mapController.mapEventStream.listen((event) {
+                              _filterVisibleHexagons();
+                            });
                           },
                         ),
                         // Si está cargando, mostramos un pequeño spinner
@@ -189,6 +206,9 @@ class _MapScreenState extends State<MapScreen> {
                     });
                     if(isZonesCapturedSelected) {
                       _fetchZones();
+                      _mapController.mapEventStream.listen((event) {
+                        _filterVisibleHexagons();
+                      });
                     }
                   },
                 ),
