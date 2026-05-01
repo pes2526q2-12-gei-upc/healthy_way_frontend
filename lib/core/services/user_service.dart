@@ -70,6 +70,29 @@ class UserService {
     }
   }
 
+  Future<User?> enterWithGoogle(String googleToken) async {
+    final response = await client.post(
+      Uri.parse('$baseUrl/auth/google'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'idToken': googleToken,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      final token = responseBody['authToken'];
+      await SecureStorageService().saveToken(token);
+      final loggedUser = User.fromJson(responseBody['user']);
+      return loggedUser;
+    }
+    else {
+      debugPrint('Error al iniciar sesión con Google: ${response.statusCode}');
+      debugPrint('Mensaje: ${response.body}');
+      return null;
+    }
+  }
+
   Future<User?> getUserProfile(int userId) async {
     final response = await client.get(
         Uri.parse('$baseUrl/users/$userId'),

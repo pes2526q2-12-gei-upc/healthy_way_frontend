@@ -333,11 +333,30 @@ class _RegisterPageState extends State<RegisterPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _SocialButton(icon: FontAwesomeIcons.facebook, onTap: () {}),
                           const SizedBox(width: 16),
-                          _SocialButton(icon: FontAwesomeIcons.google, onTap: () {}),
+                          _SocialButton(icon: FontAwesomeIcons.google, onTap: () {
+                            context.read<AuthProvider>().enterWithGoogle().then((success) {
+                              if (success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Creació de compte amb Google correcte!'),
+                                    backgroundColor: Colors.green,
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                                Navigator.pushReplacementNamed(context, '/home');
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Creació de compte amb Google. Torna-ho a provar.'),
+                                    backgroundColor: Colors.redAccent,
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            });
+                          }),
                           const SizedBox(width: 16),
-                          _SocialButton(icon: FontAwesomeIcons.github, onTap: () {}),
                         ],
                       ),
                       const SizedBox(height: 32),
