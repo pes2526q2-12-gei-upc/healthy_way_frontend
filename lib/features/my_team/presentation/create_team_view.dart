@@ -24,7 +24,6 @@ class _CreateTeamViewState extends State<CreateTeamView> {
 
   bool _isOpen = true;
   String _selectedZone = 'Barcelona';
-  String _selectedModality = 'running';
   bool _isLoading = false;
 
   @override
@@ -35,7 +34,6 @@ class _CreateTeamViewState extends State<CreateTeamView> {
       _descriptionController.text = widget.team!.description ?? '';
       _isOpen = widget.team!.open;
       _selectedZone = widget.team!.zone.isNotEmpty ? widget.team!.zone : 'Barcelona';
-      _selectedModality = widget.team!.modality.isNotEmpty ? widget.team!.modality : 'running';
     }
   }
 
@@ -43,10 +41,6 @@ class _CreateTeamViewState extends State<CreateTeamView> {
   static const Color _bgColor = Color(0xFFF4F6F9);
 
   final List<String> _zones = ['Barcelona', 'Girona', 'Lleida', 'Tarragona'];
-  final List<Map<String, dynamic>> _modalities = [
-    {'value': 'running', 'label': 'Running', 'icon': Icons.directions_run},
-    {'value': 'cycling', 'label': 'Cycling', 'icon': Icons.directions_bike},
-  ];
 
   @override
   void dispose() {
@@ -72,7 +66,6 @@ class _CreateTeamViewState extends State<CreateTeamView> {
           : _descriptionController.text.trim(),
       open: _isOpen,
       zone: _selectedZone,
-      modality: _selectedModality,
       numMembers: 1,
       creatorUsername: currentUser.username,
     );
@@ -213,10 +206,6 @@ class _CreateTeamViewState extends State<CreateTeamView> {
                     _buildDropdownZone(),
                     const SizedBox(height: 20),
 
-                    // ── CAMP: Modalitat ──
-                    _buildSectionLabel('Modalitat *'),
-                    const SizedBox(height: 12),
-                    _buildModalitySelector(),
                     const SizedBox(height: 20),
 
                     // ── CAMP: Equip obert ──
@@ -372,59 +361,7 @@ class _CreateTeamViewState extends State<CreateTeamView> {
     );
   }
 
-  Widget _buildModalitySelector() {
-    return Row(
-      children: _modalities.map((m) {
-        final isSelected = _selectedModality == m['value'];
-        return Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _selectedModality = m['value']!),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              margin: EdgeInsets.only(
-                right: m['value'] == 'running' ? 8 : 0,
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: isSelected ? _primaryBlue : Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: isSelected ? _primaryBlue : Colors.grey.shade200,
-                ),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: _primaryBlue.withValues(alpha: 0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        )
-                      ]
-                    : [],
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    m['icon'] as IconData,
-                    color: isSelected ? Colors.white : Colors.grey,
-                    size: 24,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    m['label'] as String,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
+
 
   Widget _buildOpenSwitch() {
     return Container(

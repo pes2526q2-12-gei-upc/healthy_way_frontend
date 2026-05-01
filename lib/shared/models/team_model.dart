@@ -4,7 +4,6 @@ class TeamModel {
   final String? description;
   final bool open;
   final String zone; // 'Barcelona' | 'Girona' | 'Lleida' | 'Tarragona'
-  final String modality; // 'running' | 'cycling'
   final int numMembers;
   final String? creatorUsername; // Nom d'usuari del creador
 
@@ -13,25 +12,16 @@ class TeamModel {
     this.description,
     this.open = true,
     required this.zone,
-    required this.modality,
     this.numMembers = 0,
     this.creatorUsername,
   });
 
   factory TeamModel.fromJson(Map<String, dynamic> json) {
-    String modalityVal = 'running';
-    if (json['modality'] is List && (json['modality'] as List).isNotEmpty) {
-      modalityVal = json['modality'][0].toString();
-    } else if (json['modality'] is String) {
-      modalityVal = json['modality'];
-    }
-
     return TeamModel(
       name: json['name'] ?? '',
       description: json['description'] as String?,
       open: json['open'] ?? true,
       zone: json['zone'] ?? '',
-      modality: modalityVal,
       numMembers: json['numMembers'] ?? 0,
       creatorUsername: json['creatorUsername'] as String?,
     );
@@ -43,8 +33,15 @@ class TeamModel {
       if (description != null) 'description': description,
       'open': open,
       'zone': zone,
-      'modality': modality,
       if (creatorUsername != null) 'creatorUsername': creatorUsername,
+    };
+  }
+
+  Map<String, dynamic> toUpdateJson() {
+    return {
+      if (description != null) 'description': description,
+      'open': open,
+      'zone': zone,
     };
   }
 }
