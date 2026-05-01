@@ -6,7 +6,7 @@ class TeamModel {
   final String zone; // 'Barcelona' | 'Girona' | 'Lleida' | 'Tarragona'
   final List<String> modality; // 'running' | 'cycling'
   final int numMembers;
-  final String creatorUsername;
+  final String? creatorUsername; // Nom d'usuari del creador
 
   const TeamModel({
     required this.name,
@@ -15,18 +15,25 @@ class TeamModel {
     required this.zone,
     required this.modality,
     this.numMembers = 0,
-    required this.creatorUsername,
+    this.creatorUsername,
   });
 
   factory TeamModel.fromJson(Map<String, dynamic> json) {
+    String modalityVal = 'running';
+    if (json['modality'] is List && (json['modality'] as List).isNotEmpty) {
+      modalityVal = json['modality'][0].toString();
+    } else if (json['modality'] is String) {
+      modalityVal = json['modality'];
+    }
+
     return TeamModel(
       name: json['name'] ?? '',
       description: json['description'] as String?,
       open: json['open'] ?? true,
       zone: json['zone'] ?? '',
-      modality: json['modality'] ?? '',
+      modality: modalityVal,
       numMembers: json['numMembers'] ?? 0,
-      creatorUsername: json['creatorUsername'] ?? '',
+      creatorUsername: json['creatorUsername'] as String?,
     );
   }
 
@@ -37,8 +44,7 @@ class TeamModel {
       'open': open,
       'zone': zone,
       'modality': modality,
-      'numMembers': numMembers,
-      'creatorUsername': creatorUsername,
+      if (creatorUsername != null) 'creatorUsername': creatorUsername,
     };
   }
 }
