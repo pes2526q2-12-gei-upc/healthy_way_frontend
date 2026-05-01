@@ -14,6 +14,9 @@ import '../../features/map/presentation/map_screen.dart';
 import '../../features/chat/presentation/chat_view.dart';
 import '../../features/ranking/presentation/ranking_view.dart';
 import '../../features/my_team/presentation/my_team_view.dart';
+import '../../features/ranking/presentation/total_ranking_view.dart';
+import '../../features/ranking/presentation/individual_ranking_view.dart';
+import '../../features/ranking/presentation/individual_total_ranking_view.dart';
 import '../../features/my_team/presentation/create_team_view.dart';
 
 class AppRouter {
@@ -30,6 +33,9 @@ class AppRouter {
   static const String mapRoute = '/map';
   static const String chatRoute = '/chat';
   static const String rankingRoute = '/ranking';
+  static const String totalRankingRoute = '/total_ranking';
+  static const String individualRankingRoute = '/individual_ranking';
+  static const String individualTotalRankingRoute = '/individual_total_ranking';
   static const String myTeamRoute = '/my_team';
   static const String createTeamRoute = '/create_team';
   static const String profile = '/my_routes';
@@ -65,6 +71,12 @@ class AppRouter {
         return _fadeRoute(const Ranking());
       case myTeamRoute:
         return _fadeRoute(const MyTeam());
+      case totalRankingRoute:
+        return _fadeRoute(const TotalRanking());
+      case individualRankingRoute:
+        return _fadeRoute(const IndividualRanking());
+      case individualTotalRankingRoute:
+        return _fadeRoute(const IndividualTotalRanking());
       case createTeamRoute:
         return _fadeRoute(const CreateTeamView());
       case profile:
