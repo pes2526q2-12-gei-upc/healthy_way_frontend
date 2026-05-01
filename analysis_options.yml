@@ -1,0 +1,17 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  exclude:
+    - "build/**"
+    - "**/*.g.dart" # Exclude generated code (common in Flutter)
+
+linter:
+  rules:
+    - prefer_const_constructors
+    - avoid_print
+    - always_declare_return_types
+    - cancel_subscriptions # Prevents memory leaks

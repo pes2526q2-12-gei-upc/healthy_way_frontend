@@ -1,2 +1,16 @@
-.idea
-.vscode
+#Secret
+.env
+
+#Dependencies (son les dependencies que necessita el nostre projecte - ESM Modules)
+node_modules/
+dist/
+build/
+
+#Dades de la BD
+data/
+postgres-data/
+
+#Documents creats per la IDE com IntelliJ o VSCode
+.DS_Store
+.vscode/
+.idea/

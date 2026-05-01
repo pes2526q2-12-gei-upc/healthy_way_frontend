@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "845230063372",
+    "project_id": "healthywayapp-c13fd",
+    "storage_bucket": "healthywayapp-c13fd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:845230063372:android:20b9e805f7e49554cbd329",
+        "android_client_info": {
+          "package_name": "com.example.healthy_way_frontend"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "845230063372-i1g1bf9o8jr62idmnekgtsa1n34d0o4d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8kU824cUrDDeVhodwe5CAyG57Hxf_8zU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "845230063372-i1g1bf9o8jr62idmnekgtsa1n34d0o4d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
