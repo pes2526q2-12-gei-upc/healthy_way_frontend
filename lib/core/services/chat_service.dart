@@ -7,16 +7,24 @@ import 'token_service.dart';
 
 /// Servei singleton per gestionar les crides a la API de xats
 class ChatService {
+  final http.Client client;
   static final ChatService _instance = ChatService._internal();
-  factory ChatService() => _instance;
-  ChatService._internal();
+
+  factory ChatService({http.Client? client}) {
+    if (client != null) {
+      return ChatService._internal(client: client);
+    }
+    return _instance;
+  }
+
+  ChatService._internal({http.Client? client}) : client = client ?? http.Client();
 
   final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
   /// Obté tots els missatges d'un equip
   /// GET /api/v1/chats/messages?teamId={teamId}
   Future<List<ChatMessage>> getTeamMessages(String teamId) async {
-    final response = await http.get(
+    final response = await client.get(
       Uri.parse('$baseUrl/chats/messages?teamId=${Uri.encodeComponent(teamId)}'),
       headers: {
         'Authorization': 'Bearer ${await SecureStorageService().getToken()}'
@@ -48,7 +56,7 @@ class ChatService {
     required String senderUsername,
     required String content,
   }) async {
-    final response = await http.post(
+    final response = await client.post(
       Uri.parse('$baseUrl/chats/'),
       headers: {
         'Content-Type': 'application/json',
@@ -73,7 +81,7 @@ class ChatService {
   /// Obté missatges nous des d'una data
   /// GET /api/v1/chats/messages/since?teamId={teamId}&since={since}
   Future<List<ChatMessage>> getMessagesSince(String teamId, DateTime since) async {
-    final response = await http.get(
+    final response = await client.get(
       Uri.parse(
         '$baseUrl/chats/messages/since?teamId=${Uri.encodeComponent(teamId)}&since=${since.toUtc().toIso8601String()}',
       ),
