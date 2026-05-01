@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<title>Authentication complete</title>
+<p>Autenticando con la app principal, por favor espera...</p>
+<script>
+    function postAuthenticationMessage() {
+      // 1. La librería exige este formato exacto:
+      const message = { 'flutter-web-auth-2': window.location.href };
+
+      if (window.opener) {
+        // Intento normal
+        window.opener.postMessage(message, window.location.origin);
+        window.close();
+      } else if (window.parent && window.parent !== window) {
+        // Intento si está en un iframe
+        window.parent.postMessage(message, window.location.origin);
+      } else {
+        // 2. EL PLAN B MAGNÍFICO: Si Chrome bloquea el popup (tu caso),
+        // guardamos el código aquí. FlutterWebAuth2 lo está "escuchando" en la sombra.
+        localStorage.setItem('flutter-web-auth-2', window.location.href);
+        window.close();
+      }
+    }
+
+    postAuthenticationMessage();
+</script>

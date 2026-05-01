@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:healthy_way_frontend/shared/providers/Auth_provider.dart';
+import 'package:healthy_way_frontend/shared/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'core/router/app_router.dart';
 import 'features/auth/presentation/login_page.dart';

@@ -10,18 +10,7 @@ class CustomBottomNavBar extends StatelessWidget {
   });
 
   // Función auxiliar para mostrar el mensaje de "Próximamente"
-  void _showComingSoonMessage(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).clearSnackBars(); // Limpia si hay otro mensaje activo
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Pròximament: La secció de $feature estarà disponible aviat! 🚀'),
-        behavior: SnackBarBehavior.floating, // Hace que el mensaje flote un poco
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        backgroundColor: const Color(0xFF0C5AE1), // Tu color azul
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +19,7 @@ class CustomBottomNavBar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5), // Sombrilla suave hacia arriba
           ),
@@ -75,7 +64,7 @@ class CustomBottomNavBar extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.blue.withOpacity(0.4),
+                        color: Colors.blue.withValues(alpha: 0.4),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -103,9 +92,7 @@ class CustomBottomNavBar extends StatelessWidget {
                 label: 'Perfil',
                 isActive: currentIndex == 3,
                 onTap: () {
-                  if (currentIndex != 3) {
-                    _showComingSoonMessage(context, 'Perfil');
-                  }
+                  if (currentIndex != 3) Navigator.pushReplacementNamed(context, AppRouter.profile);
                 },
               ),
             ],

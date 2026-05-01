@@ -7,28 +7,28 @@ class RouteModel {
   final String name;
   final double distance;
   final bool isPrivate;
-  final String creatorName;
+  final int createdBy;
   final DateTime createdAt;
   final List<LatLng> trajectory;
   final LatLng startPoint;
   final LatLng endPoint;
   final String location;
   final String altitude;
-  final String elevation_gain;
+  final String elevationGain;
 
   RouteModel({
     required this.id,
     required this.name,
     required this.distance,
     required this.isPrivate,
-    required this.creatorName,
+    required this.createdBy,
     required this.createdAt,
     required this.trajectory,
     required this.startPoint,
     required this.endPoint,
     required this.location,
     required this.altitude,
-    required this.elevation_gain,
+    required this.elevationGain,
   });
 
   factory RouteModel.fromJson(Map<String, dynamic> json) {
@@ -37,7 +37,7 @@ class RouteModel {
       name: json['name'],
       distance: json['distance'].toDouble(),
       isPrivate: json['private'],
-      creatorName: json['created_by'],
+      createdBy: json['created_by'],
       createdAt: DateTime.parse(json['created_at']),
       trajectory: json['trajectory'] != null
           ? (json['trajectory'] as List).map((coord) {
@@ -63,32 +63,33 @@ class RouteModel {
           : const LatLng(0, 0), // O pon un LatLng(0,0) como arriba si lo prefieres
       location: json['location'],
       altitude: json['altitude'].toString(),
-      elevation_gain: json['elevation_gain'].toString(),
+      elevationGain: json['elevation_gain'].toString(),
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson(String modality) {
     return {
       'name': name,
       'distance': distance,
       'private': isPrivate,
-      'created_by': creatorName,
+      'created_by': createdBy,
       'created_at': createdAt.toIso8601String(),
       'trajectory': {
         'type': 'LineString',
-        'coordinates' : trajectory.map((point) => [point.latitude, point.longitude]).toList()
+        'coordinates' : trajectory.map((point) => [point.longitude, point.latitude]).toList()
       },
       'start_point': {
         'type': 'Point',
-        'coordinates': [startPoint.latitude, startPoint.longitude]
+        'coordinates': [startPoint.longitude, startPoint.latitude]
       },
       'end_point': {
         'type': 'Point',
-        'coordinates': [endPoint.latitude, endPoint.longitude]
+        'coordinates': [endPoint.longitude, endPoint.latitude]
       },
       'location': location,
       'altitude': double.tryParse(altitude),
-      'elevation_gain': double.tryParse(elevation_gain),
+      'elevation_gain': double.tryParse(elevationGain),
+      'modality': modality.toLowerCase(),
     };
   }
 }

@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/UserModel.dart';
+import '../models/user_model.dart';
+import '../../core/services/token_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _currentUser;
@@ -23,10 +24,11 @@ class AuthProvider extends ChangeNotifier {
 
   // Se llama al cerrar sesión
   Future<void> logout() async {
-    _currentUser = null;
-    notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('saved_user');
+    _currentUser = null;
+    SecureStorageService().deleteToken();
+    notifyListeners();
   }
 
   Future<void> loadSavedUser() async {
@@ -37,6 +39,18 @@ class AuthProvider extends ChangeNotifier {
       final Map<String, dynamic> userMap = jsonDecode(userJsonString);
       _currentUser = User.fromJson(userMap);
       notifyListeners();
+    }
+  }
+
+  // Actualitza l'equip de l'usuari actual
+  Future<void> updateTeam(String? teamName) async {
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(team: teamName);
+      notifyListeners();
+
+      final prefs = await SharedPreferences.getInstance();
+      final userJsonString = jsonEncode(_currentUser!.toJson());
+      await prefs.setString('saved_user', userJsonString);
     }
   }
 }

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -6,8 +5,11 @@ import 'package:latlong2/latlong.dart';
 import '../../../core/router/app_router.dart';
 import '../../../shared/providers/tracking_provider.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
-import '../../../shared/models/RouteModel.dart';
-import '../../../core/services/route_service.dart';
+import '../../../shared/models/route_model.dart';
+
+import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/models/activity.dart';
+import '../../../core/services/activity_service.dart';
 
 
 // ==========================================================
@@ -157,14 +159,30 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                               startPoint: route.first,
                               endPoint: route.last,
                               distance: double.parse((distance/1000).toStringAsFixed(2)), // <-- Redondear a 2 decimales
-                              creatorName: 'test1',
+                              createdBy: context.read<AuthProvider>().currentUser!.userId,
                               isPrivate: !_isPublic,
                               location: location,
                               createdAt: DateTime.now(),
-                              elevation_gain: elevation,
+                              elevationGain: elevation,
                               altitude: elevation,
                             );
-                            await RouteService().createRoute(nuevaRuta);
+
+                            // Creamos la actividad con la ruta y luego guardamos la ruta en el servidor
+                            final newActivity = Activity(
+                              distance: double.parse((distance/1000).toStringAsFixed(2)),
+                              startTime: provider.startTime,
+                              endTime: DateTime.now(),
+                              modality: provider.modality,
+                              userId: context.read<AuthProvider>().currentUser!.userId,
+                              pace: double.parse(provider.pace.replaceAll(':', '.').replaceAll('>', '')),
+                              createRoute: true,
+                              route: nuevaRuta,
+                              routeId: 99,
+                            );
+
+                            await ActivityService().createActivity(newActivity);
+                            if (!context.mounted) return;
+                            //await RouteService().createRoute(nuevaRuta);
                             provider.reset();
                             provider.routeIsSelected = false;
                             Navigator.pushNamedAndRemoveUntil(

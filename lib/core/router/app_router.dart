@@ -8,6 +8,7 @@ import '../../features/running_route/presentation/results_route_screen.dart';
 import '../../features/route_view/presentation/route_view_screen.dart';
 import '../../features/explore_routes/presentation/explore_routes_page.dart';
 import '../../features/running_route/presentation/save_route_form.dart';
+import '../../features/profile/presentation/profile_screen.dart';
 // 1. IMPORTAMOS LA NUEVA PANTALLA DEL MAPA (Asegúrate de que la ruta coincida con tus carpetas)
 import '../../features/map/presentation/map_screen.dart';
 import '../../features/chat/presentation/chat_view.dart';
@@ -16,6 +17,7 @@ import '../../features/my_team/presentation/my_team_view.dart';
 import '../../features/ranking/presentation/total_ranking_view.dart';
 import '../../features/ranking/presentation/individual_ranking_view.dart';
 import '../../features/ranking/presentation/individual_total_ranking_view.dart';
+import '../../features/my_team/presentation/create_team_view.dart';
 
 class AppRouter {
   static const String loginRoute = '/login';
@@ -35,6 +37,8 @@ class AppRouter {
   static const String individualRankingRoute = '/individual_ranking';
   static const String individualTotalRankingRoute = '/individual_total_ranking';
   static const String myTeamRoute = '/my_team';
+  static const String createTeamRoute = '/create_team';
+  static const String profile = '/my_routes';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -73,6 +77,10 @@ class AppRouter {
         return _fadeRoute(const IndividualRanking());
       case individualTotalRankingRoute:
         return _fadeRoute(const IndividualTotalRanking());
+      case createTeamRoute:
+        return _fadeRoute(const CreateTeamView());
+      case profile:
+        return _fadeRoute(const ProfileScreen());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

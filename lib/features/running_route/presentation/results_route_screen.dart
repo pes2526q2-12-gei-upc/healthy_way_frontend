@@ -4,8 +4,13 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:healthy_way_frontend/core/router/app_router.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
 import '../../../shared/providers/tracking_provider.dart';
+
+import '../../../core/services/activity_service.dart';
+import '../../../shared/models/activity.dart';
+import '../../../shared/models/route_model.dart';
 
 class ResultsRouteScreen extends StatelessWidget {
   const ResultsRouteScreen({super.key});
@@ -47,6 +52,7 @@ class ResultsRouteScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
@@ -55,14 +61,6 @@ class ResultsRouteScreen extends StatelessWidget {
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.cancel),
-          onPressed: () {
-            trackingProvider.reset();
-            trackingProvider.routeIsSelected = false;
-            Navigator.pushNamedAndRemoveUntil(context, AppRouter.homeRoute, (r) => false);
-          },
-        ),
       ),
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -172,6 +170,51 @@ class ResultsRouteScreen extends StatelessWidget {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           child: const Text('Guardar ruta', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        ),
+                        // Espacio entre botones
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed: () async {
+                            // Creamos una actividad con todos los datos pero sin ruta, ya que created_route tiene que ser false para que no intente guardar la ruta
+                            final activity = Activity(
+                              distance: double.parse((trackingProvider.distanceDouble/1000).toStringAsFixed(2)),
+                              startTime: trackingProvider.startTime,
+                              endTime: DateTime.now(),
+                              modality: trackingProvider.modality,
+                              pace: double.parse(trackingProvider.pace.replaceAll(':', '.').replaceAll('>', '')),
+                              userId: context.read<AuthProvider>().currentUser!.userId,
+                              createRoute: false,
+                              route: RouteModel(
+                                id: '99',
+                                name: 'noCrearRuta',
+                                distance: 1.0,
+                                isPrivate: false,
+                                createdBy: 99,
+                                createdAt: DateTime.now(),
+                                trajectory: [],
+                                startPoint: const LatLng(0, 0),
+                                endPoint: const LatLng(0, 0),
+                                location: 'string',
+                                altitude: '1',
+                                elevationGain: '1',
+                              ),
+                              routeId: 99,
+                            );
+
+                            // Guardamos la actividad sin ruta
+                            await ActivityService().createActivity(activity);
+                            if (!context.mounted) return;
+
+                            trackingProvider.reset();
+                            trackingProvider.routeIsSelected = false;
+                            Navigator.pushNamedAndRemoveUntil(context, AppRouter.homeRoute, (r) => false);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: const Text('Sortir sense guardar', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                         ),
                       ],
                     ),
