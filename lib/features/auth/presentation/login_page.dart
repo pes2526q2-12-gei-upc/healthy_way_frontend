@@ -288,8 +288,11 @@ class _LoginPageState extends State<LoginPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const SizedBox(width: 16),
-                            _SocialButton(icon: FontAwesomeIcons.google, onTap: () {
-                              context.read<AuthProvider>().enterWithGoogle().then((success) {
+                            _SocialButton(
+                              icon: FontAwesomeIcons.google,
+                              onTap: () async {
+                                final success = await context.read<AuthProvider>().enterWithGoogle();
+                                if (!context.mounted) return;
                                 if (success) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
@@ -302,14 +305,14 @@ class _LoginPageState extends State<LoginPage> {
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Error al iniciar sessió amb Google. Torna-ho a provar.'),
+                                      content: Text('Error en iniciar sessió amb Google. Torna-ho a provar.'),
                                       backgroundColor: Colors.redAccent,
                                       duration: Duration(seconds: 2),
                                     ),
                                   );
                                 }
-                              });
-                            }),
+                              },
+                            ),
                             const SizedBox(width: 16),
                           ],
                         ),

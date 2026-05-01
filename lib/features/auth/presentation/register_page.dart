@@ -334,12 +334,15 @@ class _RegisterPageState extends State<RegisterPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const SizedBox(width: 16),
-                          _SocialButton(icon: FontAwesomeIcons.google, onTap: () {
-                            context.read<AuthProvider>().enterWithGoogle().then((success) {
+                          _SocialButton(
+                            icon: FontAwesomeIcons.google,
+                            onTap: () async {
+                              final success = await context.read<AuthProvider>().enterWithGoogle();
+                              if (!context.mounted) return;
                               if (success) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Creació de compte amb Google correcte!'),
+                                    content: Text('Inici de sessió amb Google correcte!'),
                                     backgroundColor: Colors.green,
                                     duration: Duration(seconds: 2),
                                   ),
@@ -348,14 +351,14 @@ class _RegisterPageState extends State<RegisterPage> {
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Creació de compte amb Google. Torna-ho a provar.'),
+                                    content: Text('Error en iniciar sessió amb Google. Torna-ho a provar.'),
                                     backgroundColor: Colors.redAccent,
                                     duration: Duration(seconds: 2),
                                   ),
                                 );
                               }
-                            });
-                          }),
+                            },
+                          ),
                           const SizedBox(width: 16),
                         ],
                       ),
