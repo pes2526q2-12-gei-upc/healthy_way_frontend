@@ -26,11 +26,9 @@ class _ChatState extends State<Chat> {
   List<ChatMessage> _messages = [];
   bool _isLoading = true;
   bool _isSending = false;
-  bool _useHardcoded = false; // Si la API falla, usem missatges de prova
   Timer? _pollTimer;
 
-  // ⚠️ Hardcoded: chatId. Idealment vindria del backend vinculat a l'equip
-  static const int _chatId = 1;
+
 
   @override
   void initState() {
@@ -48,48 +46,54 @@ class _ChatState extends State<Chat> {
   }
 
   Future<void> _loadMessages() async {
+    final user = context.read<AuthProvider>().currentUser;
+    if (user == null || !user.hasTeam) {
+      setState(() {
+        _messages = [];
+        _isLoading = false;
+      });
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
-      final messages = await ChatService().getMessages(_chatId);
+      final messages = await ChatService().getTeamMessages(user.team!);
+      // Ordenar cronològicament (més antics a dalt)
+      messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      
       if (mounted) {
         setState(() {
-          if (messages.isEmpty) {
-            // Si la API retorna buit, usem hardcoded per demostrar la vista
-            _useHardcoded = true;
-            _messages = _getHardcodedMessages();
-          } else {
-            _useHardcoded = false;
-            _messages = messages;
-          }
+          _messages = messages;
           _isLoading = false;
         });
         _scrollToBottom();
         _startPolling();
       }
     } catch (e) {
-      // Si la API no respon, mostrem dades de prova
       if (mounted) {
         setState(() {
-          _useHardcoded = true;
-          _messages = _getHardcodedMessages();
+          _messages = [];
           _isLoading = false;
         });
-        _scrollToBottom();
       }
     }
   }
 
   void _startPolling() {
-    if (_useHardcoded) return;
+    final user = context.read<AuthProvider>().currentUser;
+    if (user == null || !user.hasTeam) return;
+
     _pollTimer?.cancel();
     _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
       if (_messages.isNotEmpty) {
         final newMessages = await ChatService().getMessagesSince(
-          _chatId,
+          user.team!,
           _messages.last.timestamp,
         );
         if (mounted && newMessages.isNotEmpty) {
+          // Ordenar els nous missatges també
+          newMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
           setState(() => _messages.addAll(newMessages));
           _scrollToBottom();
         }
@@ -102,35 +106,20 @@ class _ChatState extends State<Chat> {
     if (text.isEmpty) return;
 
     final user = context.read<AuthProvider>().currentUser;
-    if (user == null) return;
+    if (user == null || !user.hasTeam) return;
 
     _messageController.clear();
-
-    if (_useHardcoded) {
-      // Mode de prova: afegim el missatge localment
-      setState(() {
-        _messages.add(ChatMessage(
-          senderUsername: user.username,
-          content: text,
-          timestamp: DateTime.now(),
-        ));
-      });
-      _scrollToBottom();
-      return;
-    }
-
     setState(() => _isSending = true);
 
     try {
       final success = await ChatService().sendMessage(
-        chatId: _chatId,
-        senderId: user.userId,
+        senderUsername: user.username,
         content: text,
       );
 
       if (mounted) {
         if (success) {
-          // Afegim l'entrada localment per feedback immediat
+          // No cal afegir-lo localment si el polling és ràpid, però ho fem per UX
           setState(() {
             _messages.add(ChatMessage(
               senderUsername: user.username,
@@ -141,23 +130,13 @@ class _ChatState extends State<Chat> {
           _scrollToBottom();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('No s\'ha pogut enviar el missatge'),
-              backgroundColor: Colors.red[700],
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+            const SnackBar(content: Text('No s\'ha pogut enviar el missatge')),
           );
-          // Restaurem el text
           _messageController.text = text;
         }
       }
     } catch (e) {
-      if (mounted) {
-        _messageController.text = text;
-      }
+      if (mounted) _messageController.text = text;
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
@@ -175,37 +154,6 @@ class _ChatState extends State<Chat> {
     });
   }
 
-  // ⚠️ Missatges hardcoded de demostració (basats en el mockup)
-  List<ChatMessage> _getHardcodedMessages() {
-    final now = DateTime.now();
-    return [
-      ChatMessage(
-        senderUsername: 'Marc Soler',
-        content: 'Ei equip! Algú s\'anima a fer la ruta de Collserola aquesta tarda? 🏔️',
-        timestamp: DateTime(now.year, now.month, now.day, 10, 30),
-      ),
-      ChatMessage(
-        senderUsername: 'Laura Vila',
-        content: 'Jo puc a partir de les 18h! M\'han dit que l\'aire està excel·lent avui.',
-        timestamp: DateTime(now.year, now.month, now.day, 10, 32),
-      ),
-      ChatMessage(
-        senderUsername: '_self_', // Marcador per al missatge propi
-        content: 'Perfecte, a les 18h ens veiem a l\'entrada del parc! 👍',
-        timestamp: DateTime(now.year, now.month, now.day, 10, 35),
-      ),
-      ChatMessage(
-        senderUsername: 'Pau Riera',
-        content: 'Compteu amb mi també. Portaré aigua extra.',
-        timestamp: DateTime(now.year, now.month, now.day, 10, 40),
-      ),
-      ChatMessage(
-        senderUsername: 'Marc Soler',
-        content: 'Genial! Doncs ja som 4. Ens veiem allà 💪',
-        timestamp: DateTime(now.year, now.month, now.day, 10, 42),
-      ),
-    ];
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -218,26 +166,6 @@ class _ChatState extends State<Chat> {
       body: Column(
         children: [
           CommunityHeader(selectedIndex: 2),
-
-          // Banner informatiu si estem en mode hardcoded
-          if (_useHardcoded && !_isLoading)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Colors.amber.shade50,
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, size: 14, color: Colors.amber[800]),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Mode de prova — els missatges no es guarden al servidor',
-                      style: TextStyle(fontSize: 11, color: Colors.amber[900]),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
           // Cos del xat
           Expanded(
@@ -271,8 +199,7 @@ class _ChatState extends State<Chat> {
         }
 
         final msg = _messages[index - 1];
-        final isMe = msg.senderUsername == currentUsername ||
-            msg.senderUsername == '_self_';
+        final isMe = msg.senderUsername == currentUsername;
 
         // Decidim si mostrem el nom de l'emissor (agrupació)
         final showSenderName = index == 1 ||
