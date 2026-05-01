@@ -24,7 +24,7 @@ class _CreateTeamViewState extends State<CreateTeamView> {
 
   bool _isOpen = true;
   String _selectedZone = 'Barcelona';
-  String _selectedModality = 'running';
+  List<String> _selectedModality = ['running'];
   bool _isLoading = false;
 
   static const Color _primaryBlue = Color(0xFF1058E5);
@@ -57,6 +57,7 @@ class _CreateTeamViewState extends State<CreateTeamView> {
       zone: _selectedZone,
       modality: _selectedModality,
       numMembers: 1,
+      creatorUsername: context.read<AuthProvider>().currentUser!.username,
     );
 
     try {
