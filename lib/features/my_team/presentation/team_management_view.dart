@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/services/team_service.dart';
+import '../../../shared/providers/auth_provider.dart';
 
 class TeamManagementView extends StatefulWidget {
   final String teamName;
@@ -36,8 +38,13 @@ class _TeamManagementViewState extends State<TeamManagementView> {
     });
   }
 
-  Future<void> _handleAccept(String userId) async {
-    final success = await TeamService().acceptJoinRequest(widget.teamName, userId);
+  Future<void> _handleAccept(String username) async {
+    final acceptorUsername = context.read<AuthProvider>().currentUser?.username ?? '';
+    final success = await TeamService().acceptJoinRequest(
+      teamName: widget.teamName,
+      username: username,
+      acceptorUsername: acceptorUsername,
+    );
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sol·licitud acceptada correctament')),
@@ -46,14 +53,14 @@ class _TeamManagementViewState extends State<TeamManagementView> {
     }
   }
 
-  Future<void> _handleDeny(String userId) async {
-    final success = await TeamService().denyJoinRequest(widget.teamName, userId);
+  Future<void> _handleDeny(String username) async {
+    final success = await TeamService().denyJoinRequest(widget.teamName, username);
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sol·licitud denegada')),
       );
       setState(() {
-        _requests.removeWhere((req) => req['userId'] == userId);
+        _requests.removeWhere((req) => req['username'] == username);
       });
     }
   }
@@ -120,7 +127,7 @@ class _TeamManagementViewState extends State<TeamManagementView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  request['userName'] ?? 'Usuari Desconegut',
+                  request['username'] ?? 'Usuari Desconegut',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -142,12 +149,12 @@ class _TeamManagementViewState extends State<TeamManagementView> {
             children: [
               IconButton(
                 icon: const Icon(Icons.close, color: Colors.red),
-                onPressed: () => _handleDeny(request['userId']),
+                onPressed: () => _handleDeny(request['username'] ?? ''),
                 tooltip: 'Denegar',
               ),
               IconButton(
                 icon: const Icon(Icons.check, color: Colors.green),
-                onPressed: () => _handleAccept(request['userId']),
+                onPressed: () => _handleAccept(request['username'] ?? ''),
                 tooltip: 'Acceptar',
               ),
             ],
