@@ -30,12 +30,22 @@ class _TeamManagementViewState extends State<TeamManagementView> {
       _isLoading = true;
     });
     
-    final requests = await TeamService().getJoinRequests(widget.teamName);
-    
-    setState(() {
-      _requests = requests;
-      _isLoading = false;
-    });
+    try {
+      final requests = await TeamService().getJoinRequests(widget.teamName);
+      if (mounted) {
+        setState(() {
+          _requests = requests;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error carregant sol·licituds: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _handleAccept(String username) async {

@@ -124,8 +124,14 @@ class TeamService {
       },
     );
     if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((e) => e as Map<String, dynamic>).toList();
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      final List<dynamic> usernames = data['usernames'] ?? [];
+      
+      // Retornem una llista de mapes per mantenir la compatibilitat amb la UI actual
+      return usernames.map((u) => {
+        'username': u.toString(),
+        'requestDate': 'Pendent' // L'API actual no retorna la data
+      }).toList();
     } else {
       debugPrint('Error al obtenir sol·licituds: ${response.statusCode}');
       return [];
