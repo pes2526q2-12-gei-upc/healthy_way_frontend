@@ -24,7 +24,7 @@ class _CreateTeamViewState extends State<CreateTeamView> {
 
   bool _isOpen = true;
   String _selectedZone = 'Barcelona';
-  List<String> _selectedModality = ['running'];
+  String _selectedModality = 'running';
   bool _isLoading = false;
 
   @override

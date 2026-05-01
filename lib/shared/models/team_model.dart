@@ -4,7 +4,7 @@ class TeamModel {
   final String? description;
   final bool open;
   final String zone; // 'Barcelona' | 'Girona' | 'Lleida' | 'Tarragona'
-  final List<String> modality; // 'running' | 'cycling'
+  final String modality; // 'running' | 'cycling'
   final int numMembers;
   final String? creatorUsername; // Nom d'usuari del creador
 
