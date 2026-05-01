@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -24,6 +26,12 @@ class _MapScreenState extends State<MapScreen> {
   bool _isLoadingZones = false;
 
   final MapController _mapController = MapController();
+  StreamSubscription? _mapEventSubscription;
+
+  final TextEditingController _teamSearchController = TextEditingController();
+  String _teamSearchQuery = '';
+
+  Timer? _debounce;
 
   // Ubicación actual del usuario
   LatLng? _userLocation;
@@ -32,6 +40,11 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _initializeLocation();
+    _mapEventSubscription = _mapController.mapEventStream.listen((event) {
+      if (isZonesCapturedSelected) {
+        _filterVisibleHexagons();
+      }
+    });
   }
 
   Future<void> _initializeLocation() async {
@@ -53,19 +66,28 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _fetchZones() async {
     if (!isZonesCapturedSelected) {
-      setState(() => _allCapturedHexagons = []);
+      setState(() {
+        _allCapturedHexagons = [];
+        _visibleHexagons = [];
+      });
       return;
     }
 
     setState(() => _isLoadingZones = true);
 
     try {
-      final zones = await ZoneService().getZonesCapturades(
-        modality: isRunningMode ? 'running' : 'cycling',
-      );
+      List<Polygon<Object>> zones;
+      if(_teamSearchQuery.isNotEmpty) {
+        zones = await ZoneService().getZonesCapturades(modality: isRunningMode ? 'running' : 'cycling', team: _teamSearchQuery);
+      } else {
+        zones = await ZoneService().getZonesCapturades(
+          modality: isRunningMode ? 'running' : 'cycling',
+        );
+      }
       setState(() {
         _allCapturedHexagons = zones;
       });
+      _filterVisibleHexagons();
     } catch (e) {
       debugPrint("Error obteniendo zonas: $e");
     } finally {
@@ -90,7 +112,9 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void dispose() {
     // Detener seguimiento cuando la pantalla se cierra
+    _teamSearchController.dispose();
     LocationService().stopTracking();
+    _mapEventSubscription?.cancel();
     super.dispose();
   }
 
@@ -164,11 +188,12 @@ class _MapScreenState extends State<MapScreen> {
                           onTap: () {
                             setState(() {
                               isZonesCapturedSelected = !isZonesCapturedSelected;
+                              if (!isZonesCapturedSelected) {
+                                _teamSearchController.clear();
+                                _teamSearchQuery = '';
+                              }
                             });
                             _fetchZones();
-                            _mapController.mapEventStream.listen((event) {
-                              _filterVisibleHexagons();
-                            });
                           },
                         ),
                         // Si está cargando, mostramos un pequeño spinner
@@ -178,6 +203,60 @@ class _MapScreenState extends State<MapScreen> {
                               width: 16, height: 16,
                               child: CircularProgressIndicator(strokeWidth: 2)
                           )
+                        ],
+
+                        if (isZonesCapturedSelected && !_isLoadingZones) ...[
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            width: 160,
+                            height: 36,
+                            child: TextField(
+                              controller: _teamSearchController,
+                              onChanged: (value) {
+                                _teamSearchQuery = value;
+                                if (_debounce?.isActive ?? false) _debounce!.cancel();
+                                _debounce = Timer(const Duration(milliseconds: 500), () {
+                                  if (mounted) {
+                                    _fetchZones();
+                                  }
+                                });
+                              },
+                              decoration: InputDecoration(
+                                hintText: 'Buscar equip...',
+                                hintStyle: const TextStyle(fontSize: 13),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                  borderSide: BorderSide(color: Colors.blue.shade300, width: 1.5),
+                                ),
+                                // Botón "X" para borrar el texto rápidamente
+                                suffixIcon: _teamSearchQuery.isNotEmpty
+                                    ? IconButton(
+                                  icon: const Icon(Icons.close, size: 16, color: Colors.grey),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  onPressed: () {
+                                    _teamSearchController.clear();
+                                    setState(() {
+                                      _teamSearchQuery = '';
+                                    });
+                                    _fetchZones();
+                                  },
+                                )
+                                    : const Icon(Icons.search, size: 16, color: Colors.grey),
+                              ),
+                            ),
+                          ),
                         ]
                       ],
                     ),
@@ -204,9 +283,6 @@ class _MapScreenState extends State<MapScreen> {
                     });
                     if(isZonesCapturedSelected) {
                       _fetchZones();
-                      _mapController.mapEventStream.listen((event) {
-                        _filterVisibleHexagons();
-                      });
                     }
                   },
                 ),
