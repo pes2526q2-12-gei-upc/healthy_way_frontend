@@ -53,10 +53,10 @@ void main() {
       expect(route.location, 'Hospitalet');
     });
 
-    test('deleteRoute no lanza error si el status es 200', () async {
+    test('deleteRoute no lanza error si el status es 204', () async {
       final mockClient = MockClient((request) async {
         expect(request.method, 'DELETE');
-        return http.Response('Ruta eliminada', 200);
+        return http.Response('Ruta eliminada', 204);
       });
 
       final service = RouteService(client: mockClient);
@@ -65,7 +65,7 @@ void main() {
       await service.deleteRoute('99');
     });
 
-    test('deleteRoute lanza Exception si el status NO es 200', () async {
+    test('deleteRoute lanza Exception si el status NO es 204', () async {
       final mockClient = MockClient((request) async {
         return http.Response('Not Found', 404);
       });
