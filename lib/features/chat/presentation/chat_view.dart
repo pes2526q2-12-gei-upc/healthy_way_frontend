@@ -198,48 +198,76 @@ class _ChatState extends State<Chat> {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      itemCount: _messages.length + 1, // +1 pel separador "Avui"
+      itemCount: _messages.length,
       itemBuilder: (context, index) {
-        // Primer element = separador de dia
-        if (index == 0) {
-          return _buildDaySeparator('Avui');
-        }
-
-        final msg = _messages[index - 1];
+        final msg = _messages[index];
         final isMe = msg.senderUsername == currentUsername;
 
-        // Decidim si mostrem el nom de l'emissor (agrupació)
-        final showSenderName = index == 1 ||
-            _messages[index - 2].senderUsername != msg.senderUsername;
+        // Decidim si mostrem el separador de data
+        bool showDateSeparator = false;
+        if (index == 0) {
+          showDateSeparator = true;
+        } else {
+          final prevMsg = _messages[index - 1];
+          if (!_isSameDay(msg.timestamp, prevMsg.timestamp)) {
+            showDateSeparator = true;
+          }
+        }
 
-        return _buildMessageBubble(
+        // Decidim si mostrem el nom de l'emissor (agrupació)
+        // El mostrem si és el primer missatge, o si el remitent ha canviat, 
+        // o si hi ha un separador de data entremig
+        final showSenderName = index == 0 ||
+            _messages[index - 1].senderUsername != msg.senderUsername ||
+            showDateSeparator;
+
+        final bubble = _buildMessageBubble(
           message: msg,
           isMe: isMe,
           showSenderName: showSenderName,
         );
+
+        if (showDateSeparator) {
+          return Column(
+            children: [
+              _buildDaySeparator(_getDateLabel(msg.timestamp)),
+              bubble,
+            ],
+          );
+        }
+        return bubble;
       },
     );
   }
 
   Widget _buildDaySeparator(String label) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
+      margin: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
       child: Row(
         children: [
           Expanded(child: Divider(color: Colors.grey.shade300, thickness: 0.5)),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade200),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               label,
               style: TextStyle(
                 fontSize: 11,
                 color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
               ),
             ),
           ),
@@ -247,6 +275,29 @@ class _ChatState extends State<Chat> {
         ],
       ),
     );
+  }
+
+  String _getDateLabel(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final msgDate = DateTime(date.year, date.month, date.day);
+
+    if (msgDate == today) {
+      return 'HOY';
+    } else if (msgDate == yesterday) {
+      return 'AYER';
+    } else {
+      final months = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      ];
+      return '${date.day} de ${months[date.month - 1]}'.toUpperCase();
+    }
+  }
+
+  bool _isSameDay(DateTime d1, DateTime d2) {
+    return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
   }
 
   Widget _buildMessageBubble({
