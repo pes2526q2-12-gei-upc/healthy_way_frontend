@@ -125,7 +125,7 @@ class UserService {
   Future<String> importStravaRoutes(int userId) async {
     final url = Uri.https('www.strava.com', '/oauth/mobile/authorize', {
       'client_id': '209168',
-      'redirect_uri': 'healthyway://strava/callback',
+      'redirect_uri': 'healthyway://strava',
       'response_type': 'code',
       'scope': 'activity:read,activity:read_all',
     });
@@ -133,6 +133,9 @@ class UserService {
     final result = await FlutterWebAuth2.authenticate(
       url: url.toString(),
       callbackUrlScheme: "healthyway",
+      options: const FlutterWebAuth2Options(
+        preferEphemeral: true,
+      ),
     );
 
     final scope = Uri.parse(result).queryParameters['scope'] ?? '';
@@ -153,7 +156,7 @@ class UserService {
           'user_id': userId,
         }),
       );
-      if(newResponse.statusCode == 200) {
+      if(newResponse.statusCode == 200 || newResponse.statusCode == 201) {
         return 'Rutes importades correctament des de Strava.';
       }
       else {
