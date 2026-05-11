@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/chat_service.dart';
+import '../../../core/services/socket_service.dart';
 import '../../../shared/models/chat_message.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
@@ -26,7 +27,6 @@ class _ChatState extends State<Chat> {
   List<ChatMessage> _messages = [];
   bool _isLoading = true;
   bool _isSending = false;
-  Timer? _pollTimer;
 
 
 
@@ -41,7 +41,7 @@ class _ChatState extends State<Chat> {
     _messageController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
-    _pollTimer?.cancel();
+    SocketService().off('new-chat-message');
     super.dispose();
   }
 
@@ -68,7 +68,7 @@ class _ChatState extends State<Chat> {
           _isLoading = false;
         });
         _scrollToBottom();
-        _startPolling();
+        _setupSocketListener();
       }
     } catch (e) {
       if (mounted) {
@@ -80,23 +80,30 @@ class _ChatState extends State<Chat> {
     }
   }
 
-  void _startPolling() {
+  void _setupSocketListener() {
     final user = context.read<AuthProvider>().currentUser;
     if (user == null || !user.hasTeam) return;
 
-    _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
-      if (_messages.isNotEmpty) {
-        final newMessages = await ChatService().getMessagesSince(
-          user.team!,
-          _messages.last.timestamp,
-        );
-        if (mounted && newMessages.isNotEmpty) {
-          // Ordenar els nous missatges també
-          newMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-          setState(() => _messages.addAll(newMessages));
-          _scrollToBottom();
-        }
+    // Netegem qualsevol listener anterior per evitar duplicats si es crida més d'un cop
+    SocketService().off('new-chat-message');
+
+    SocketService().on('new-chat-message', (data) {
+      if (mounted) {
+        final message = ChatMessage.fromJson(data as Map<String, dynamic>);
+        
+        setState(() {
+          // Evitem duplicats si ja l'hem afegit localment a _sendMessage
+          bool isDuplicate = _messages.any((m) => 
+            m.senderUsername == message.senderUsername && 
+            m.content == message.content &&
+            (m.timestamp.difference(message.timestamp).inSeconds.abs() < 5)
+          );
+
+          if (!isDuplicate) {
+            _messages.add(message);
+            _scrollToBottom();
+          }
+        });
       }
     });
   }
