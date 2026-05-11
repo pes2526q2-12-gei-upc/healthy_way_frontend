@@ -16,7 +16,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _currentUser != null;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: '845230063372-i1g1bf9o8jr62idmnekgtsa1n34d0o4d.apps.googleusercontent.com',
+    serverClientId: '845230063372-i1g1bf9o8jr62idmnekgtsa1n34d0o4d.apps.googleusercontent.com',
   );
 
   // Se llama cuando el login es correcto
@@ -31,24 +31,27 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> enterWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
+      if (googleUser == null) return false;
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? token = googleAuth.idToken;
+
+      if (token == null) {
         return false;
       }
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final String? tokenParaElBackend = googleAuth.idToken;
-      if (tokenParaElBackend != null) {
-        debugPrint("¡Token obtenido con éxito! Enviando al backend...");
-        UserService().enterWithGoogle(tokenParaElBackend);
+
+      final User? user = await UserService().enterWithGoogle(token);
+
+      if (user != null) {
+        _currentUser = user;
+        notifyListeners();
         return true;
       }
-      else {
-        debugPrint("Error: No se pudo obtener el idToken de Google.");
-      }
+      return false;
+
+    } catch (error) {
+      return false;
     }
-    catch (error) {
-      debugPrint("Error durante el Google Sign-In: $error");
-    }
-    return false;
   }
 
   // Se llama al cerrar sesión
