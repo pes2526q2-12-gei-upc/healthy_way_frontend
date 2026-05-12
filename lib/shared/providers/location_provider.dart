@@ -8,10 +8,12 @@ import '../../core/services/user_service.dart';
 class LocationProvider extends ChangeNotifier {
   String _placeName = 'Cercant ubicació...';
   int _weatherScore = -1;
+  LatLng _currentLocation = const LatLng(0, 0);
   bool _isLoading = false;
 
   String get placeName => _placeName;
   int get weatherScore => _weatherScore;
+  LatLng get currentLocation => _currentLocation;
   bool get isLoading => _isLoading;
 
   Future<void> fetchLocationName(int userId) async {
@@ -20,6 +22,8 @@ class LocationProvider extends ChangeNotifier {
 
     try {
       final pos = await LocationService.getCurrentLocation();
+
+      _currentLocation = LatLng(pos.latitude, pos.longitude);
 
       List<Placemark> placemarks = await placemarkFromCoordinates(
           pos.latitude,
