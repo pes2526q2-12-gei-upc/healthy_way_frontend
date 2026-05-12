@@ -24,11 +24,13 @@ class _HomePage extends State<HomePage> {
   }
 
   Future<void> iniciaGPS() async {
-    await LocationService().startTracking();
+    LocationService().startTracking();
 
-    if (!mounted) return;
-
-    context.read<LocationProvider>().fetchLocationName();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<LocationProvider>().fetchLocationName(context.read<AuthProvider>().currentUser?.userId ?? 0);
+      }
+    });
   }
 
   @override
@@ -96,31 +98,85 @@ class _HomePage extends State<HomePage> {
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start, // Alinea arriba por si el texto ocupa dos líneas
                       children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.air, color: Colors.greenAccent, size: 32),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text("QUALITAT DE L'AIRE", style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
-                                Row(
-                                  children: [
-                                    const Text('Excel·lent ', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                                    Text('(AQI 25)', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 14)),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ],
+                        // --- PARTE IZQUIERDA (Aire) ---
+                        Builder(
+                            builder: (context) {
+                              final locProvider = context.watch<LocationProvider>();
+                              final score = locProvider.weatherScore;
+
+                              String aqiText = 'Desconegut';
+                              Color aqiColor = Colors.grey;
+
+                              if (score >= 0 && score <= 50) {
+                                aqiText = 'Excel·lent';
+                                aqiColor = Colors.greenAccent;
+                              } else if (score > 50 && score <= 100) {
+                                aqiText = 'Bona';
+                                aqiColor = Colors.yellowAccent;
+                              } else if (score > 100 && score <= 150) {
+                                aqiText = 'Moderada';
+                                aqiColor = Colors.orangeAccent;
+                              } else if (score > 150) {
+                                aqiText = 'Dolenta';
+                                aqiColor = Colors.redAccent;
+                              }
+
+                              // Si está cargando, mostramos un mini indicador circular
+                              if (locProvider.isLoading) {
+                                return const SizedBox(
+                                    height: 32, width: 32,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                                );
+                              }
+
+                              return Row(
+                                children: [
+                                  Icon(Icons.air, color: aqiColor, size: 32),
+                                  const SizedBox(width: 12),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                          "QUALITAT DE L'AIRE",
+                                          style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                              '$aqiText ',
+                                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)
+                                          ),
+                                          Text(
+                                              score >= 0 ? '(AQI $score)' : '(Sense dades)',
+                                              style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 14)
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            }
                         ),
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text('Barcelona', style: TextStyle(color: Colors.white, fontSize: 12)),
-                            Text('Actualitzat ara', style: TextStyle(color: Colors.white70, fontSize: 10)),
-                          ],
+
+                        const SizedBox(width: 16),
+
+                        // --- PARTE DERECHA (Ubicación) ---
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                context.watch<LocationProvider>().placeName,
+                                style: const TextStyle(color: Colors.white, fontSize: 12),
+                                textAlign: TextAlign.right,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
