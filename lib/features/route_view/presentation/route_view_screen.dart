@@ -9,6 +9,7 @@ import '../../../shared/widgets/custom_map_widget.dart';
 import '../../../shared/providers/tracking_provider.dart';
 
 import '../../../core/services/user_service.dart';
+import '../../../core/services/security_service.dart';
 
 class RouteViewScreen extends StatefulWidget {
   const RouteViewScreen({super.key});
@@ -24,6 +25,8 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
   late RouteModel rutaSeleccionada;
 
   bool _isLoadingRoute = true;
+  double? _securityScore;
+  bool _isLoadingSecurity = true;
 
   @override
   void initState() {
@@ -38,6 +41,27 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
       rutaSeleccionada = trackingProvider.rutaSeleccionada;
       _isLoadingRoute = false;
     });
+
+    // Fetch security score
+    _fetchSecurityScore();
+  }
+
+  Future<void> _fetchSecurityScore() async {
+    try {
+      final score = await SecurityService().evaluateRouteSecurity(rutaSeleccionada.trajectory);
+      if (mounted) {
+        setState(() {
+          _securityScore = score;
+          _isLoadingSecurity = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingSecurity = false;
+        });
+      }
+    }
   }
 
   @override
@@ -261,9 +285,19 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                             const SizedBox(width: 12),
                             _buildMetricCard('ALTITUD', rutaSeleccionada.elevationGain, 'm'),
                             const SizedBox(width: 12),
-
-                            // SOLUCIÓN DEL ERROR DE INTERFAZ:
-                            // Quitamos el Expanded de aquí y dejamos solo el FutureBuilder
+                            _buildMetricCard(
+                              'SEGURETAT', 
+                              _isLoadingSecurity ? '...' : (_securityScore?.toStringAsFixed(1) ?? 'N/A'), 
+                              ''
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Row(
+                          children: [
                             FutureBuilder<User?>(
                               future: UserService().getUserProfile(rutaSeleccionada.createdBy),
                               builder: (context, snapshot) {
@@ -277,7 +311,6 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                                   nombreCreador = snapshot.data!.nom;
                                 }
 
-                                // _buildMetricCard ya devuelve un Expanded internamente
                                 return _buildMetricCard('CREADOR', nombreCreador, '');
                               },
                             ),
