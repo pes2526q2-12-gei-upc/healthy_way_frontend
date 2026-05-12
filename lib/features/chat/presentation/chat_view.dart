@@ -164,8 +164,9 @@ class _ChatState extends State<Chat> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUsername =
-        context.watch<AuthProvider>().currentUser?.username ?? '';
+    final user = context.watch<AuthProvider>().currentUser;
+    final hasTeam = user?.hasTeam ?? false;
+    final currentUsername = user?.username ?? '';
 
     return Scaffold(
       backgroundColor: _bgColor,
@@ -176,17 +177,19 @@ class _ChatState extends State<Chat> {
 
           // Cos del xat
           Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: _primaryBlue),
-                  )
-                : _messages.isEmpty
-                    ? _buildEmptyState()
-                    : _buildMessagesList(currentUsername),
+            child: !hasTeam
+                ? _buildNoTeamState()
+                : _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: _primaryBlue),
+                      )
+                    : _messages.isEmpty
+                        ? _buildEmptyState()
+                        : _buildMessagesList(currentUsername),
           ),
 
-          // Barra d'escriptura
-          _buildInputBar(),
+          // Barra d'escriptura (només si té equip)
+          if (hasTeam) _buildInputBar(),
         ],
       ),
     );
@@ -436,6 +439,69 @@ class _ChatState extends State<Chat> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  // ─── Estat sense equip ──────────────────────────────────────────────────────────
+
+  Widget _buildNoTeamState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.group_off_rounded,
+                color: Colors.orange,
+                size: 48,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Encara no tens cap equip',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1D26),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Per poder xatejar amb altres usuaris, primer has d\'unir-te a un equip o crear-ne un de nou a la secció d\'Equips.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                // Aquí podríem navegar a la pestanya d'equips si cal
+                // Per ara només informem
+              },
+              icon: const Icon(Icons.search, color: Colors.white),
+              label: const Text('Explorar Equips', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryBlue,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
