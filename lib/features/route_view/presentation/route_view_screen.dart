@@ -181,29 +181,26 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  rutaSeleccionada.name,
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF0B233B),
+                            Flexible(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    rutaSeleccionada.name,
+                                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF0B233B)),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.location_on_outlined, size: 16, color: Colors.blueAccent),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      rutaSeleccionada.location,
-                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.location_on_outlined, size: 16, color: Colors.blueAccent),
+                                      const SizedBox(width: 4),
+                                      Text(rutaSeleccionada.location, style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
@@ -241,6 +238,25 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () => Navigator.pushNamed(context, AppRouter.runningRoute),
+                            icon: const Icon(Icons.touch_app),
+                            label: const Text('Seleccionar Ruta', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue[700],
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
                     ],
                   ),
                 ),
@@ -248,17 +264,6 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
             ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.pushNamed(context, AppRouter.runningRoute);
-        },
-        backgroundColor: Colors.blue[700],
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        label: const Text('Seleccionar Ruta', style: TextStyle(fontWeight: FontWeight.bold)),
-        icon: const Icon(Icons.touch_app),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 

@@ -264,40 +264,6 @@ class _HomePage extends State<HomePage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-
-                  // Botón "Cerca una ruta" (Texto pequeño eliminado según petición)
-                  InkWell(
-                    onTap: () {
-                      // AQUÍ: Acción para buscar ruta
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.blue[700],
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(color: Colors.blue.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Colors.white.withValues(alpha: 0.2),
-                            child: const Icon(Icons.search, color: Colors.white),
-                          ),
-                          const SizedBox(width: 16),
-                          const Expanded(
-                            child: Text(
-                              'Cerca una ruta\nsaludable',
-                              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const Icon(Icons.chevron_right, color: Colors.white),
-                        ],
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 32),
 
                   // Sección "Rutes Recomanades"
@@ -305,10 +271,6 @@ class _HomePage extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Rutes Recomanades', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue[900])),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text('Veure tot'),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -348,7 +310,6 @@ class _HomePage extends State<HomePage> {
                     },
                   ),
 
-                  // Espacio al final para que no tape la barra inferior al hacer scroll
                   const SizedBox(height: 40),
                 ],
               ),

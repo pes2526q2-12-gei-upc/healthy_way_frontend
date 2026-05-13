@@ -135,16 +135,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           color: Color(0xFF2D3142),
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'Veure tot',
-                          style: TextStyle(
-                            color: Color(0xFF1E65F3),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
