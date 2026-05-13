@@ -39,7 +39,8 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
     final provider = context.read<TrackingProvider>();
     final route = provider.traversedRoute;
     final distance = provider.distanceDouble;
-    final elevation = provider.elevation;
+    final altitude = provider.maxAltitude;
+    final elevation = provider.altitudeGained;
     final location = provider.routeIsSelected ? provider.rutaSeleccionada.location : provider.placeName;
 
     LatLngBounds? routeBounds;
@@ -158,16 +159,15 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                               trajectory: route,
                               startPoint: route.first,
                               endPoint: route.last,
-                              distance: double.parse((distance/1000).toStringAsFixed(2)), // <-- Redondear a 2 decimales
+                              distance: double.parse((distance/1000).toStringAsFixed(2)),
                               createdBy: context.read<AuthProvider>().currentUser!.userId,
                               isPrivate: !_isPublic,
                               location: location,
                               createdAt: DateTime.now(),
-                              elevationGain: elevation,
-                              altitude: elevation,
+                              elevationGain: elevation.toString(),
+                              altitude: altitude.toString(),
                             );
 
-                            // Creamos la actividad con la ruta y luego guardamos la ruta en el servidor
                             final newActivity = Activity(
                               distance: double.parse((distance/1000).toStringAsFixed(2)),
                               startTime: provider.startTime,

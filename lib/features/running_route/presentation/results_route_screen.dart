@@ -15,7 +15,6 @@ import '../../../shared/models/route_model.dart';
 class ResultsRouteScreen extends StatelessWidget {
   const ResultsRouteScreen({super.key});
 
-  // Métod helper para crear las columnas de estadísticas limpiamente
   Widget _buildStatColumn(String title, String value) {
     return Expanded(
       child: Column(
@@ -39,13 +38,11 @@ class ResultsRouteScreen extends StatelessWidget {
     final trackingProvider = context.read<TrackingProvider>();
     final fullRoute = trackingProvider.traversedRoute;
 
-    // 1. BOUNDS Y ZOOM DINÁMICO (Solo si hay recorrido real: 2+ puntos)
     LatLngBounds? routeBounds;
     if (fullRoute.length > 1) {
       routeBounds = LatLngBounds.fromPoints(fullRoute);
     }
 
-    // 2. CENTRO EXACTO (Si hay 1 o más puntos, nos centramos en el último. Si hay 0, L'Hospitalet)
     final center = fullRoute.isNotEmpty
         ? fullRoute.last
         : const LatLng(41.3596, 2.1002);
@@ -171,11 +168,11 @@ class ResultsRouteScreen extends StatelessWidget {
                           ),
                           child: const Text('Guardar ruta', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                         ),
-                        // Espacio entre botones
+
                         const SizedBox(height: 12),
+
                         ElevatedButton(
                           onPressed: () async {
-                            // Creamos una actividad con todos los datos pero sin ruta, ya que created_route tiene que ser false para que no intente guardar la ruta
                             final activity = Activity(
                               distance: double.parse((trackingProvider.distanceDouble/1000).toStringAsFixed(2)),
                               startTime: trackingProvider.startTime,
@@ -195,13 +192,12 @@ class ResultsRouteScreen extends StatelessWidget {
                                 startPoint: const LatLng(0, 0),
                                 endPoint: const LatLng(0, 0),
                                 location: 'string',
-                                altitude: '1',
-                                elevationGain: '1',
+                                altitude: '0',
+                                elevationGain: '0',
                               ),
                               routeId: 99,
                             );
 
-                            // Guardamos la actividad sin ruta
                             await ActivityService().createActivity(activity);
                             if (!context.mounted) return;
 

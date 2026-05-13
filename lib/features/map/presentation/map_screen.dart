@@ -59,7 +59,7 @@ class _MapScreenState extends State<MapScreen> {
     LocationService().locationStream.listen((position) {
       if (!mounted) return;
       setState(() {
-        _userLocation = position;
+        _userLocation = position.latLng;
       });
     });
   }
