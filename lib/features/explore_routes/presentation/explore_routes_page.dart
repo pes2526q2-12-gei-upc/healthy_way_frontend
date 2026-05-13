@@ -26,7 +26,6 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
   final Color _primaryBlue = const Color(0xFF1E6AFB);
   final Color _inactiveFilterTextColor = const Color(0xFF71717A);
   final Color _backgroundGray = const Color(0xFFF1F5F9);
-  final Color _greenAQI = const Color(0xFF32A852);
   final Color _darkSelectedBlue = const Color(0xFF0C5AE1);
 
   // Controladores para los filtros
