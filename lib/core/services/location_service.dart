@@ -8,23 +8,22 @@ class LocationService {
   LocationSettings getSettings() {
     if (defaultTargetPlatform == TargetPlatform.android) {
       return AndroidSettings(
-        accuracy: LocationAccuracy.high, // GPS puro para máxima precisión
-        distanceFilter: 2,               // Actualiza cada 5 metros
-        intervalDuration: const Duration(seconds: 3), // O cada 3 segundos
-        // IMPRESCINDIBLE para que no se pare al bloquear el móvil:
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 2,
+        intervalDuration: const Duration(seconds: 3),
         foregroundNotificationConfig: const ForegroundNotificationConfig(
           notificationTitle: "Entrenamiento en curso",
           notificationText: "Tu ruta se está grabando...",
-          enableWakeLock: true, // Evita que el procesador se duerma
+          enableWakeLock: true,
         ),
       );
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       return AppleSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 2,
-        activityType: ActivityType.fitness, // Ayuda a iOS a optimizar el sensor para deporte
-        showBackgroundLocationIndicator: true, // Barra azul arriba para que el usuario sepa que grabas
-        pauseLocationUpdatesAutomatically: false, // Evita que iOS pare el GPS si te detienes en un semáforo
+        activityType: ActivityType.fitness,
+        showBackgroundLocationIndicator: true,
+        pauseLocationUpdatesAutomatically: false,
       );
     } else {
       return const LocationSettings(

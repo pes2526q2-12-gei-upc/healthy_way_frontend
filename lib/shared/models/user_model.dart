@@ -1,11 +1,12 @@
 class User {
-  // Asumimos que el backend envía un ID, aunque no salga explícito en el DTO de creación
   final int userId;
   final String nom;
   final String username;
   final String email;
-  // Nullable: null significa que el usuario no pertenece a ningún equipo
   String? team;
+  double? totalRunningDistance;
+  double? totalCyclingDistance;
+  int? totalPoints;
 
   User({
     required this.userId,
@@ -13,9 +14,11 @@ class User {
     required this.username,
     required this.email,
     this.team,
+    this.totalRunningDistance,
+    this.totalCyclingDistance,
+    this.totalPoints,
   });
 
-  /// Retorna true si l'usuari pertany a un equip
   bool get hasTeam => team != null && team!.isNotEmpty;
 
   User copyWith({
@@ -35,7 +38,6 @@ class User {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
-    // El backend pot usar 'team_name' (UserDTO) o 'team' (dèsat localment)
     final teamValue = json['team_name'] ?? json['team'];
     return User(
       userId: json['user_id'] ?? 0,
@@ -43,6 +45,9 @@ class User {
       username: json['username'] ?? '',
       email: json['email'] ?? '',
       team: (teamValue == null || teamValue == '') ? null : teamValue as String,
+      totalRunningDistance: json['total_running_distance'] != null ? (json['total_running_distance'] as num).toDouble() : null,
+      totalCyclingDistance: json['total_cycling_distance'] != null ? (json['total_cycling_distance'] as num).toDouble() : null,
+      totalPoints: json['total_points'] != null ? (json['total_points'] as num).toInt() : null,
     );
   }
 
