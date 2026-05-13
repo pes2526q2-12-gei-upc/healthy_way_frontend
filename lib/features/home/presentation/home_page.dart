@@ -315,7 +315,7 @@ class _HomePage extends State<HomePage> {
 
                   // Coger rutas del route service y mostrarlas. Si no hay rutas, mostrar mensaje de "No hay rutas recomendadas disponibles"
                   FutureBuilder<List<RouteModel>>(
-                    future: RouteService().getRecommendedRoutes(context.watch<LocationProvider>().currentLocation, 5000),
+                    future: RouteService().getRecommendedRoutes(context.watch<LocationProvider>().currentLocation, 10),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
