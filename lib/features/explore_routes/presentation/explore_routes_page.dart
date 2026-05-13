@@ -26,7 +26,6 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
   final Color _primaryBlue = const Color(0xFF1E6AFB);
   final Color _inactiveFilterTextColor = const Color(0xFF71717A);
   final Color _backgroundGray = const Color(0xFFF1F5F9);
-  final Color _greenAQI = const Color(0xFF32A852);
   final Color _darkSelectedBlue = const Color(0xFF0C5AE1);
 
   // Controladores para los filtros
@@ -255,8 +254,6 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
           child: Column(
             children: [
               _buildSearchBar(),
-              const SizedBox(height: 16),
-              _buildCategoryTabs(),
             ],
           ),
         ),
@@ -270,7 +267,6 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
               children: [
                 if(_isLoading) ...[
                   const SizedBox(height: 50),
-                  //Centramos el indicador de carga
                   const Center(child: CircularProgressIndicator(color: Color(0xFF1E6AFB))),
                 ] else if (_routes.isEmpty) ...[
                   const SizedBox(height: 50),
@@ -320,38 +316,6 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
     );
   }
 
-  Widget _buildCategoryTabs() {
-    final List<Map<String, dynamic>> tabs = [
-      {'name': 'Totes', 'selected': true},
-      {'name': 'Històriques', 'selected': false},
-      {'name': 'Comunitat', 'selected': false},
-      {'name': 'Esport', 'selected': false},
-    ];
-
-    return SizedBox(
-      height: 40,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        scrollDirection: Axis.horizontal,
-        itemCount: tabs.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final tab = tabs[index];
-          final bool isSelected = tab['selected'];
-          return ChoiceChip(
-            label: Text(tab['name']),
-            labelStyle: TextStyle(color: isSelected ? Colors.white : _inactiveFilterTextColor, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal),
-            selected: isSelected,
-            selectedColor: _darkSelectedBlue,
-            backgroundColor: _backgroundGray,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            onSelected: (bool selected) {},
-          );
-        },
-      ),
-    );
-  }
-
   Widget _buildRouteListHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -394,7 +358,7 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                                 // Utilizamos una imagen hardcodeada por ahora, pero aquí se debería cargar la imagen real de la ruta (ruta.imageUrl)
                                 Container(width: 100, height: 100, color: _backgroundGray, child: const Icon(Icons.image, color: Color(0xFF94A3B8), size: 40)),
                                 //Image.network(, width: 100, height: 100, fit: BoxFit.cover, errorBuilder: (c, e, s) => Container(width: 100, height: 100, color: Colors.grey[200], child: const Icon(Icons.image, color: Colors.grey))),
-                                Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.8), borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.star, color: Color(0xFFFFB800), size: 14), const SizedBox(width: 4), Text('4.8', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))],))),
+                                Positioned(top: 8, left: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.8), borderRadius: BorderRadius.circular(12)))),
                               ],
                             ),
                           ),
@@ -407,7 +371,10 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                                 const SizedBox(height: 4),
                                 Row(children: [Icon(Icons.location_on_outlined, color: _inactiveFilterTextColor, size: 16), const SizedBox(width: 4), Text(ruta.location, style: TextStyle(color: _inactiveFilterTextColor))]),
                                 const SizedBox(height: 12),
-                                Row(children: [_buildInfoPill(Icons.directions_run, '${ruta.distance} km'), const SizedBox(width: 8), _buildInfoPill(Icons.trending_up, 'Medium')]),
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(children: [_buildInfoPill(Icons.directions_run, '${ruta.distance} km'), const SizedBox(width: 8), _buildInfoPill(Icons.trending_up, '${ruta.elevationGain} m')]),
+                                ),
                               ],
                             ),
                           ),
@@ -415,17 +382,15 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                       ),
                       const SizedBox(height: 16),
                       const Divider(color: Color(0xFFE2E8F0)),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Row(
                         children: [
-                          Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Color(0xFFEBF6EC), shape: BoxShape.circle), child: Icon(Icons.air, color: _greenAQI)),
-                          const SizedBox(width: 12),
-                          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('ÍNDEX DE SALUT', style: TextStyle(color: _inactiveFilterTextColor, fontSize: 11, fontWeight: FontWeight.bold)), Text('Bueno (AQI 25)', style: TextStyle(color: _greenAQI, fontWeight: FontWeight.bold, fontSize: 14))]),
+                          _buildDifficultyBadge(ruta.distance, ruta.elevationGain),
                           const Spacer(),
                           GestureDetector(
                             onTap: () {
-                              final trackingProvider = context.read<TrackingProvider>(); // Obtenemos el provider de tracking
-                              trackingProvider.setSelectedRoute(ruta); // Establecemos la ruta seleccionada en el provider
+                              final trackingProvider = context.read<TrackingProvider>();
+                              trackingProvider.setSelectedRoute(ruta);
                               Navigator.pushNamed(context, AppRouter.routeView);
                             },
                             child: Container(
@@ -459,6 +424,42 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(color: _backgroundGray, borderRadius: BorderRadius.circular(16)),
       child: Row(children: [Icon(icon, size: 16, color: _inactiveFilterTextColor), const SizedBox(width: 6), Text(label, style: TextStyle(color: _inactiveFilterTextColor, fontSize: 13))]),
+    );
+  }
+
+  Widget _buildDifficultyBadge(double distance, double elevationGain) {
+    String label;
+    Color color;
+
+    if (distance < 5 && elevationGain < 100) {
+      label = 'Fàcil';
+      color = const Color(0xFF22C55E); // verde
+    } else if (distance < 10 && elevationGain < 300) {
+      label = 'Moderada';
+      color = const Color(0xFFEAB308); // amarillo
+    } else if (distance < 20 && elevationGain < 600) {
+      label = 'Difícil';
+      color = const Color(0xFFF97316); // naranja
+    } else {
+      label = 'Molt difícil';
+      color = const Color(0xFFEF4444); // rojo
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.fitness_center, color: color, size: 16),
+          const SizedBox(width: 6),
+          Text(label, style: TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.bold)),
+        ],
+      ),
     );
   }
 }

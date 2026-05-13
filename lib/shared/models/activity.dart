@@ -46,8 +46,8 @@ class Activity {
         startPoint: const LatLng(0, 0),
         endPoint: const LatLng(0, 0),
         location: 'Ubicació desconeguda',
-        altitude: '1',
-        elevationGain: '1',
+        altitude: 1,
+        elevationGain: 1,
       ),
       routeId: json['route_id'] ?? -9,
     );

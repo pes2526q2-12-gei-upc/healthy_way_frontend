@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:healthy_way_frontend/core/router/app_router.dart';
+import '../../../shared/providers/location_provider.dart';
 import 'results_route_screen.dart';
 import '../../../shared/providers/tracking_provider.dart';
 
@@ -225,18 +226,93 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
-                                        child: Container(
-                                          height: 95, decoration: BoxDecoration(color: Colors.greenAccent.shade400, borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.symmetric(horizontal: 3),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Row(children: const [Icon(Icons.air, color: Colors.green, size: 14), SizedBox(width: 4), Flexible(child: Text('QUALITAT AIRE', style: TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis))]),
-                                                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('AQI 25', style: TextStyle(fontSize: 10, color: Colors.green.shade700, fontWeight: FontWeight.bold)), const Text('Excel·lent', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))])
-                                              ],
-                                            ),
-                                          ),
+                                        child: Builder(
+                                          builder: (context) {
+                                            final locProvider = context.watch<LocationProvider>();
+                                            final score = locProvider.weatherScore;
+
+                                            String aqiText = 'Desconegut';
+                                            Color aqiColor = Colors.grey;
+                                            Color aqiBorderColor = Colors.grey;
+                                            Color aqiTextColor = Colors.grey;
+
+                                            if (score >= 0 && score <= 50) {
+                                              aqiText = 'Excel·lent';
+                                              aqiColor = Colors.green;
+                                              aqiBorderColor = Colors.greenAccent.shade400;
+                                              aqiTextColor = Colors.green.shade700;
+                                            } else if (score > 50 && score <= 100) {
+                                              aqiText = 'Bona';
+                                              aqiColor = Colors.yellow;
+                                              aqiBorderColor = Colors.yellowAccent.shade400;
+                                              aqiTextColor = Colors.yellow.shade700;
+                                            } else if (score > 100 && score <= 150) {
+                                              aqiText = 'Moderada';
+                                              aqiColor = Colors.orange;
+                                              aqiBorderColor = Colors.orangeAccent.shade400;
+                                              aqiTextColor = Colors.orange.shade700;
+                                            } else if (score > 150) {
+                                              aqiText = 'Dolenta';
+                                              aqiColor = Colors.red;
+                                              aqiBorderColor = Colors.redAccent.shade400;
+                                              aqiTextColor = Colors.red.shade700;
+                                            }
+
+                                            return Container(
+                                              height: 95,
+                                              decoration: BoxDecoration(
+                                                color: aqiBorderColor,
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              padding: const EdgeInsets.symmetric(horizontal: 3),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(10),
+                                                ),
+                                                child: locProvider.isLoading
+                                                    ? const Center(
+                                                  child: SizedBox(
+                                                    height: 32, width: 32,
+                                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                                  ),
+                                                )
+                                                    : Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Icon(Icons.air, color: aqiColor, size: 14),
+                                                        const SizedBox(width: 4),
+                                                        const Flexible(
+                                                          child: Text(
+                                                            'QUALITAT AIRE',
+                                                            style: TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold),
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          score >= 0 ? 'AQI $score' : 'Sense dades',
+                                                          style: TextStyle(fontSize: 10, color: aqiTextColor, fontWeight: FontWeight.bold),
+                                                        ),
+                                                        Text(
+                                                          aqiText,
+                                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
                                         ),
                                       ),
                                     ],
