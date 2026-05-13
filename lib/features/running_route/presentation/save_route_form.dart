@@ -164,8 +164,8 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                               isPrivate: !_isPublic,
                               location: location,
                               createdAt: DateTime.now(),
-                              elevationGain: elevation.toString(),
-                              altitude: altitude.toString(),
+                              elevationGain: elevation,
+                              altitude: altitude,
                             );
 
                             final newActivity = Activity(

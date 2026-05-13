@@ -162,18 +162,6 @@ class _MapScreenState extends State<MapScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.blue[700],
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          elevation: 4,
-                        ),
-                        child: const Text('+ Planificar', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -196,7 +184,7 @@ class _MapScreenState extends State<MapScreen> {
                             _fetchZones();
                           },
                         ),
-                        // Si está cargando, mostramos un pequeño spinner
+
                         if (_isLoadingZones) ...[
                           const SizedBox(width: 8),
                           const SizedBox(
@@ -206,7 +194,7 @@ class _MapScreenState extends State<MapScreen> {
                         ],
 
                         if (isZonesCapturedSelected && !_isLoadingZones) ...[
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 2),
                           SizedBox(
                             width: 160,
                             height: 36,
@@ -223,6 +211,7 @@ class _MapScreenState extends State<MapScreen> {
                               },
                               decoration: InputDecoration(
                                 hintText: 'Buscar equip...',
+                                prefixIcon: const Icon(Icons.search, color: Colors.grey),
                                 hintStyle: const TextStyle(fontSize: 13),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                                 filled: true,
@@ -239,21 +228,6 @@ class _MapScreenState extends State<MapScreen> {
                                   borderRadius: BorderRadius.circular(20),
                                   borderSide: BorderSide(color: Colors.blue.shade300, width: 1.5),
                                 ),
-                                // Botón "X" para borrar el texto rápidamente
-                                suffixIcon: _teamSearchQuery.isNotEmpty
-                                    ? IconButton(
-                                  icon: const Icon(Icons.close, size: 16, color: Colors.grey),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  onPressed: () {
-                                    _teamSearchController.clear();
-                                    setState(() {
-                                      _teamSearchQuery = '';
-                                    });
-                                    _fetchZones();
-                                  },
-                                )
-                                    : const Icon(Icons.search, size: 16, color: Colors.grey),
                               ),
                             ),
                           ),
@@ -266,7 +240,6 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // 3️⃣ BOTONES FLOTANTES
           Positioned(
             right: 16,
             bottom: 32,
@@ -296,13 +269,6 @@ class _MapScreenState extends State<MapScreen> {
                       _mapController.move(_userLocation!, 15.0);
                     }
                   },
-                ),
-                const SizedBox(height: 12),
-                _FloatingMapButton(
-                  icon: Icons.layers_outlined,
-                  color: Colors.white,
-                  iconColor: Colors.black87,
-                  onTap: () {},
                 ),
               ],
             ),

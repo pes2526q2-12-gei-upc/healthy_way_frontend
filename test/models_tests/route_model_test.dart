@@ -16,7 +16,7 @@ void main() {
         'created_at': '2024-04-30T10:00:00.000Z',
         'location': 'Barcelona',
         'altitude': 150.5,
-        'elevationGain': 300,
+        'elevationGain': 300.2,
         'modality': 'Cycling',
         'trajectory': [
           [2.1934, 41.3851],
@@ -51,8 +51,8 @@ void main() {
         startPoint: const LatLng(42.0, 3.0),
         endPoint: const LatLng(42.1, 3.1),
         location: 'Pirineos',
-        altitude: '1500.5',
-        elevationGain: '500.0',
+        altitude: 1500.2,
+        elevationGain: 500.5,
       );
 
       final json = route.toJson('running');

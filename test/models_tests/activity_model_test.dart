@@ -69,7 +69,7 @@ void main() {
               id: '1', name: 'Test', distance: 0, isPrivate: false,
               createdBy: 1, createdAt: DateTime.now(), trajectory: [],
               startPoint: const LatLng(0,0), endPoint: const LatLng(0,0),
-              location: '', altitude: '0', elevationGain: '0'
+              location: '', altitude: 0, elevationGain: 0
           )
       );
 

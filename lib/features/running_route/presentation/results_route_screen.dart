@@ -192,8 +192,8 @@ class ResultsRouteScreen extends StatelessWidget {
                                 startPoint: const LatLng(0, 0),
                                 endPoint: const LatLng(0, 0),
                                 location: 'string',
-                                altitude: '0',
-                                elevationGain: '0',
+                                altitude: 0,
+                                elevationGain: 0,
                               ),
                               routeId: 99,
                             );

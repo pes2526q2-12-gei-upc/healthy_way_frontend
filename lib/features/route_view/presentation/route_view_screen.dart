@@ -20,7 +20,6 @@ class RouteViewScreen extends StatefulWidget {
 class _RouteViewScreenState extends State<RouteViewScreen> {
   bool _isFavorite = false;
   final MapController _mapController = MapController();
-  // Variable fija y constante para almacenar la ruta seleccionada
   late RouteModel rutaSeleccionada;
 
   bool _isLoadingRoute = true;
@@ -49,7 +48,7 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
       body: Stack(
         children: [
           // 1. EL MAPA COMPARTIDO
-          if (!_isLoadingRoute) // Nos aseguramos de que haya ruta antes de pintar el mapa
+          if (!_isLoadingRoute)
             Positioned(
               top: 0,
               left: 0,
@@ -58,7 +57,6 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
               child: CustomMapWidget(
                 mapController: _mapController,
 
-                // SOLUCIÓN DEL MAPA GRIS: Dejamos que haga auto-zoom a los puntos de la ruta
                 initialCameraFit: rutaSeleccionada.trajectory.isNotEmpty
                     ? CameraFit.bounds(
                   bounds: LatLngBounds.fromPoints(rutaSeleccionada.trajectory),
@@ -67,7 +65,6 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                 )
                     : null,
 
-                // Valores de rescate
                 initialCenter: rutaSeleccionada.trajectory.isNotEmpty
                     ? rutaSeleccionada.trajectory.first
                     : const LatLng(41.3851, 2.1734),
@@ -119,11 +116,6 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                             });
                           },
                         ),
-                        const SizedBox(width: 12),
-                        _buildMapOverlayButton(
-                          icon: Icons.share_outlined,
-                          onTap: () {},
-                        ),
                       ],
                     ),
                   ],
@@ -134,22 +126,14 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
 
           Positioned(
             right: 16,
-            top: size.height * 0.5,
+            top: size.height * 0.57,
             child: Column(
               children: [
                 _buildMapOverlayButton(
-                  icon: Icons.layers_outlined,
-                  iconColor: Colors.blueAccent,
-                  bgColor: Colors.white,
-                  onTap: () {},
-                ),
-                const SizedBox(height: 12),
-                _buildMapOverlayButton(
                   icon: Icons.my_location,
-                  iconColor: Colors.blueAccent,
+                  iconColor: Colors.black87,
                   bgColor: Colors.white,
                   onTap: () {
-                    // Si tiene ruta, nos centramos en ella, sino por defecto
                     if(rutaSeleccionada.trajectory.isNotEmpty){
                       _mapController.move(rutaSeleccionada.trajectory.first, 16.0);
                     }
@@ -224,29 +208,7 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade50,
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Text(
-                                    'Mitjana',
-                                    style: TextStyle(
-                                      color: Colors.blue.shade700,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    const Text('4.8', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                    const SizedBox(width: 4),
-                                    Icon(Icons.star, color: Colors.amber.shade400, size: 18),
-                                  ],
-                                ),
+                                _buildDifficultyBadge(rutaSeleccionada.distance, rutaSeleccionada.elevationGain)
                               ],
                             )
                           ],
@@ -259,11 +221,8 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                           children: [
                             _buildMetricCard('DISTANCIA', rutaSeleccionada.distance.toString(), 'km'),
                             const SizedBox(width: 12),
-                            _buildMetricCard('ALTITUD', rutaSeleccionada.elevationGain, 'm'),
+                            _buildMetricCard('ALTITUD', rutaSeleccionada.elevationGain.toString(), 'm'),
                             const SizedBox(width: 12),
-
-                            // SOLUCIÓN DEL ERROR DE INTERFAZ:
-                            // Quitamos el Expanded de aquí y dejamos solo el FutureBuilder
                             FutureBuilder<User?>(
                               future: UserService().getUserProfile(rutaSeleccionada.createdBy),
                               builder: (context, snapshot) {
@@ -276,8 +235,6 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                                 } else {
                                   nombreCreador = snapshot.data!.nom;
                                 }
-
-                                // _buildMetricCard ya devuelve un Expanded internamente
                                 return _buildMetricCard('CREADOR', nombreCreador, '');
                               },
                             ),
@@ -357,6 +314,42 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
             )
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDifficultyBadge(double distance, double elevationGain) {
+    String label;
+    Color color;
+
+    if (distance < 5 && elevationGain < 100) {
+      label = 'Fàcil';
+      color = const Color(0xFF22C55E); // verde
+    } else if (distance < 10 && elevationGain < 300) {
+      label = 'Moderada';
+      color = const Color(0xFFEAB308); // amarillo
+    } else if (distance < 20 && elevationGain < 600) {
+      label = 'Difícil';
+      color = const Color(0xFFF97316); // naranja
+    } else {
+      label = 'Molt difícil';
+      color = const Color(0xFFEF4444); // rojo
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.fitness_center, color: color, size: 16),
+          const SizedBox(width: 6),
+          Text(label, style: TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.bold)),
+        ],
       ),
     );
   }
