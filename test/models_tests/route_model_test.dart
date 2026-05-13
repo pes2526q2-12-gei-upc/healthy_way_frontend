@@ -16,7 +16,7 @@ void main() {
         'created_at': '2024-04-30T10:00:00.000Z',
         'location': 'Barcelona',
         'altitude': 150.5,
-        'elevationGain': 300.2,
+        'elevation_gain': 300.2,
         'modality': 'Cycling',
         'trajectory': [
           [2.1934, 41.3851],
