@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/user_service.dart';
 import '../../../shared/models/activity.dart';
+import '../../../shared/models/user_model.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/location_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
@@ -20,6 +21,14 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   // Variable para controlar qué pestaña se está mostrando
   bool _showActivities = true;
+
+  late Future<User?> _userFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _userFuture = UserService().getUserProfile(context.read<AuthProvider>().currentUser!.userId);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -507,29 +516,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildStatsCard() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+    return FutureBuilder<User?>(
+      future: _userFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        final user = snapshot.data!;
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildStatColumn('NIVELL', '12', Colors.blue),
-          Container(width: 1, height: 40, color: Colors.grey.withValues(alpha: 0.3)),
-          _buildStatColumn('VOLTA AL MÓN', '3.4%', Colors.green, icon: Icons.public),
-          Container(width: 1, height: 40, color: Colors.grey.withValues(alpha: 0.3)),
-          _buildStatColumn('PUNTS', '2.450', Colors.amber),
-        ],
-      ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildStatColumn('KM CORRENT', '${user.totalRunningDistance?.toStringAsFixed(1)} km', Colors.blue, icon: Icons.directions_run),
+              Container(width: 1, height: 40, color: Colors.grey.withValues(alpha: 0.3)),
+              _buildStatColumn('KM EN BICI', '${user.totalCyclingDistance?.toStringAsFixed(1)} km', Colors.green, icon: Icons.directions_bike),
+              Container(width: 1, height: 40, color: Colors.grey.withValues(alpha: 0.3)),
+              _buildStatColumn('PUNTS TOTALS', user.totalPoints.toString(), Colors.amber, icon: Icons.emoji_events),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -603,9 +624,7 @@ class _ActivityCard extends StatelessWidget {
     return '$minutes min';
   }
 
-  // --- NUEVA FUNCIÓN PARA FORMATEAR LA FECHA ---
   String _formatDate(DateTime date) {
-    // padLeft(2, '0') asegura que los días y meses de un dígito tengan un 0 delante (ej. 01/05/2026)
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
     final year = date.year.toString();
@@ -677,20 +696,16 @@ class _ActivityCard extends StatelessWidget {
 
                   const SizedBox(height: 8),
 
-                  // --- FILA ACTUALIZADA: UBICACIÓN + FECHA ---
                   Row(
                     children: [
-                      // El Expanded hace que la ubicación ocupe el espacio disponible
-                      // y empuja la fecha hacia la derecha
                       Expanded(
                         child: _LocationRow(routeId: routeId),
                       ),
                       const SizedBox(width: 8),
-                      // Etiqueta de la fecha
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF3B82F6), // Azul similar al diseño
+                          color: const Color(0xFF3B82F6),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -704,7 +719,6 @@ class _ActivityCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  // -------------------------------------------
 
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 12),
@@ -754,15 +768,14 @@ class _ActivityCard extends StatelessWidget {
 }
 
 // --- CARD DE RUTA ---
-// --- CARD DE RUTA ---
 class _RouteCard extends StatelessWidget {
-  final String id; // <-- Añadido
+  final String id;
   final String title;
   final String distance;
   final String location;
   final Color badgeColor;
   final String teamControl;
-  final VoidCallback onDelete; // <-- Añadido
+  final VoidCallback onDelete;
 
   const _RouteCard({
     required this.id,
@@ -825,7 +838,7 @@ class _RouteCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Para empujar el botón a la derecha
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
@@ -942,8 +955,6 @@ class _RouteNameRow extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.done) {
           textToShow = snapshot.data ?? 'Desconegut';
         }
-
-        // Exactamente el diseño de texto que querías, limpio y directo.
         return Text(
           textToShow,
           style: const TextStyle(
