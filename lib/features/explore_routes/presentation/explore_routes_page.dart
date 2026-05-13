@@ -67,15 +67,14 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
   void _mostrarMenuFiltros() {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Permite que el panel suba si sale el teclado
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
         return Padding(
-          // Este padding evita que el teclado tape los campos de texto
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
             left: 20,
             right: 20,
             top: 20,
@@ -87,10 +86,6 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                 const Text('Filtrar Rutas', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 15),
 
-                TextField(
-                  controller: _routeNameController,
-                  decoration: const InputDecoration(labelText: 'Nom de la ruta', prefixIcon: Icon(Icons.map)),
-                ),
                 TextField(
                   controller: _creatorController,
                   decoration: const InputDecoration(labelText: 'Creador', prefixIcon: Icon(Icons.person)),
@@ -122,21 +117,19 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
 
                 Row(
                   children: [
-                    // Botón de Restablecer (Diseño secundario, con borde)
                     Expanded(
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.redAccent, // Texto rojo para indicar "borrar"
+                          foregroundColor: Colors.redAccent,
                           side: const BorderSide(color: Colors.redAccent),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
-                        onPressed: _restablecerFiltros, // Llamamos a nuestra nueva función
+                        onPressed: _restablecerFiltros,
                         child: const Text('Restablecer'),
                       ),
                     ),
-                    const SizedBox(width: 15), // Espacio entre botones
+                    const SizedBox(width: 15),
 
-                    // Botón de Aplicar (Diseño principal, relleno de color)
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -290,8 +283,10 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
         children: [
           Expanded(
             child: TextField(
+              controller: _routeNameController,
+              onChanged: (_) => loadData(),
               decoration: InputDecoration(
-                hintText: 'Cerca rutes, zones...',
+                hintText: 'Cerca rutes pel seu nom',
                 hintStyle: TextStyle(color: _inactiveFilterTextColor.withValues(alpha: 0.6)),
                 prefixIcon: Icon(Icons.search, color: _inactiveFilterTextColor.withValues(alpha: 0.6)),
                 filled: true,

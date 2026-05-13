@@ -30,6 +30,7 @@ class _MapScreenState extends State<MapScreen> {
 
   final TextEditingController _teamSearchController = TextEditingController();
   String _teamSearchQuery = '';
+  final FocusNode _teamSearchFocusNode = FocusNode();
 
   Timer? _debounce;
 
@@ -111,8 +112,8 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
-    // Detener seguimiento cuando la pantalla se cierra
     _teamSearchController.dispose();
+    _teamSearchFocusNode.dispose();
     LocationService().stopTracking();
     _mapEventSubscription?.cancel();
     super.dispose();
@@ -185,15 +186,7 @@ class _MapScreenState extends State<MapScreen> {
                           },
                         ),
 
-                        if (_isLoadingZones) ...[
-                          const SizedBox(width: 8),
-                          const SizedBox(
-                              width: 16, height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2)
-                          )
-                        ],
-
-                        if (isZonesCapturedSelected && !_isLoadingZones) ...[
+                        if (isZonesCapturedSelected) ...[
                           const SizedBox(width: 2),
                           SizedBox(
                             width: 160,
@@ -205,13 +198,21 @@ class _MapScreenState extends State<MapScreen> {
                                 if (_debounce?.isActive ?? false) _debounce!.cancel();
                                 _debounce = Timer(const Duration(milliseconds: 500), () {
                                   if (mounted) {
-                                    _fetchZones();
+                                    _fetchZones().then((_) {
+                                      _teamSearchFocusNode.requestFocus();
+                                    });
                                   }
                                 });
                               },
                               decoration: InputDecoration(
                                 hintText: 'Buscar equip...',
                                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                                suffixIcon: _isLoadingZones
+                                    ? const Padding(
+                                  padding: EdgeInsets.all(10),
+                                  child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                                )
+                                    : null,
                                 hintStyle: const TextStyle(fontSize: 13),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                                 filled: true,
