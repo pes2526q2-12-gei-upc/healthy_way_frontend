@@ -3,6 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
+class LocationPoint {
+  final LatLng latLng;
+  final double altitude;
+
+  const LocationPoint({required this.latLng, required this.altitude});
+}
+
 class LocationService {
 
   LocationSettings getSettings() {
@@ -85,8 +92,8 @@ class LocationService {
   factory LocationService() => _instance;
   LocationService._internal();
 
-  final StreamController<LatLng> _locationController = StreamController.broadcast();
-  Stream<LatLng> get locationStream => _locationController.stream;
+  final StreamController<LocationPoint> _locationController = StreamController.broadcast();
+  Stream<LocationPoint> get locationStream => _locationController.stream;
 
   StreamSubscription<Position>? _positionSubscription;
 
@@ -101,8 +108,11 @@ class LocationService {
     _positionSubscription = Geolocator.getPositionStream(
         locationSettings: settings
     ).listen((Position pos) {
-      final latLng = LatLng(pos.latitude, pos.longitude);
-      _locationController.add(latLng);
+      final point = LocationPoint(
+        latLng: LatLng(pos.latitude, pos.longitude),
+        altitude: pos.altitude,
+      );
+      _locationController.add(point);
     });
   }
 

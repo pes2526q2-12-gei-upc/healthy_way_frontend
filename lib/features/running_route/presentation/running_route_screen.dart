@@ -27,12 +27,9 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
   Widget build(BuildContext context) {
     final trackingProvider = context.watch<TrackingProvider>();
 
-    // --- NUEVO: ESCUCHADOR DE AUTO-FINALIZACIÓN ---
     if (trackingProvider.isFinished) {
-      // Solo navegamos si ESTA pantalla es la que está visible en primer plano
       if (ModalRoute.of(context)?.isCurrent == true) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          // Usamos pushAndRemoveUntil para limpiar la pila de pantallas (evita botón "atrás" raro)
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (_) => const ResultsRouteScreen()),
@@ -90,9 +87,8 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   child: Padding(
                     padding: const EdgeInsets.all(14.0),
-                    child: Stack( // <-- Añadimos un Stack para posicionar el botón
+                    child: Stack(
                       children: [
-                        // 1. EL CONTENIDO ACTUAL (Tu Column)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -149,10 +145,9 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                           ],
                         ),
 
-                        // 2. EL BOTÓN FLOTANTE ABAJO A LA DERECHA
                         Positioned(
-                          bottom: 10, // Ajusta según prefieras
-                          right: 10,  // Ajusta según prefieras
+                          bottom: 10,
+                          right: 10,
                           child: GestureDetector(
                             onTap: () {
                               setState(() {
@@ -168,7 +163,6 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                // Cambiamos el icono dinámicamente
                                 trackingProvider.modality == 'Running'
                                     ? Icons.directions_run
                                     : Icons.directions_bike,
