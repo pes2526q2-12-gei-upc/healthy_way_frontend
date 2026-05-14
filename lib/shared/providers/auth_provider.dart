@@ -5,9 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../../core/services/token_service.dart';
 import '../../core/services/user_service.dart';
+import '../../core/services/socket_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _currentUser;
+  final SocketService _socketService;
+
+  AuthProvider({SocketService? socketService}) : _socketService = socketService ?? SocketService();
 
   // Para leer el usuario desde cualquier pantalla
   User? get currentUser => _currentUser;
@@ -27,6 +31,12 @@ class AuthProvider extends ChangeNotifier {
     final userJsonString = jsonEncode(user.toJson());
     await prefs.setString('saved_user', userJsonString);
     await prefs.setString('login_timestamp', DateTime.now().toIso8601String());
+    
+    // Connectar socket al fer login
+    final token = await SecureStorageService().getToken();
+    if (token != null) {
+      _socketService.connect(token);
+    }
   }
 
   Future<bool> enterWithGoogle() async {
@@ -64,6 +74,7 @@ class AuthProvider extends ChangeNotifier {
     await prefs.remove('login_timestamp');
     _currentUser = null;
     SecureStorageService().deleteToken();
+    _socketService.disconnect();
     notifyListeners();
   }
 
@@ -84,6 +95,13 @@ class AuthProvider extends ChangeNotifier {
     if (userJsonString != null) {
       final Map<String, dynamic> userMap = jsonDecode(userJsonString);
       _currentUser = User.fromJson(userMap);
+      
+      // Connectar socket si ja tenim usuari guardat
+      final token = await SecureStorageService().getToken();
+      if (token != null) {
+        _socketService.connect(token);
+      }
+      
       notifyListeners();
     }
   }
