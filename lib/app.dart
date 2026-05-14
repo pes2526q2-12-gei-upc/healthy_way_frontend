@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'core/router/app_router.dart';
 import 'features/auth/presentation/login_page.dart';
 import 'features/home/presentation/home_page.dart';
+import 'l10n/app_localizations.dart';
 
 class HealthyWayApp extends StatelessWidget {
   const HealthyWayApp({super.key});
@@ -12,6 +13,13 @@ class HealthyWayApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final isAuthenticated = context.watch<AuthProvider>().isAuthenticated;
     return MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: const [
+        Locale('ca'),
+        Locale('es'),
+        Locale('en'),
+      ],
+
       title: 'Healthy Way',
       debugShowCheckedModeBanner: false,
 
