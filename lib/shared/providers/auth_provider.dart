@@ -9,6 +9,9 @@ import '../../core/services/socket_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _currentUser;
+  final SocketService _socketService;
+
+  AuthProvider({SocketService? socketService}) : _socketService = socketService ?? SocketService();
 
   // Para leer el usuario desde cualquier pantalla
   User? get currentUser => _currentUser;
@@ -31,7 +34,7 @@ class AuthProvider extends ChangeNotifier {
     // Connectar socket al fer login
     final token = await SecureStorageService().getToken();
     if (token != null) {
-      SocketService().connect(token);
+      _socketService.connect(token);
     }
   }
 
@@ -64,7 +67,7 @@ class AuthProvider extends ChangeNotifier {
     await prefs.remove('saved_user');
     _currentUser = null;
     SecureStorageService().deleteToken();
-    SocketService().disconnect();
+    _socketService.disconnect();
     notifyListeners();
   }
 
@@ -79,7 +82,7 @@ class AuthProvider extends ChangeNotifier {
       // Connectar socket si ja tenim usuari guardat
       final token = await SecureStorageService().getToken();
       if (token != null) {
-        SocketService().connect(token);
+        _socketService.connect(token);
       }
       
       notifyListeners();
