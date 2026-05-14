@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:healthy_way_frontend/shared/providers/languageProvider.dart';
+import 'package:healthy_way_frontend/shared/providers/language_provider.dart';
 import 'package:healthy_way_frontend/shared/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'core/router/app_router.dart';
