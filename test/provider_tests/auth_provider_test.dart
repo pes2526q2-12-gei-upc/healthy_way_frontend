@@ -7,24 +7,42 @@ import 'package:healthy_way_frontend/shared/models/user_model.dart';
 import 'package:healthy_way_frontend/shared/providers/auth_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'package:healthy_way_frontend/core/services/socket_service.dart';
+
+class MockSocketService implements SocketService {
+  @override
+  void connect(String token) {}
+  @override
+  void disconnect() {}
+  @override
+  void on(String event, Function(dynamic) handler) {}
+  @override
+  void off(String event) {}
+  @override
+  bool get isConnected => false;
+}
+
 void main() {
   group('AuthProvider Tests', () {
     TestWidgetsFlutterBinding.ensureInitialized();
     FlutterSecureStorage.setMockInitialValues({'auth_token': 'token_falso_para_tests'});
 
+    late MockSocketService mockSocketService;
+
     setUp(() {
       SharedPreferences.setMockInitialValues({});
+      mockSocketService = MockSocketService();
     });
 
     test('El estado inicial debe ser no autenticado (null)', () {
-      final authProvider = AuthProvider();
+      final authProvider = AuthProvider(socketService: mockSocketService);
 
       expect(authProvider.currentUser, isNull);
       expect(authProvider.isAuthenticated, false);
     });
 
     test('login() debe guardar el usuario y cambiar el estado', () async {
-      final authProvider = AuthProvider();
+      final authProvider = AuthProvider(socketService: mockSocketService);
 
       // Creamos un usuario falso
       final dummyUser = User(
@@ -60,7 +78,7 @@ void main() {
     });
 
     test('logout() debe borrar el usuario y limpiar SharedPreferences', () async {
-      final authProvider = AuthProvider();
+      final authProvider = AuthProvider(socketService: mockSocketService);
       final dummyUser = User(
           userId: 1, nom: 'Raul', username: 'raul123', email: 'r@test.com'
       );
@@ -88,7 +106,7 @@ void main() {
         'saved_user': jsonEncode(dummyUser.toJson())
       });
 
-      final authProvider = AuthProvider();
+      final authProvider = AuthProvider(socketService: mockSocketService);
 
       // Comprobamos que antes de cargar, es null
       expect(authProvider.currentUser, isNull);
