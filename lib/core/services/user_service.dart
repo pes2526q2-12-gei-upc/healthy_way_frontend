@@ -207,7 +207,7 @@ class UserService {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      return data['score'];
+      return (data['score'] * 100).toInt();
     }
     else if(response.statusCode == 400) {
       debugPrint('Paràmetres invàlids per a la puntuació meteorològica');
