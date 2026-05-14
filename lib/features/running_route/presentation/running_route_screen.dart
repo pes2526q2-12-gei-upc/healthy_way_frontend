@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:healthy_way_frontend/core/router/app_router.dart';
 import '../../../shared/providers/location_provider.dart';
@@ -13,29 +14,23 @@ class RunningRouteScreen extends StatefulWidget {
 }
 
 class _RunningRouteScreenState extends State<RunningRouteScreen> {
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<TrackingProvider>();
-      provider.reset();
-      //provider.startRun();
+      context.read<TrackingProvider>().reset();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final trackingProvider = context.watch<TrackingProvider>();
 
     if (trackingProvider.isFinished) {
       if (ModalRoute.of(context)?.isCurrent == true) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const ResultsRouteScreen()),
-                (route) => route.isFirst, // Mantiene solo el Home debajo
-          );
+          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const ResultsRouteScreen()), (route) => route.isFirst);
         });
       }
     }
@@ -47,13 +42,7 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFE8F3FF), Color(0xFF90C2FF)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFFE8F3FF), Color(0xFF90C2FF)], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -68,14 +57,10 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                         alignment: Alignment.centerLeft,
                         child: GestureDetector(
                           onTap: () => Navigator.pop(context),
-                          child: Container(
-                            width: 36, height: 36,
-                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                            child: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
-                          ),
+                          child: Container(width: 36, height: 36, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: const Icon(Icons.arrow_back, color: Colors.black87, size: 20)),
                         ),
                       ),
-                    Text('RUTA EN MARXA', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey[900], letterSpacing: 0.6)),
+                    Text(l10n.routeInProgress, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey[900], letterSpacing: 0.6)),
                   ],
                 ),
               ),
@@ -83,9 +68,7 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Card(
-                  color: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  color: Colors.white, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   child: Padding(
                     padding: const EdgeInsets.all(14.0),
                     child: Stack(
@@ -96,36 +79,22 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  children: [
-                                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
-                                    const SizedBox(width: 8),
-                                    Text(trackingProvider.isRunning ? 'ENREGISTRANT' : 'PAUSAT', style: TextStyle(color: Colors.green[700], fontWeight: FontWeight.bold, fontSize: 12)),
-                                  ],
-                                ),
+                                Row(children: [
+                                  Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
+                                  const SizedBox(width: 8),
+                                  Text(trackingProvider.isRunning ? l10n.recording : l10n.pausedLabel, style: TextStyle(color: Colors.green[700], fontWeight: FontWeight.bold, fontSize: 12)),
+                                ]),
                                 const Icon(Icons.terrain, color: Colors.blueAccent, size: 20),
                               ],
                             ),
                             const SizedBox(height: 6),
-                            Text(
-                              trackingProvider.routeIsSelected
-                                  ? trackingProvider.rutaSeleccionada.name
-                                  : 'RUTA PERSONALITZADA',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                            ),
+                            Text(trackingProvider.routeIsSelected ? trackingProvider.rutaSeleccionada.name : l10n.customRoute, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
                             const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
-                                const SizedBox(width: 6),
-                                Text(
-                                  trackingProvider.routeIsSelected
-                                      ? trackingProvider.rutaSeleccionada.location
-                                      : trackingProvider.placeName,
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                                ),
-                              ],
-                            ),
+                            Row(children: [
+                              const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
+                              const SizedBox(width: 6),
+                              Text(trackingProvider.routeIsSelected ? trackingProvider.rutaSeleccionada.location : trackingProvider.placeName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                            ]),
                             const SizedBox(height: 12),
                             SizedBox(
                               height: 36,
@@ -133,43 +102,24 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: List.generate(10, (i) {
                                   final heights = [6, 12, 18, 26, 18, 14, 10, 20, 8, 16];
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                                    child: Container(
-                                      width: 6, height: heights[i].toDouble(),
-                                      decoration: BoxDecoration(color: Colors.blueAccent.withAlpha(((0.8 - i * 0.05).clamp(0.0, 1.0) * 255).round()), borderRadius: BorderRadius.circular(3)),
-                                    ),
-                                  );
+                                  return Padding(padding: const EdgeInsets.symmetric(horizontal: 2.0), child: Container(width: 6, height: heights[i].toDouble(), decoration: BoxDecoration(color: Colors.blueAccent.withAlpha(((0.8 - i * 0.05).clamp(0.0, 1.0) * 255).round()), borderRadius: BorderRadius.circular(3))));
                                 }),
                               ),
                             ),
                           ],
                         ),
-
                         Positioned(
-                          bottom: 10,
-                          right: 10,
+                          bottom: 10, right: 10,
                           child: GestureDetector(
                             onTap: () {
                               setState(() {
-                                if (!trackingProvider.running & !trackingProvider.routeIsSelected) {
-                                  trackingProvider.toggleModality();
-                                }
+                                if (!trackingProvider.running && !trackingProvider.routeIsSelected) trackingProvider.toggleModality();
                               });
                             },
                             child: Container(
                               padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF1058E5).withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                trackingProvider.modality == 'Running'
-                                    ? Icons.directions_run
-                                    : Icons.directions_bike,
-                                color: const Color(0xFF1058E5),
-                                size: 30,
-                              ),
+                              decoration: BoxDecoration(color: const Color(0xFF1058E5).withValues(alpha: 0.1), shape: BoxShape.circle),
+                              child: Icon(trackingProvider.modality == 'Running' ? Icons.directions_run : Icons.directions_bike, color: const Color(0xFF1058E5), size: 30),
                             ),
                           ),
                         ),
@@ -198,12 +148,9 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                 Container(width: 40, height: 4, decoration: const BoxDecoration(color: Color(0xFFE0E0E0), borderRadius: BorderRadius.all(Radius.circular(4)))),
                                 const SizedBox(height: 24),
 
-                                Text('TEMPS TOTAL', style: TextStyle(color: Colors.grey[500], fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                                Text(l10n.totalTime, style: TextStyle(color: Colors.grey[500], fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                                 const SizedBox(height: 4),
-                                Text(
-                                  trackingProvider.formatElapsed(),
-                                  style: const TextStyle(fontSize: 72, fontWeight: FontWeight.w900, letterSpacing: 2, color: darkTimerColor),
-                                ),
+                                Text(trackingProvider.formatElapsed(), style: const TextStyle(fontSize: 72, fontWeight: FontWeight.w900, letterSpacing: 2, color: darkTimerColor)),
                                 const SizedBox(height: 24),
 
                                 Padding(
@@ -217,7 +164,7 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              Row(children: const [Icon(Icons.pin_drop_outlined, color: Colors.blueAccent, size: 14), SizedBox(width: 4), Flexible(child: Text('DISTANCIA', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis))]),
+                                              Row(children: [const Icon(Icons.pin_drop_outlined, color: Colors.blueAccent, size: 14), const SizedBox(width: 4), Flexible(child: Text(l10n.distance, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis))]),
                                               const Spacer(),
                                               Text('${trackingProvider.distance} km', style: TextStyle(fontSize: 16, color: Colors.blueAccent.shade700, fontWeight: FontWeight.bold)),
                                             ],
@@ -225,96 +172,7 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                         ),
                                       ),
                                       const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Builder(
-                                          builder: (context) {
-                                            final locProvider = context.watch<LocationProvider>();
-                                            final score = locProvider.weatherScore;
-
-                                            String aqiText = 'Desconegut';
-                                            Color aqiColor = Colors.grey;
-                                            Color aqiBorderColor = Colors.grey;
-                                            Color aqiTextColor = Colors.grey;
-
-                                            if (score >= 0 && score <= 50) {
-                                              aqiText = 'Excel·lent';
-                                              aqiColor = Colors.green;
-                                              aqiBorderColor = Colors.greenAccent.shade400;
-                                              aqiTextColor = Colors.green.shade700;
-                                            } else if (score > 50 && score <= 100) {
-                                              aqiText = 'Bona';
-                                              aqiColor = Colors.yellow;
-                                              aqiBorderColor = Colors.yellowAccent.shade400;
-                                              aqiTextColor = Colors.yellow.shade700;
-                                            } else if (score > 100 && score <= 150) {
-                                              aqiText = 'Moderada';
-                                              aqiColor = Colors.orange;
-                                              aqiBorderColor = Colors.orangeAccent.shade400;
-                                              aqiTextColor = Colors.orange.shade700;
-                                            } else if (score > 150) {
-                                              aqiText = 'Dolenta';
-                                              aqiColor = Colors.red;
-                                              aqiBorderColor = Colors.redAccent.shade400;
-                                              aqiTextColor = Colors.red.shade700;
-                                            }
-
-                                            return Container(
-                                              height: 95,
-                                              decoration: BoxDecoration(
-                                                color: aqiBorderColor,
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                              padding: const EdgeInsets.symmetric(horizontal: 3),
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                                child: locProvider.isLoading
-                                                    ? const Center(
-                                                  child: SizedBox(
-                                                    height: 32, width: 32,
-                                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                                  ),
-                                                )
-                                                    : Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    Row(
-                                                      children: [
-                                                        Icon(Icons.air, color: aqiColor, size: 14),
-                                                        const SizedBox(width: 4),
-                                                        const Flexible(
-                                                          child: Text(
-                                                            'QUALITAT AIRE',
-                                                            style: TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold),
-                                                            overflow: TextOverflow.ellipsis,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text(
-                                                          score >= 0 ? 'AQI $score' : 'Sense dades',
-                                                          style: TextStyle(fontSize: 10, color: aqiTextColor, fontWeight: FontWeight.bold),
-                                                        ),
-                                                        Text(
-                                                          aqiText,
-                                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
+                                      Expanded(child: _buildAqiCard(l10n)),
                                     ],
                                   ),
                                 ),
@@ -329,11 +187,11 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                                         children: [
-                                          _metricItem('RITME', trackingProvider.pace, '/km'),
+                                          _metricItem(l10n.paceStat, trackingProvider.pace, '/km'),
                                           Container(width: 1, height: 34, color: Colors.grey.shade300),
-                                          _metricItem('KCAL', trackingProvider.calories, 'kcal'),
+                                          _metricItem(l10n.kcal, trackingProvider.calories, 'kcal'),
                                           Container(width: 1, height: 34, color: Colors.grey.shade300),
-                                          _metricItem('ALTITUD', trackingProvider.elevation, 'm'),
+                                          _metricItem(l10n.altitude, trackingProvider.elevation, 'm'),
                                         ],
                                       ),
                                     ),
@@ -359,19 +217,15 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                 children: [
                                   GestureDetector(
                                     onTap: () {
-                                      // Finalización MANUAL
                                       if (trackingProvider.running) {
                                         context.read<TrackingProvider>().stopRun();
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(builder: (_) => const ResultsRouteScreen()),
-                                        );
+                                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ResultsRouteScreen()));
                                       }
                                     },
                                     child: Container(width: smallBtnSize, height: smallBtnSize, decoration: const BoxDecoration(color: Color(0xFFF0F2F6), shape: BoxShape.circle), child: const Icon(Icons.stop, color: Colors.black54)),
                                   ),
                                   const SizedBox(height: 6),
-                                  const Text('FINALITZAR', style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
+                                  Text(l10n.finish, style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                               const SizedBox(width: 24),
@@ -391,18 +245,12 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                       },
                                       child: Container(
                                         width: 82, height: 82,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 6),
-                                          boxShadow: [BoxShadow(color: Colors.blue.withAlpha((0.3 * 255).round()), blurRadius: 14, spreadRadius: 2)],
-                                        ),
-                                        child: Container(
-                                          decoration: BoxDecoration(color: Colors.blue[700], shape: BoxShape.circle),
-                                          child: Icon(trackingProvider.isRunning ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 36),
-                                        ),
+                                        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 6), boxShadow: [BoxShadow(color: Colors.blue.withAlpha((0.3 * 255).round()), blurRadius: 14, spreadRadius: 2)]),
+                                        child: Container(decoration: BoxDecoration(color: Colors.blue[700], shape: BoxShape.circle), child: Icon(trackingProvider.isRunning ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 36)),
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 6), const SizedBox(height: 6),
+                                  const SizedBox(height: 12),
                                 ],
                               ),
                               const SizedBox(width: 24),
@@ -413,24 +261,18 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                     onTap: () {
                                       if (trackingProvider.running) {
                                         Navigator.pushNamed(context, AppRouter.routeMap);
-                                      }
-                                      else if (!trackingProvider.routeIsSelected) {
+                                      } else if (!trackingProvider.routeIsSelected) {
                                         Navigator.pushNamed(context, AppRouter.exploreRoute);
-                                      }
-                                      else {
+                                      } else {
                                         trackingProvider.routeIsSelected = false;
                                         trackingProvider.reset();
                                         setState(() {});
                                       }
                                     },
-                                    child: Container(width: smallBtnSize, height: smallBtnSize, decoration: const BoxDecoration(color: Color(0xFFF0F2F6), shape: BoxShape.circle), child: Icon(
-                                        trackingProvider.running ? Icons.map_outlined : !trackingProvider.routeIsSelected ? Icons.touch_app : Icons.cancel,
-                                        color: Colors.black54)),
+                                    child: Container(width: smallBtnSize, height: smallBtnSize, decoration: const BoxDecoration(color: Color(0xFFF0F2F6), shape: BoxShape.circle), child: Icon(trackingProvider.running ? Icons.map_outlined : !trackingProvider.routeIsSelected ? Icons.touch_app : Icons.cancel, color: Colors.black54)),
                                   ),
                                   const SizedBox(height: 6),
-                                  Text(
-                                      trackingProvider.running ? 'MAPA' : !trackingProvider.routeIsSelected ? 'RUTA' : 'RUTA',
-                                      style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
+                                  Text(trackingProvider.running ? l10n.mapLabel : l10n.routeLabel, style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ],
@@ -445,6 +287,48 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAqiCard(AppLocalizations l10n) {
+    return Builder(
+      builder: (context) {
+        final locProvider = context.watch<LocationProvider>();
+        final score = locProvider.weatherScore;
+
+        String aqiText = l10n.unknown;
+        Color aqiColor = Colors.grey;
+        Color aqiBorderColor = Colors.grey;
+        Color aqiTextColor = Colors.grey;
+
+        if (score >= 0 && score <= 50) { aqiText = l10n.excellent; aqiColor = Colors.green; aqiBorderColor = const Color(0xFF00E676); aqiTextColor = const Color(0xFF1B5E20); }
+        else if (score > 50 && score <= 100) { aqiText = l10n.good; aqiColor = Colors.yellow; aqiBorderColor = const Color(0xFFFFEE58); aqiTextColor = const Color(0xFFF57F17); }
+        else if (score > 100 && score <= 150) { aqiText = l10n.moderate_air; aqiColor = Colors.orange; aqiBorderColor = const Color(0xFFFFB74D); aqiTextColor = const Color(0xFFE65100); }
+        else if (score > 150) { aqiText = l10n.bad; aqiColor = Colors.red; aqiBorderColor = const Color(0xFFEF5350); aqiTextColor = const Color(0xFFB71C1C); }
+
+        return Container(
+          height: 95,
+          decoration: BoxDecoration(color: aqiBorderColor, borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.symmetric(horizontal: 3),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+            child: locProvider.isLoading
+                ? const Center(child: SizedBox(height: 32, width: 32, child: CircularProgressIndicator(strokeWidth: 2)))
+                : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(children: [Icon(Icons.air, color: aqiColor, size: 14), const SizedBox(width: 4), Flexible(child: Text(l10n.airQuality, style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis))]),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(score >= 0 ? 'AQI $score' : l10n.noData, style: TextStyle(fontSize: 10, color: aqiTextColor, fontWeight: FontWeight.bold)),
+                  Text(aqiText, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                ]),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

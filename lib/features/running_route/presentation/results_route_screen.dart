@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-
 import 'package:healthy_way_frontend/core/router/app_router.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
 import '../../../shared/providers/tracking_provider.dart';
-
 import '../../../core/services/activity_service.dart';
 import '../../../shared/models/activity.dart';
 import '../../../shared/models/route_model.dart';
@@ -19,15 +18,9 @@ class ResultsRouteScreen extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text(
-            title,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold),
-          ),
+          Text(title, style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Color(0xFF0B233B)),
-          ),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Color(0xFF0B233B))),
         ],
       ),
     );
@@ -35,17 +28,14 @@ class ResultsRouteScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final trackingProvider = context.read<TrackingProvider>();
     final fullRoute = trackingProvider.traversedRoute;
 
     LatLngBounds? routeBounds;
-    if (fullRoute.length > 1) {
-      routeBounds = LatLngBounds.fromPoints(fullRoute);
-    }
+    if (fullRoute.length > 1) routeBounds = LatLngBounds.fromPoints(fullRoute);
 
-    final center = fullRoute.isNotEmpty
-        ? fullRoute.last
-        : const LatLng(41.3596, 2.1002);
+    final center = fullRoute.isNotEmpty ? fullRoute.last : const LatLng(41.3596, 2.1002);
 
     return Scaffold(
       appBar: AppBar(
@@ -53,10 +43,7 @@ class ResultsRouteScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
-        title: const Text(
-          'Resultats',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-        ),
+        title: Text(l10n.resultsTitle, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       backgroundColor: Colors.white,
@@ -64,7 +51,6 @@ class ResultsRouteScreen extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final double mapHeight = (constraints.maxHeight * 0.45).clamp(220.0, 520.0);
-
             return SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: ConstrainedBox(
@@ -76,33 +62,16 @@ class ResultsRouteScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // --- 1. MAP ---
                         Container(
                           height: mapHeight,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withAlpha((0.06 * 255).round()),
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.black.withAlpha((0.06 * 255).round()), blurRadius: 12, offset: const Offset(0, 6))]),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(14),
                             child: CustomMapWidget(
                               mapController: MapController(),
                               initialCenter: center,
                               initialZoom: 16.0,
-                              initialCameraFit: routeBounds != null
-                                  ? CameraFit.bounds(
-                                bounds: routeBounds,
-                                padding: const EdgeInsets.all(40.0),
-                                maxZoom: 18.0, // <-- Límite de zoom
-                              )
-                                  : null,
+                              initialCameraFit: routeBounds != null ? CameraFit.bounds(bounds: routeBounds, padding: const EdgeInsets.all(40.0), maxZoom: 18.0) : null,
                               traversedRoute: fullRoute,
                               showStartMarker: true,
                               showEndMarker: fullRoute.length > 1,
@@ -111,106 +80,67 @@ class ResultsRouteScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
 
-                        // --- 2. STATS CARD 1 ---
                         Card(
-                          elevation: 0,
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0, color: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildStatColumn('DISTÀNCIA', '${trackingProvider.distance} km'),
-                                Container(width: 1, height: 48, color: Colors.grey.shade300),
-                                _buildStatColumn('TEMPS', trackingProvider.formatElapsed()),
-                              ],
-                            ),
+                            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                              _buildStatColumn(l10n.distance, '${trackingProvider.distance} km'),
+                              Container(width: 1, height: 48, color: Colors.grey.shade300),
+                              _buildStatColumn(l10n.timeStat, trackingProvider.formatElapsed()),
+                            ]),
                           ),
                         ),
                         const SizedBox(height: 12),
 
-                        // --- 3. STATS CARD 2 ---
                         Card(
-                          elevation: 0,
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0, color: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildStatColumn('RITME', trackingProvider.pace),
-                                Container(width: 1, height: 48, color: Colors.grey.shade300),
-                                _buildStatColumn('KCAL', trackingProvider.calories),
-                                Container(width: 1, height: 48, color: Colors.grey.shade300),
-                                _buildStatColumn('DESNIVELL', '${trackingProvider.elevation} m'),
-                              ],
-                            ),
+                            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                              _buildStatColumn(l10n.paceStat, trackingProvider.pace),
+                              Container(width: 1, height: 48, color: Colors.grey.shade300),
+                              _buildStatColumn(l10n.kcal, trackingProvider.calories),
+                              Container(width: 1, height: 48, color: Colors.grey.shade300),
+                              _buildStatColumn(l10n.elevationGainLabel, '${trackingProvider.elevation} m'),
+                            ]),
                           ),
                         ),
                         const SizedBox(height: 16),
 
-                        // --- 4. BOTONES ---
                         ElevatedButton(
                           onPressed: () async {
                             final result = await Navigator.pushNamed(context, AppRouter.saveFormRoute);
                             if (result == true && context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Ruta guardada')),
-                              );
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.routeSaved)));
                             }
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2864FF),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          child: const Text('Guardar ruta', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2864FF), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                          child: Text(l10n.saveRouteTitle, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                         ),
-
                         const SizedBox(height: 12),
 
                         ElevatedButton(
                           onPressed: () async {
                             final activity = Activity(
-                              distance: double.parse((trackingProvider.distanceDouble/1000).toStringAsFixed(2)),
+                              distance: double.parse((trackingProvider.distanceDouble / 1000).toStringAsFixed(2)),
                               startTime: trackingProvider.startTime,
                               endTime: DateTime.now(),
                               modality: trackingProvider.modality,
                               pace: double.parse(trackingProvider.pace.replaceAll(':', '.').replaceAll('>', '')),
                               userId: context.read<AuthProvider>().currentUser!.userId,
                               createRoute: false,
-                              route: RouteModel(
-                                id: '99',
-                                name: 'noCrearRuta',
-                                distance: 1.0,
-                                isPrivate: false,
-                                createdBy: 99,
-                                createdAt: DateTime.now(),
-                                trajectory: [],
-                                startPoint: const LatLng(0, 0),
-                                endPoint: const LatLng(0, 0),
-                                location: 'string',
-                                altitude: 0,
-                                elevationGain: 0,
-                              ),
+                              route: RouteModel(id: '99', name: 'noCrearRuta', distance: 1.0, isPrivate: false, createdBy: 99, createdAt: DateTime.now(), trajectory: [], startPoint: const LatLng(0, 0), endPoint: const LatLng(0, 0), location: 'string', altitude: 0, elevationGain: 0),
                               routeId: 99,
                             );
-
                             await ActivityService().createActivity(activity);
                             if (!context.mounted) return;
-
                             trackingProvider.reset();
                             trackingProvider.routeIsSelected = false;
                             Navigator.pushNamedAndRemoveUntil(context, AppRouter.homeRoute, (r) => false);
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          child: const Text('Sortir sense guardar', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.grey, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                          child: Text(l10n.exitWithoutSaving, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                         ),
                       ],
                     ),
