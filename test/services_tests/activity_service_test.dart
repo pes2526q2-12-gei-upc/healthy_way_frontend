@@ -18,7 +18,7 @@ void main() {
         id: '1', name: 'Ruta Test', distance: 10.0, isPrivate: false,
         createdBy: 1, createdAt: DateTime.now(), trajectory: [],
         startPoint: const LatLng(0,0), endPoint: const LatLng(0,0),
-        location: 'Test', altitude: '0', elevationGain: '0'
+        location: 'Test', altitude: 0, elevationGain: 0
     );
 
     final dummyActivity = Activity(

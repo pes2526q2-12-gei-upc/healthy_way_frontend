@@ -10,11 +10,11 @@ class CustomMapWidget extends StatelessWidget {
 
   final List<Polygon>? polygons;
 
-  final List<LatLng> plannedRoute;   // Ruta a seguir entera (fondo gris)
-  final List<LatLng> traversedRoute; // Ruta real hecha por el usuario (azul por encima)
+  final List<LatLng> plannedRoute;
+  final List<LatLng> traversedRoute;
 
-  final bool showStartMarker; // Punto verde al inicio
-  final bool showEndMarker;   // Punto rojo al final
+  final bool showStartMarker;
+  final bool showEndMarker;
   final LatLng? userLocation;
 
   final List<Polyline> polylines;
@@ -38,27 +38,25 @@ class CustomMapWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. CONSTRUIR POLÍNEAS AUTOMÁTICAS (El orden importa: de abajo hacia arriba)
+    // 1. CONSTRUIR POLÍNEAS AUTOMÁTICAS
     final List<Polyline> allPolylines = [...polylines];
 
-    // Primero la ruta planificada (fondo gris) - Solo si hay más de 1 punto
     if (plannedRoute.length > 1) {
       allPolylines.add(
         Polyline(
           points: plannedRoute,
           strokeWidth: 6.0,
-          color: Colors.grey.shade400, // Gris para indicar el camino a seguir
+          color: Colors.grey.shade400,
         ),
       );
     }
 
-    // Segundo, la ruta real que se va pisando (azul por encima) - Solo si hay más de 1 punto
     if (traversedRoute.length > 1) {
       allPolylines.add(
         Polyline(
           points: traversedRoute,
           strokeWidth: 6.0,
-          color: const Color(0xFF2864FF), // Azul vibrante para lo que ya has recorrido
+          color: const Color(0xFF2864FF),
         ),
       );
     }
@@ -66,7 +64,6 @@ class CustomMapWidget extends StatelessWidget {
     // 2. CONSTRUIR MARCADORES AUTOMÁTICOS
     final List<Marker> allMarkers = [...markers];
 
-    // Priorizamos la ruta planificada para poner los marcadores de inicio/fin.
     final List<LatLng> baseRoute = plannedRoute.isNotEmpty ? plannedRoute : traversedRoute;
 
     if (baseRoute.isNotEmpty) {
@@ -89,7 +86,7 @@ class CustomMapWidget extends StatelessWidget {
         initialCenter: initialCenter,
         initialZoom: initialZoom,
         initialCameraFit: initialCameraFit,
-        maxZoom: 18.0, // <-- NUEVO: Límite para que no desaparezca el fondo (mapa gris)
+        maxZoom: 18.0,
       ),
       children: [
         // MAPA OSM
@@ -98,7 +95,7 @@ class CustomMapWidget extends StatelessWidget {
           userAgentPackageName: 'com.healthy_way.app',
         ),
 
-        // POLÍGONOS (si se proporcionan)
+        // POLÍGONOS
         if (polygons != null && polygons!.isNotEmpty)
           PolygonLayer(
             polygons: polygons!,

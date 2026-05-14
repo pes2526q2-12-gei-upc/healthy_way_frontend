@@ -30,6 +30,7 @@ class AuthProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final userJsonString = jsonEncode(user.toJson());
     await prefs.setString('saved_user', userJsonString);
+    await prefs.setString('login_timestamp', DateTime.now().toIso8601String());
     
     // Connectar socket al fer login
     final token = await SecureStorageService().getToken();
@@ -48,8 +49,14 @@ class AuthProvider extends ChangeNotifier {
       final String? tokenParaElBackend = googleAuth.idToken;
       if (tokenParaElBackend != null) {
         debugPrint("¡Token obtenido con éxito! Enviando al backend...");
-        UserService().enterWithGoogle(tokenParaElBackend);
-        return true;
+        final User? user = await UserService().enterWithGoogle(tokenParaElBackend);
+        if (user != null) {
+          await login(user);
+          return true;
+        }
+        else {
+          debugPrint("Error: El backend no devolvió un usuario válido.");
+        }
       }
       else {
         debugPrint("Error: No se pudo obtener el idToken de Google.");
@@ -61,10 +68,10 @@ class AuthProvider extends ChangeNotifier {
     return false;
   }
 
-  // Se llama al cerrar sesión
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('saved_user');
+    await prefs.remove('login_timestamp');
     _currentUser = null;
     SecureStorageService().deleteToken();
     _socketService.disconnect();
@@ -73,8 +80,18 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> loadSavedUser() async {
     final prefs = await SharedPreferences.getInstance();
-    final userJsonString = prefs.getString('saved_user');
+    final loginTimestamp = prefs.getString('login_timestamp');
+    if (loginTimestamp != null) {
+      final loginDate = DateTime.parse(loginTimestamp);
+      final daysSinceLogin = DateTime.now().difference(loginDate).inDays;
 
+      if (daysSinceLogin >= 30) {
+        await logout();
+        return;
+      }
+    }
+
+    final userJsonString = prefs.getString('saved_user');
     if (userJsonString != null) {
       final Map<String, dynamic> userMap = jsonDecode(userJsonString);
       _currentUser = User.fromJson(userMap);
@@ -89,7 +106,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Actualitza l'equip de l'usuari actual
   Future<void> updateTeam(String? teamName) async {
     if (_currentUser != null) {
       _currentUser = _currentUser!.copyWith(team: teamName);

@@ -180,6 +180,7 @@ class TeamService {
   Future<List<TeamModel>> getAllTeams() async {
     final response = await client.get(
       Uri.parse('$baseUrl/teams'),
+      headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'}
     );
 
     if (response.statusCode == 200) {
@@ -196,7 +197,7 @@ class TeamService {
   Future<TeamModel?> updateTeam(String teamName, TeamModel team) async {
     final response = await client.put(
       Uri.parse('$baseUrl/teams/${Uri.encodeComponent(teamName)}'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
       body: jsonEncode(team.toUpdateJson()),
     );
 

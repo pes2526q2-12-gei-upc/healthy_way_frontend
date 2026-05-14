@@ -11,7 +11,7 @@ final senseLocationMessage = 'Ubicació desconeguda';
 class TrackingProvider extends ChangeNotifier {
   final LocationService _locationService = LocationService();
 
-  StreamSubscription<LatLng>? _subscription;
+  StreamSubscription<LocationPoint>? _subscription;
   Timer? _timer;
   final Stopwatch _stopwatch = Stopwatch();
 
@@ -26,9 +26,12 @@ class TrackingProvider extends ChangeNotifier {
   double distanceDouble = 0.0;
   String distance = '0.00';
   String pace = '0.00';
-  String elevation = '40';
+  String elevation = '0';
   String calories = '0';
   String placeName = senseLocationMessage;
+  double maxAltitude = 0;
+  double altitudeGained = 0;
+  double? _lastAltitude;
 
   DateTime startTime = DateTime.now();
   String modality = 'Running';
@@ -75,8 +78,8 @@ class TrackingProvider extends ChangeNotifier {
 
     await _locationService.startTracking();
 
-    _subscription ??= _locationService.locationStream.listen((LatLng pos) {
-      _updateLocation(pos);
+    _subscription ??= _locationService.locationStream.listen((LocationPoint point) {
+      _updateLocation(point);
     });
 
     running = true;
@@ -114,6 +117,7 @@ class TrackingProvider extends ChangeNotifier {
     distanceDouble = 0.0;
     distance = '0.00';
     pace = '0:00';
+    elevation = '0';
     calories = '0';
     placeName =  senseLocationMessage;
     isFinished = false; // Reiniciamos la bandera
@@ -121,13 +125,29 @@ class TrackingProvider extends ChangeNotifier {
     running = false;
     modality = 'Running';
     startTime = DateTime.now();
+    maxAltitude = 0;
+    altitudeGained = 0;
+    _lastAltitude = null;
     notifyListeners();
   }
 
   // --- Lógica Interna ---
 
-  void _updateLocation(LatLng newPos) {
-    if (!isRunning || isFinished) return; // Si ya acabó, ignoramos puntos
+  void _updateLocation(LocationPoint point) {
+    elevation = point.altitude.toStringAsFixed(0);
+
+    if (point.altitude > maxAltitude) {
+      maxAltitude = point.altitude;
+    }
+
+    if (_lastAltitude != null && (point.altitude - _lastAltitude!) > 2) {
+      altitudeGained += point.altitude - _lastAltitude!;
+    }
+
+    _lastAltitude = point.altitude;
+
+    final newPos = point.latLng;
+    if (!isRunning || isFinished) return;
 
     if (traversedRoute.isNotEmpty) {
       final lastPos = traversedRoute.last;
