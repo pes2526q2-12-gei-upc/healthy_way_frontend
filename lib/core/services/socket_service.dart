@@ -7,7 +7,7 @@ class SocketService {
   SocketService._internal();
 
   io.Socket? _socket;
-  final String _socketUrl = 'http://nattech.fib.upc.edu:40540';
+  final String _socketUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
   bool get isConnected => _socket?.connected ?? false;
 
