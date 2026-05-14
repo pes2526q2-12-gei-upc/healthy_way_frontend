@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/chat_service.dart';
+import '../../../core/services/socket_service.dart';
 import '../../../shared/models/chat_message.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
@@ -26,7 +27,6 @@ class _ChatState extends State<Chat> {
   List<ChatMessage> _messages = [];
   bool _isLoading = true;
   bool _isSending = false;
-  Timer? _pollTimer;
 
 
 
@@ -41,7 +41,7 @@ class _ChatState extends State<Chat> {
     _messageController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
-    _pollTimer?.cancel();
+    SocketService().off('new-chat-message');
     super.dispose();
   }
 
@@ -68,7 +68,7 @@ class _ChatState extends State<Chat> {
           _isLoading = false;
         });
         _scrollToBottom();
-        _startPolling();
+        _setupSocketListener();
       }
     } catch (e) {
       if (mounted) {
@@ -80,23 +80,30 @@ class _ChatState extends State<Chat> {
     }
   }
 
-  void _startPolling() {
+  void _setupSocketListener() {
     final user = context.read<AuthProvider>().currentUser;
     if (user == null || !user.hasTeam) return;
 
-    _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
-      if (_messages.isNotEmpty) {
-        final newMessages = await ChatService().getMessagesSince(
-          user.team!,
-          _messages.last.timestamp,
-        );
-        if (mounted && newMessages.isNotEmpty) {
-          // Ordenar els nous missatges també
-          newMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-          setState(() => _messages.addAll(newMessages));
-          _scrollToBottom();
-        }
+    // Netegem qualsevol listener anterior per evitar duplicats si es crida més d'un cop
+    SocketService().off('new-chat-message');
+
+    SocketService().on('new-chat-message', (data) {
+      if (mounted) {
+        final message = ChatMessage.fromJson(data as Map<String, dynamic>);
+        
+        setState(() {
+          // Evitem duplicats si ja l'hem afegit localment a _sendMessage
+          bool isDuplicate = _messages.any((m) => 
+            m.senderUsername == message.senderUsername && 
+            m.content == message.content &&
+            (m.timestamp.difference(message.timestamp).inSeconds.abs() < 5)
+          );
+
+          if (!isDuplicate) {
+            _messages.add(message);
+            _scrollToBottom();
+          }
+        });
       }
     });
   }
@@ -157,8 +164,9 @@ class _ChatState extends State<Chat> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUsername =
-        context.watch<AuthProvider>().currentUser?.username ?? '';
+    final user = context.watch<AuthProvider>().currentUser;
+    final hasTeam = user?.hasTeam ?? false;
+    final currentUsername = user?.username ?? '';
 
     return Scaffold(
       backgroundColor: _bgColor,
@@ -169,17 +177,19 @@ class _ChatState extends State<Chat> {
 
           // Cos del xat
           Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: _primaryBlue),
-                  )
-                : _messages.isEmpty
-                    ? _buildEmptyState()
-                    : _buildMessagesList(currentUsername),
+            child: !hasTeam
+                ? _buildNoTeamState()
+                : _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: _primaryBlue),
+                      )
+                    : _messages.isEmpty
+                        ? _buildEmptyState()
+                        : _buildMessagesList(currentUsername),
           ),
 
-          // Barra d'escriptura
-          _buildInputBar(),
+          // Barra d'escriptura (només si té equip)
+          if (hasTeam) _buildInputBar(),
         ],
       ),
     );
@@ -191,48 +201,76 @@ class _ChatState extends State<Chat> {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      itemCount: _messages.length + 1, // +1 pel separador "Avui"
+      itemCount: _messages.length,
       itemBuilder: (context, index) {
-        // Primer element = separador de dia
-        if (index == 0) {
-          return _buildDaySeparator('Avui');
-        }
-
-        final msg = _messages[index - 1];
+        final msg = _messages[index];
         final isMe = msg.senderUsername == currentUsername;
 
-        // Decidim si mostrem el nom de l'emissor (agrupació)
-        final showSenderName = index == 1 ||
-            _messages[index - 2].senderUsername != msg.senderUsername;
+        // Decidim si mostrem el separador de data
+        bool showDateSeparator = false;
+        if (index == 0) {
+          showDateSeparator = true;
+        } else {
+          final prevMsg = _messages[index - 1];
+          if (!_isSameDay(msg.timestamp, prevMsg.timestamp)) {
+            showDateSeparator = true;
+          }
+        }
 
-        return _buildMessageBubble(
+        // Decidim si mostrem el nom de l'emissor (agrupació)
+        // El mostrem si és el primer missatge, o si el remitent ha canviat, 
+        // o si hi ha un separador de data entremig
+        final showSenderName = index == 0 ||
+            _messages[index - 1].senderUsername != msg.senderUsername ||
+            showDateSeparator;
+
+        final bubble = _buildMessageBubble(
           message: msg,
           isMe: isMe,
           showSenderName: showSenderName,
         );
+
+        if (showDateSeparator) {
+          return Column(
+            children: [
+              _buildDaySeparator(_getDateLabel(msg.timestamp)),
+              bubble,
+            ],
+          );
+        }
+        return bubble;
       },
     );
   }
 
   Widget _buildDaySeparator(String label) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
+      margin: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
       child: Row(
         children: [
           Expanded(child: Divider(color: Colors.grey.shade300, thickness: 0.5)),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade200),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               label,
               style: TextStyle(
                 fontSize: 11,
                 color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
               ),
             ),
           ),
@@ -240,6 +278,29 @@ class _ChatState extends State<Chat> {
         ],
       ),
     );
+  }
+
+  String _getDateLabel(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final msgDate = DateTime(date.year, date.month, date.day);
+
+    if (msgDate == today) {
+      return 'HOY';
+    } else if (msgDate == yesterday) {
+      return 'AYER';
+    } else {
+      final months = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      ];
+      return '${date.day} de ${months[date.month - 1]}'.toUpperCase();
+    }
+  }
+
+  bool _isSameDay(DateTime d1, DateTime d2) {
+    return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
   }
 
   Widget _buildMessageBubble({
@@ -378,6 +439,69 @@ class _ChatState extends State<Chat> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  // ─── Estat sense equip ──────────────────────────────────────────────────────────
+
+  Widget _buildNoTeamState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.group_off_rounded,
+                color: Colors.orange,
+                size: 48,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Encara no tens cap equip',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1D26),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Per poder xatejar amb altres usuaris, primer has d\'unir-te a un equip o crear-ne un de nou a la secció d\'Equips.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                // Aquí podríem navegar a la pestanya d'equips si cal
+                // Per ara només informem
+              },
+              icon: const Icon(Icons.search, color: Colors.white),
+              label: const Text('Explorar Equips', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryBlue,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

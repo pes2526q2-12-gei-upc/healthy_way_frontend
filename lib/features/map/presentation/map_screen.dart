@@ -1,6 +1,6 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/services/zone_service.dart';
@@ -30,10 +30,9 @@ class _MapScreenState extends State<MapScreen> {
 
   final TextEditingController _teamSearchController = TextEditingController();
   String _teamSearchQuery = '';
+  final FocusNode _teamSearchFocusNode = FocusNode();
 
   Timer? _debounce;
-
-  // Ubicación actual del usuario
   LatLng? _userLocation;
 
   @override
@@ -41,9 +40,7 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
     _initializeLocation();
     _mapEventSubscription = _mapController.mapEventStream.listen((event) {
-      if (isZonesCapturedSelected) {
-        _filterVisibleHexagons();
-      }
+      if (isZonesCapturedSelected) _filterVisibleHexagons();
     });
   }
 
@@ -51,42 +48,28 @@ class _MapScreenState extends State<MapScreen> {
     _userLocation = await LocationService.getCurrentLocation();
     if (!mounted) return;
     setState(() {});
-
     _mapController.move(_userLocation!, 15.0);
-
     await LocationService().startTracking();
-
     LocationService().locationStream.listen((position) {
       if (!mounted) return;
-      setState(() {
-        _userLocation = position;
-      });
+      setState(() { _userLocation = position.latLng; });
     });
   }
 
   Future<void> _fetchZones() async {
     if (!isZonesCapturedSelected) {
-      setState(() {
-        _allCapturedHexagons = [];
-        _visibleHexagons = [];
-      });
+      setState(() { _allCapturedHexagons = []; _visibleHexagons = []; });
       return;
     }
-
     setState(() => _isLoadingZones = true);
-
     try {
       List<Polygon<Object>> zones;
-      if(_teamSearchQuery.isNotEmpty) {
+      if (_teamSearchQuery.isNotEmpty) {
         zones = await ZoneService().getZonesCapturades(modality: isRunningMode ? 'running' : 'cycling', team: _teamSearchQuery);
       } else {
-        zones = await ZoneService().getZonesCapturades(
-          modality: isRunningMode ? 'running' : 'cycling',
-        );
+        zones = await ZoneService().getZonesCapturades(modality: isRunningMode ? 'running' : 'cycling');
       }
-      setState(() {
-        _allCapturedHexagons = zones;
-      });
+      setState(() { _allCapturedHexagons = zones; });
       _filterVisibleHexagons();
     } catch (e) {
       debugPrint("Error obteniendo zonas: $e");
@@ -98,12 +81,7 @@ class _MapScreenState extends State<MapScreen> {
   void _filterVisibleHexagons() {
     try {
       final bounds = _mapController.camera.visibleBounds;
-
-      setState(() {
-        _visibleHexagons = _allCapturedHexagons.where((polygon) {
-          return polygon.points.any((point) => bounds.contains(point));
-        }).toList();
-      });
+      setState(() { _visibleHexagons = _allCapturedHexagons.where((polygon) => polygon.points.any((point) => bounds.contains(point))).toList(); });
     } catch (e) {
       debugPrint("Error filtrando hexágonos visibles: $e");
     }
@@ -111,8 +89,8 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
-    // Detener seguimiento cuando la pantalla se cierra
     _teamSearchController.dispose();
+    _teamSearchFocusNode.dispose();
     LocationService().stopTracking();
     _mapEventSubscription?.cancel();
     super.dispose();
@@ -120,6 +98,8 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       bottomNavigationBar: const CustomBottomNavBar(currentIndex: 1),
       body: Stack(
@@ -128,7 +108,7 @@ class _MapScreenState extends State<MapScreen> {
             mapController: _mapController,
             initialCenter: _userLocation ?? const LatLng(41.3851, 2.1734),
             initialZoom: 15.0,
-            userLocation: _userLocation, // PUNTO AZUL
+            userLocation: _userLocation,
             polygons: _visibleHexagons,
           ),
 
@@ -142,37 +122,17 @@ class _MapScreenState extends State<MapScreen> {
                     children: [
                       Expanded(
                         child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4)),
-                            ],
-                          ),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))]),
                           child: TextField(
                             decoration: InputDecoration(
-                              hintText: 'Cercar rutes',
+                              hintText: l10n.searchRoutes,
                               prefixIcon: const Icon(Icons.search, color: Colors.grey),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
                               contentPadding: const EdgeInsets.symmetric(vertical: 0),
                             ),
-                            onTap: () {
-                              Navigator.pushNamed(context, AppRouter.exploreRoute);
-                            },
+                            onTap: () => Navigator.pushNamed(context, AppRouter.exploreRoute),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.blue[700],
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          elevation: 4,
-                        ),
-                        child: const Text('+ Planificar', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -182,82 +142,49 @@ class _MapScreenState extends State<MapScreen> {
                     child: Row(
                       children: [
                         CustomFilterChip(
-                          label: 'Zones Capturades',
+                          label: l10n.capturedZones,
                           icon: Icons.flag_outlined,
                           isSelected: isZonesCapturedSelected,
                           onTap: () {
                             setState(() {
                               isZonesCapturedSelected = !isZonesCapturedSelected;
-                              if (!isZonesCapturedSelected) {
-                                _teamSearchController.clear();
-                                _teamSearchQuery = '';
-                              }
+                              if (!isZonesCapturedSelected) { _teamSearchController.clear(); _teamSearchQuery = ''; }
                             });
                             _fetchZones();
                           },
                         ),
-                        // Si está cargando, mostramos un pequeño spinner
-                        if (_isLoadingZones) ...[
-                          const SizedBox(width: 8),
-                          const SizedBox(
-                              width: 16, height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2)
-                          )
-                        ],
 
-                        if (isZonesCapturedSelected && !_isLoadingZones) ...[
-                          const SizedBox(width: 12),
+                        if (isZonesCapturedSelected) ...[
+                          const SizedBox(width: 2),
                           SizedBox(
                             width: 160,
                             height: 36,
                             child: TextField(
                               controller: _teamSearchController,
+                              focusNode: _teamSearchFocusNode,
                               onChanged: (value) {
                                 _teamSearchQuery = value;
                                 if (_debounce?.isActive ?? false) _debounce!.cancel();
                                 _debounce = Timer(const Duration(milliseconds: 500), () {
                                   if (mounted) {
-                                    _fetchZones();
+                                    _fetchZones().then((_) => _teamSearchFocusNode.requestFocus());
                                   }
                                 });
                               },
                               decoration: InputDecoration(
-                                hintText: 'Buscar equip...',
+                                hintText: l10n.searchTeam,
+                                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                                suffixIcon: _isLoadingZones ? const Padding(padding: EdgeInsets.all(10), child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))) : null,
                                 hintStyle: const TextStyle(fontSize: 13),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(color: Colors.blue.shade300, width: 1.5),
-                                ),
-                                // Botón "X" para borrar el texto rápidamente
-                                suffixIcon: _teamSearchQuery.isNotEmpty
-                                    ? IconButton(
-                                  icon: const Icon(Icons.close, size: 16, color: Colors.grey),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  onPressed: () {
-                                    _teamSearchController.clear();
-                                    setState(() {
-                                      _teamSearchQuery = '';
-                                    });
-                                    _fetchZones();
-                                  },
-                                )
-                                    : const Icon(Icons.search, size: 16, color: Colors.grey),
+                                filled: true, fillColor: Colors.white,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: Colors.grey.shade300)),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: Colors.grey.shade300)),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: Colors.blue.shade300, width: 1.5)),
                               ),
                             ),
                           ),
-                        ]
+                        ],
                       ],
                     ),
                   ),
@@ -266,44 +193,19 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // 3️⃣ BOTONES FLOTANTES
           Positioned(
-            right: 16,
-            bottom: 32,
+            right: 16, bottom: 32,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _FloatingMapButton(
-                  icon: isRunningMode ? Icons.directions_run : Icons.directions_bike,
-                  color: Colors.blue[700]!,
-                  iconColor: Colors.white,
-                  onTap: () {
-                    setState(() {
-                      isRunningMode = !isRunningMode;
-                    });
-                    if(isZonesCapturedSelected) {
-                      _fetchZones();
-                    }
-                  },
-                ),
+                _FloatingMapButton(icon: isRunningMode ? Icons.directions_run : Icons.directions_bike, color: Colors.blue[700]!, iconColor: Colors.white, onTap: () {
+                  setState(() { isRunningMode = !isRunningMode; });
+                  if (isZonesCapturedSelected) _fetchZones();
+                }),
                 const SizedBox(height: 12),
-                _FloatingMapButton(
-                  icon: Icons.my_location,
-                  color: Colors.white,
-                  iconColor: Colors.black87,
-                  onTap: () {
-                    if (_userLocation != null) {
-                      _mapController.move(_userLocation!, 15.0);
-                    }
-                  },
-                ),
-                const SizedBox(height: 12),
-                _FloatingMapButton(
-                  icon: Icons.layers_outlined,
-                  color: Colors.white,
-                  iconColor: Colors.black87,
-                  onTap: () {},
-                ),
+                _FloatingMapButton(icon: Icons.my_location, color: Colors.white, iconColor: Colors.black87, onTap: () {
+                  if (_userLocation != null) _mapController.move(_userLocation!, 15.0);
+                }),
               ],
             ),
           ),
@@ -313,34 +215,19 @@ class _MapScreenState extends State<MapScreen> {
   }
 }
 
-// BOTONES FLOTANTES
 class _FloatingMapButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   final Color color;
   final Color iconColor;
 
-  const _FloatingMapButton({
-    required this.icon,
-    required this.onTap,
-    required this.color,
-    required this.iconColor,
-  });
+  const _FloatingMapButton({required this.icon, required this.onTap, required this.color, required this.iconColor});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 4)),
-        ],
-      ),
-      child: IconButton(
-        icon: Icon(icon, color: iconColor),
-        onPressed: onTap,
-      ),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 4))]),
+      child: IconButton(icon: Icon(icon, color: iconColor), onPressed: onTap),
     );
   }
 }

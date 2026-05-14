@@ -4,6 +4,7 @@ import 'package:healthy_way_frontend/shared/models/route_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:healthy_way_frontend/core/services/token_service.dart';
+import 'package:latlong2/latlong.dart';
 
 class RouteService {
   final http.Client client;
@@ -42,8 +43,14 @@ class RouteService {
     }
 
   // 2. OBTENER TODAS LAS RUTAS RECOMENDADAS
-  Future<List<RouteModel>> getRecommendedRoutes() async {
-    final response = await client.get(Uri.parse('$baseUrl/routes/recommendations'),
+  Future<List<RouteModel>> getRecommendedRoutes(LatLng pos, int maxDistance) async {
+    final queryParameters = {
+      'lat': pos.latitude.toString(),
+      'lng': pos.longitude.toString(),
+      'maxDistance': maxDistance.toString(),
+    };
+
+    final response = await client.get(Uri.parse('$baseUrl/routes/recommendations').replace(queryParameters: queryParameters),
     headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
 
     if (response.statusCode == 200) {

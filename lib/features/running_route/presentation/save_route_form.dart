@@ -1,20 +1,15 @@
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/router/app_router.dart';
 import '../../../shared/providers/tracking_provider.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
 import '../../../shared/models/route_model.dart';
-
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/models/activity.dart';
 import '../../../core/services/activity_service.dart';
-
-
-// ==========================================================
-// --- FORMULARIO PARA GUARDAR RUTA (SaveRouteFormScreen) ---
-// ==========================================================
 
 class SaveRouteFormScreen extends StatefulWidget {
   const SaveRouteFormScreen({super.key});
@@ -36,19 +31,17 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.read<TrackingProvider>();
     final route = provider.traversedRoute;
     final distance = provider.distanceDouble;
-    final elevation = provider.elevation;
+    final altitude = provider.maxAltitude;
+    final elevation = provider.altitudeGained;
     final location = provider.routeIsSelected ? provider.rutaSeleccionada.location : provider.placeName;
 
     LatLngBounds? routeBounds;
-    if (route.length > 1) {
-      routeBounds = LatLngBounds.fromPoints(route);
-    }
-    final center = route.isNotEmpty
-        ? route.last
-        : const LatLng(41.3596, 2.1002);
+    if (route.length > 1) routeBounds = LatLngBounds.fromPoints(route);
+    final center = route.isNotEmpty ? route.last : const LatLng(41.3596, 2.1002);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -56,10 +49,7 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
-        title: const Text(
-          'Guardar ruta',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-        ),
+        title: Text(l10n.saveRouteTitle, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -70,43 +60,24 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // --- MAPA PEQUEÑO DE PREVIEW ---
                 Container(
                   height: (MediaQuery.of(context).size.height * 0.32).clamp(140.0, 380.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha((0.06 * 255).round()),
-                        blurRadius: 10,
-                        offset: const Offset(0, 6),
-                      )
-                    ],
-                  ),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withAlpha((0.06 * 255).round()), blurRadius: 10, offset: const Offset(0, 6))]),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: CustomMapWidget(
                       mapController: MapController(),
                       initialCenter: center,
                       initialZoom: 16.0,
-                      initialCameraFit: routeBounds != null
-                          ? CameraFit.bounds(
-                        bounds: routeBounds,
-                        padding: const EdgeInsets.all(20.0),
-                        maxZoom: 18.0, // <-- Límite de zoom también aquí
-                      )
-                          : null,
+                      initialCameraFit: routeBounds != null ? CameraFit.bounds(bounds: routeBounds, padding: const EdgeInsets.all(20.0), maxZoom: 18.0) : null,
                       traversedRoute: route,
                       showStartMarker: true,
                       showEndMarker: route.length > 1,
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 12),
 
-                // --- FORMULARIO DE TEXTO ---
                 Form(
                   key: _formKey,
                   child: Column(
@@ -114,95 +85,52 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                     children: [
                       TextFormField(
                         controller: _nameCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Nom de la ruta',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) =>
-                        (value == null || value.trim().isEmpty) ? 'Introdueix un nom' : null,
+                        decoration: InputDecoration(labelText: l10n.routeNameLabel, border: const OutlineInputBorder()),
+                        validator: (value) => (value == null || value.trim().isEmpty) ? l10n.enterName : null,
                       ),
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          const Text(
-                            'Visibilitat:',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
+                          Text(l10n.visibilityLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
                           const SizedBox(width: 12),
-                          ChoiceChip(
-                            label: const Text('Pública'),
-                            selected: _isPublic,
-                            onSelected: (_) => setState(() => _isPublic = true),
-                          ),
+                          ChoiceChip(label: Text(l10n.publicVisibility), selected: _isPublic, onSelected: (_) => setState(() => _isPublic = true)),
                           const SizedBox(width: 8),
-                          ChoiceChip(
-                            label: const Text('Privada'),
-                            selected: !_isPublic,
-                            onSelected: (_) => setState(() => _isPublic = false),
-                          ),
+                          ChoiceChip(label: Text(l10n.privateVisibility), selected: !_isPublic, onSelected: (_) => setState(() => _isPublic = false)),
                         ],
                       ),
                       const SizedBox(height: 18),
                       ElevatedButton(
                         onPressed: () async {
-                          if (route.isEmpty) { // <-- Cambia esto por el nombre de tu variable real
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('No hay ninguna ruta para guardar')),
-                            );
+                          if (route.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.noRouteToSave)));
                             return;
                           }
                           if (_formKey.currentState?.validate() ?? false) {
                             final nuevaRuta = RouteModel(
-                              id: 10.toString(),
-                              name: _nameCtrl.text.trim(),
-                              trajectory: route,
-                              startPoint: route.first,
-                              endPoint: route.last,
-                              distance: double.parse((distance/1000).toStringAsFixed(2)), // <-- Redondear a 2 decimales
+                              id: 10.toString(), name: _nameCtrl.text.trim(), trajectory: route,
+                              startPoint: route.first, endPoint: route.last,
+                              distance: double.parse((distance / 1000).toStringAsFixed(2)),
                               createdBy: context.read<AuthProvider>().currentUser!.userId,
-                              isPrivate: !_isPublic,
-                              location: location,
-                              createdAt: DateTime.now(),
-                              elevationGain: elevation,
-                              altitude: elevation,
+                              isPrivate: !_isPublic, location: location, createdAt: DateTime.now(),
+                              elevationGain: elevation, altitude: altitude,
                             );
-
-                            // Creamos la actividad con la ruta y luego guardamos la ruta en el servidor
                             final newActivity = Activity(
-                              distance: double.parse((distance/1000).toStringAsFixed(2)),
-                              startTime: provider.startTime,
-                              endTime: DateTime.now(),
+                              distance: double.parse((distance / 1000).toStringAsFixed(2)),
+                              startTime: provider.startTime, endTime: DateTime.now(),
                               modality: provider.modality,
                               userId: context.read<AuthProvider>().currentUser!.userId,
                               pace: double.parse(provider.pace.replaceAll(':', '.').replaceAll('>', '')),
-                              createRoute: true,
-                              route: nuevaRuta,
-                              routeId: 99,
+                              createRoute: true, route: nuevaRuta, routeId: 99,
                             );
-
                             await ActivityService().createActivity(newActivity);
                             if (!context.mounted) return;
-                            //await RouteService().createRoute(nuevaRuta);
                             provider.reset();
                             provider.routeIsSelected = false;
-                            Navigator.pushNamedAndRemoveUntil(
-                              context,
-                              AppRouter.homeRoute,
-                                  (route) => false,
-                            );
+                            Navigator.pushNamedAndRemoveUntil(context, AppRouter.homeRoute, (route) => false);
                           }
                         },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          backgroundColor: const Color(0xFF2864FF),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Guardar ruta',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
+                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), backgroundColor: const Color(0xFF2864FF), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                        child: Text(l10n.saveRouteTitle, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                       ),
                     ],
                   ),
