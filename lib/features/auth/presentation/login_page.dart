@@ -3,7 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:healthy_way_frontend/core/services/user_service.dart';
 import 'package:provider/provider.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../shared/providers/LanguageProvider.dart';
+import '../../../shared/providers/languageProvider.dart';
 import '../../../shared/providers/auth_provider.dart';
 
 class LoginPage extends StatefulWidget {

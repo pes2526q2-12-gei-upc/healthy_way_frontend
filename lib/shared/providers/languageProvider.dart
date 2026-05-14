@@ -6,7 +6,7 @@ class LanguageProvider extends ChangeNotifier {
   Locale? _locale;
   Locale? get locale => _locale;
 
-  LocaleProvider() {
+  LanguageProvider() {
     _initLocale();
   }
 
