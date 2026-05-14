@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:healthy_way_frontend/shared/providers/LanguageProvider.dart';
 import 'package:healthy_way_frontend/shared/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'core/router/app_router.dart';
@@ -19,6 +20,7 @@ class HealthyWayApp extends StatelessWidget {
         Locale('es'),
         Locale('en'),
       ],
+      locale: context.watch<LanguageProvider>().locale,
 
       title: 'Healthy Way',
       debugShowCheckedModeBanner: false,

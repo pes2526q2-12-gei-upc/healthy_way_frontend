@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:healthy_way_frontend/core/services/user_service.dart';
 import 'package:provider/provider.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/providers/LanguageProvider.dart';
 import '../../../shared/providers/auth_provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -75,6 +76,17 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildLanguageButton(context, 'CA', const Locale('ca')),
+                          const SizedBox(width: 8),
+                          _buildLanguageButton(context, 'ES', const Locale('es')),
+                          const SizedBox(width: 8),
+                          _buildLanguageButton(context, 'EN', const Locale('en')),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
                       CircleAvatar(
                         radius: 40,
                         backgroundColor: Colors.white,
@@ -247,6 +259,31 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLanguageButton(BuildContext context, String label, Locale locale) {
+    final current = context.watch<LanguageProvider>().locale;
+    final isSelected = current?.languageCode == locale.languageCode;
+
+    return GestureDetector(
+      onTap: () => context.read<LanguageProvider>().setLocale(locale),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue[700] : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.blue[700]!),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.blue[700],
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+        ),
+      ),
     );
   }
 }
