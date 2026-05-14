@@ -23,3 +23,26 @@ class IndividualRanking {
     );
   }
 }
+
+class TeamRanking {
+  final String name;
+  final String zone;
+  final int points;
+  final double distance;
+
+  TeamRanking({
+    required this.name,
+    required this.zone,
+    required this.points,
+    required this.distance,
+  });
+
+  factory TeamRanking.fromJson(Map<String, dynamic> json) {
+    return TeamRanking(
+      name: json['name'] ?? '',
+      zone: json['zone'] ?? '',
+      points: json['points'] ?? 0,
+      distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}

@@ -35,4 +35,33 @@ class RankingService {
       return [];
     }
   }
+
+  Future<List<TeamRanking>> getTeamRanking(String modality, String zona) async {
+
+    var uri = Uri.parse('$baseUrl/teams/ranking/$modality');
+
+    if (zona != 'All') {
+      uri = uri.replace(queryParameters: {
+        'zone': zona,
+      });
+    }
+
+    try {
+      final response = await client.get(
+        uri,
+        headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonRanking = jsonDecode(response.body);
+        return jsonRanking.map((json) => TeamRanking.fromJson(json)).toList();
+      } else {
+        debugPrint('Error al obtener ranking de equipos: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('Error de conexión en ranking de equipos: $e');
+      return [];
+    }
+  }
 }
