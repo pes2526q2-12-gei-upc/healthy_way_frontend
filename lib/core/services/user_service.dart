@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../shared/models/activity.dart';
 import '../../shared/models/user_model.dart';
@@ -125,14 +126,17 @@ class UserService {
   Future<String> importStravaRoutes(int userId) async {
     final url = Uri.https('www.strava.com', '/oauth/mobile/authorize', {
       'client_id': '209168',
-      'redirect_uri': 'http://localhost:55342/auth.html',
+      'redirect_uri': 'healthyway://strava',
       'response_type': 'code',
       'scope': 'activity:read,activity:read_all',
     });
 
     final result = await FlutterWebAuth2.authenticate(
       url: url.toString(),
-      callbackUrlScheme: "http",
+      callbackUrlScheme: "healthyway",
+      options: const FlutterWebAuth2Options(
+        preferEphemeral: true,
+      ),
     );
 
     final scope = Uri.parse(result).queryParameters['scope'] ?? '';
@@ -153,7 +157,7 @@ class UserService {
           'user_id': userId,
         }),
       );
-      if(newResponse.statusCode == 200) {
+      if(newResponse.statusCode == 200 || newResponse.statusCode == 201) {
         return 'Rutes importades correctament des de Strava.';
       }
       else {
@@ -183,5 +187,40 @@ class UserService {
       debugPrint('Error al eliminar usuari: ${response.statusCode}');
     }
     return false;
+  }
+
+  Future<int> rankWeatherLocation(int userId, LatLng pos) async {
+    final uri = Uri.parse('$baseUrl/users/$userId/weather-score').replace(
+      queryParameters: {
+        'lat': pos.latitude.toString(),
+        'lng': pos.longitude.toString(),
+      },
+    );
+
+    final response = await client.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${await SecureStorageService().getToken()}'
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['score'];
+    }
+    else if(response.statusCode == 400) {
+      debugPrint('Paràmetres invàlids per a la puntuació meteorològica');
+    }
+    else if(response.statusCode == 401) {
+      debugPrint('Invalid token per a la puntuació meteorològica');
+    }
+    else if(response.statusCode == 403) {
+      debugPrint('Usuari no autoritzat per a la puntuació meteorològica');
+    }
+    else {
+      debugPrint('Error al obtenir la puntuació meteorològica: ${response.statusCode}');
+    }
+    return -1;
   }
 }

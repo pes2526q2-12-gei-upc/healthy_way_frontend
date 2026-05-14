@@ -17,10 +17,12 @@ class HealthyWayApp extends StatelessWidget {
 
       home: isAuthenticated ? const HomePage() : const LoginPage(),
 
-      // Conectamos nuestra lógica de navegación
       onGenerateRoute: AppRouter.generateRoute,
 
-      // Aquí podrías añadir el tema global más adelante
+      onUnknownRoute: (settings) {
+        return MaterialPageRoute(builder: (_) => const LoginPage());
+      },
+
       theme: ThemeData(
         useMaterial3: true,
         primarySwatch: Colors.blue,
