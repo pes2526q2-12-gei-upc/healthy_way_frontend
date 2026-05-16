@@ -30,7 +30,7 @@ class TrackingProvider extends ChangeNotifier {
   String calories = '0';
   String placeName = senseLocationMessage;
   double maxAltitude = 0;
-  double altitudeGained = 0;
+  double altitudeGained = 0.1;
   double? _lastAltitude;
 
   DateTime startTime = DateTime.now();
@@ -120,13 +120,13 @@ class TrackingProvider extends ChangeNotifier {
     elevation = '0';
     calories = '0';
     placeName =  senseLocationMessage;
-    isFinished = false; // Reiniciamos la bandera
+    isFinished = false;
     _stopwatch.reset();
     running = false;
     modality = 'Running';
     startTime = DateTime.now();
     maxAltitude = 0;
-    altitudeGained = 0;
+    altitudeGained = 0.1;
     _lastAltitude = null;
     notifyListeners();
   }
@@ -140,11 +140,20 @@ class TrackingProvider extends ChangeNotifier {
       maxAltitude = point.altitude;
     }
 
-    if (_lastAltitude != null && (point.altitude - _lastAltitude!) > 2) {
-      altitudeGained += point.altitude - _lastAltitude!;
+    if (_lastAltitude == null) {
+      _lastAltitude = point.altitude;
     }
+    else {
+      double diff = point.altitude - _lastAltitude!;
 
-    _lastAltitude = point.altitude;
+      if (diff >= 3.0) {
+        altitudeGained += diff;
+        _lastAltitude = point.altitude;
+      }
+      else if (diff <= -3.0) {
+        _lastAltitude = point.altitude;
+      }
+    }
 
     final newPos = point.latLng;
     if (!isRunning || isFinished) return;

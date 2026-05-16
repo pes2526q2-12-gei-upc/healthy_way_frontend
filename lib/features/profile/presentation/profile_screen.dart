@@ -286,15 +286,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final user = snapshot.data!;
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(25), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 8))]),
+          decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 8))]
+          ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            // Ya no necesitamos mainAxisAlignment: MainAxisAlignment.spaceEvenly porque usamos Expanded
             children: [
-              _buildStatColumn(l10n.kmRunning, '${user.totalRunningDistance?.toStringAsFixed(1)} km', Colors.blue, icon: Icons.directions_run),
+              Expanded(child: _buildStatColumn(l10n.kmRunning, '${user.totalRunningDistance?.toStringAsFixed(1)} km', Colors.blue, icon: Icons.directions_run)),
               Container(width: 1, height: 40, color: Colors.grey.withValues(alpha: 0.3)),
-              _buildStatColumn(l10n.kmCycling, '${user.totalCyclingDistance?.toStringAsFixed(1)} km', Colors.green, icon: Icons.directions_bike),
+              Expanded(child: _buildStatColumn(l10n.kmCycling, '${user.totalCyclingDistance?.toStringAsFixed(1)} km', Colors.green, icon: Icons.directions_bike)),
               Container(width: 1, height: 40, color: Colors.grey.withValues(alpha: 0.3)),
-              _buildStatColumn(l10n.totalPoints, user.totalPoints.toString(), Colors.amber, icon: Icons.emoji_events),
+              Expanded(child: _buildStatColumn(l10n.totalPoints, (user.totalPoints ?? 0).toString(), Colors.amber, icon: Icons.emoji_events)),
             ],
           ),
         );
@@ -303,19 +307,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildStatColumn(String label, String value, Color valueColor, {IconData? icon}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null) ...[Icon(icon, size: 18, color: valueColor), const SizedBox(width: 4)],
-            Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: valueColor)),
-          ],
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+          ),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (icon != null) ...[Icon(icon, size: 18, color: valueColor), const SizedBox(width: 4)],
+                Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: valueColor)),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -406,30 +419,84 @@ class _RouteCard extends StatelessWidget {
   final Color badgeColor;
   final VoidCallback onDelete;
 
-  const _RouteCard({required this.id, required this.title, required this.distance, required this.location, required this.badgeColor, required this.teamControl, required this.onDelete});
+  const _RouteCard({
+    required this.id,
+    required this.title,
+    required this.distance,
+    required this.location,
+    required this.badgeColor,
+    required this.teamControl,
+    required this.onDelete
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))]
+      ),
       child: Row(
         children: [
-          ClipRRect(borderRadius: BorderRadius.circular(12), child: Container(width: 80, height: 80, color: Colors.grey[300], child: const Icon(Icons.landscape, color: Colors.grey))),
+          ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(width: 80, height: 80, color: Colors.grey[300], child: const Icon(Icons.landscape, color: Colors.grey))
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[900]), overflow: TextOverflow.ellipsis)), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: badgeColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)))]),
+                // 1. FILA DEL TÍTULO (Ya estaba protegida con Expanded y TextOverflow.ellipsis)
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[900]), overflow: TextOverflow.ellipsis)),
+                      Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: badgeColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)))
+                    ]
+                ),
                 const SizedBox(height: 8),
-                Row(children: [const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey), const SizedBox(width: 4), Text(location, style: const TextStyle(fontSize: 12, color: Colors.grey)), const SizedBox(width: 12), const Icon(Icons.directions_run, size: 14, color: Colors.grey), const SizedBox(width: 4), Text(distance, style: const TextStyle(fontSize: 12, color: Colors.grey))]),
+
+                // 2. FILA DE UBICACIÓN Y DISTANCIA (Corregida con Scroll Horizontal)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                      children: [
+                        const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
+                        const SizedBox(width: 4),
+                        Text(location, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        const SizedBox(width: 12),
+                        const Icon(Icons.directions_run, size: 14, color: Colors.grey),
+                        const SizedBox(width: 4),
+                        Text(distance, style: const TextStyle(fontSize: 12, color: Colors.grey))
+                      ]
+                  ),
+                ),
                 const SizedBox(height: 8),
+
+                // 3. FILA DE EQUIPO Y BOTÓN DE BORRAR (Protegida con Expanded + Scroll)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(children: [Icon(Icons.people, size: 14, color: Colors.blue[700]), const SizedBox(width: 4), Text(teamControl, style: TextStyle(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.w500))]),
-                    GestureDetector(onTap: onDelete, child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(Icons.delete_outline, color: Colors.red, size: 20))),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                            children: [
+                              Icon(Icons.people, size: 14, color: Colors.blue[700]),
+                              const SizedBox(width: 4),
+                              Text(teamControl, style: TextStyle(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.w500))
+                            ]
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                        onTap: onDelete,
+                        child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(Icons.delete_outline, color: Colors.red, size: 20))
+                    ),
                   ],
                 ),
               ],
