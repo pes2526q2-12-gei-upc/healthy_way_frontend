@@ -1,25 +1,34 @@
 class IndividualRanking {
-  final int totalPoints;
-  final double totalDistance;
+  final int rank;
+  final int user_id;
   final String name;
-  final int userId;
+  final int distance;
+  final double points;
+  final String modality;
+  final String scope;
   final String teamName;
 
   IndividualRanking({
-    required this.totalPoints,
-    required this.totalDistance,
+    required this.rank,
+    required this.user_id,
     required this.name,
-    required this.userId,
-    required this.teamName,
+    required this.distance,
+    required this.points,
+    required this.modality,
+    required this.scope,
+    this.teamName = '',
+
   });
 
   factory IndividualRanking.fromJson(Map<String, dynamic> json) {
     return IndividualRanking(
-      totalPoints: json['total_points'] ?? 0,
-      totalDistance: (json['total_distance'] as num?)?.toDouble() ?? 0.0,
+      rank: json['rank'] ?? 0,
+      user_id: json['user_id'] ?? 0,
       name: json['nom'] ?? '',
-      userId: json['user_id'] ?? 0,
-      teamName: json['team_name'] ?? 'none',
+      distance: json['distance'] ?? 0,
+      points: (json['points'] as num?)?.toDouble() ?? 0.0,
+      modality: json['modality'] ?? '',
+      scope: json['scope'] ?? '',
     );
   }
 }

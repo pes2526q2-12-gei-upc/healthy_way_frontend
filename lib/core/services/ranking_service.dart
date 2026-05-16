@@ -15,23 +15,37 @@ class RankingService {
   }
   RankingService._internal({http.Client? client}) : client = client ?? http.Client();
 
-  final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
+  final String baseUrl = 'http://localhost:8080/api/v1';
 
-  Future<List<dynamic>> getIndividualRanking(String orderedBy) async {
+  Future<List<dynamic>> getIndividualRanking(String orderedBy, String modality, String scope) async {
     String URI = orderedBy == 'points' ? '$baseUrl/users/ranked/points' : '$baseUrl/users/ranked/distance';
-    final response = await client.get(
-      Uri.parse(URI),
-      headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'},
-    );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonRanking = jsonDecode(response.body);
-      final List<IndividualRanking> ranking = jsonRanking.map((json) => IndividualRanking.fromJson(json)).toList();
-      return ranking;
+    // modality = running o cycling
+    // scope = current o total
+    var uri = Uri.parse(URI).replace(queryParameters: {
+      'modality': modality,
+      'scope': scope,
+    });
+
+    try {
+      final response = await client.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer ${await SecureStorageService().getToken()}'
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonRanking = jsonDecode(response.body);
+        return jsonRanking.map((json) => IndividualRanking.fromJson(json)).toList();
+      }
+      else {
+        debugPrint('Error al obtener ranking individual: ${response.statusCode}');
+        return [];
+      }
     }
-    else {
-      debugPrint('Error al obtener ranking individual: ${response.statusCode}');
-      debugPrint('Mensaje: ${response.body}');
+    catch (e) {
+      debugPrint('Error de conexión en ranking individual: $e');
       return [];
     }
   }
