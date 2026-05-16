@@ -15,6 +15,7 @@ class RouteModel {
   final String location;
   final double altitude;
   final double elevationGain;
+  final double points;
 
   RouteModel({
     required this.id,
@@ -29,6 +30,7 @@ class RouteModel {
     required this.location,
     required this.altitude,
     required this.elevationGain,
+    this.points = 0.0,
   });
 
   factory RouteModel.fromJson(Map<String, dynamic> json) {
@@ -64,6 +66,7 @@ class RouteModel {
       location: json['location'],
       altitude: json['altitude'].toDouble(),
       elevationGain: json['elevation_gain'].toDouble(),
+      points: (json['points'] as num?)?.toDouble() ?? 0.0,
     );
   }
 

@@ -71,7 +71,7 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                   children: [
                     _buildMapOverlayButton(icon: Icons.arrow_back, onTap: () {
                       context.read<TrackingProvider>().routeIsSelected = false;
-                      Navigator.pushNamed(context, AppRouter.exploreRoute);
+                      Navigator.pop(context);
                     }),
                     _buildMapOverlayButton(
                       icon: _isFavorite ? Icons.favorite : Icons.favorite_border,

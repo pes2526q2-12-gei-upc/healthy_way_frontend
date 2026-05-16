@@ -102,7 +102,7 @@ class ResultsRouteScreen extends StatelessWidget {
                               Container(width: 1, height: 48, color: Colors.grey.shade300),
                               _buildStatColumn(l10n.kcal, trackingProvider.calories),
                               Container(width: 1, height: 48, color: Colors.grey.shade300),
-                              _buildStatColumn(l10n.elevationGainLabel, '${trackingProvider.elevation} m'),
+                              _buildStatColumn(l10n.elevationGainLabel, '${trackingProvider.altitudeGained.toStringAsFixed(2)} m'),
                             ]),
                           ),
                         ),
@@ -130,7 +130,7 @@ class ResultsRouteScreen extends StatelessWidget {
                               pace: double.parse(trackingProvider.pace.replaceAll(':', '.').replaceAll('>', '')),
                               userId: context.read<AuthProvider>().currentUser!.userId,
                               createRoute: false,
-                              route: RouteModel(id: '99', name: 'noCrearRuta', distance: 1.0, isPrivate: false, createdBy: 99, createdAt: DateTime.now(), trajectory: [], startPoint: const LatLng(0, 0), endPoint: const LatLng(0, 0), location: 'string', altitude: 0, elevationGain: 0),
+                              route: RouteModel(id: '99', name: 'noCrearRuta', distance: 1.0, isPrivate: false, createdBy: 99, createdAt: DateTime.now(), trajectory: [], startPoint: const LatLng(0, 0), endPoint: const LatLng(0, 0), location: 'string', altitude: 1, elevationGain: 1),
                               routeId: 99,
                             );
                             await ActivityService().createActivity(activity);
