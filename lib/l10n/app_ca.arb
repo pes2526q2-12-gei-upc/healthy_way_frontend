@@ -11,6 +11,7 @@
   "passwordHint": "La teva contrasenya",
   "forgotPassword": "Has oblidat la contrasenya?",
   "loginButton": "Entrar",
+  "invalidCredentials": "El correu/usuari o la contrasenya són incorrectes",
   "noAccount": "No tens compte\nencara?",
   "registerLink": "Registra't",
   "connectWith": "O CONNECTA AMB",

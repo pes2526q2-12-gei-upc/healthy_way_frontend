@@ -11,6 +11,7 @@
   "passwordHint": "Tu contraseña",
   "forgotPassword": "¿Has olvidado la contraseña?",
   "loginButton": "Entrar",
+  "invalidCredentials": "El correo/usuario o la contraseña son incorrectos",
   "noAccount": "¿No tienes cuenta\ntodavía?",
   "registerLink": "Regístrate",
   "connectWith": "O CONECTA CON",

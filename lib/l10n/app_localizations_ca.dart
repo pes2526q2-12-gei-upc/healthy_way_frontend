@@ -40,6 +40,10 @@ class AppLocalizationsCa extends AppLocalizations {
   String get loginButton => 'Entrar';
 
   @override
+  String get invalidCredentials =>
+      'El correu/usuari o la contrasenya són incorrectes';
+
+  @override
   String get noAccount => 'No tens compte\nencara?';
 
   @override

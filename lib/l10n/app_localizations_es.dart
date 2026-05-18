@@ -39,6 +39,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get loginButton => 'Entrar';
 
   @override
+  String get invalidCredentials =>
+      'El correo/usuario o la contraseña son incorrectos';
+
+  @override
   String get noAccount => '¿No tienes cuenta\ntodavía?';
 
   @override

@@ -66,10 +66,14 @@ class UserService {
       final loggedUser = User.fromJson(responseBody['user']);
       return loggedUser;
     }
+    else if(response.statusCode == 400) {
+      throw Exception('invalid_data');
+    }
+    else if(response.statusCode == 401) {
+      throw Exception('invalid_credentials');
+    }
     else {
-      debugPrint('Error al iniciar sesión: ${response.statusCode}');
-      debugPrint('Mensaje: ${response.body}');
-      return null;
+      throw Exception('unknown_error');
     }
   }
 

@@ -160,6 +160,12 @@ abstract class AppLocalizations {
   /// **'Entrar'**
   String get loginButton;
 
+  /// No description provided for @invalidCredentials.
+  ///
+  /// In ca, this message translates to:
+  /// **'El correu/usuari o la contrasenya són incorrectes'**
+  String get invalidCredentials;
+
   /// No description provided for @noAccount.
   ///
   /// In ca, this message translates to:

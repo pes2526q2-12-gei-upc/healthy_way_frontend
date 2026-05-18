@@ -39,6 +39,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginButton => 'Sign In';
 
   @override
+  String get invalidCredentials =>
+      'The email/username or password is incorrect';
+
+  @override
   String get noAccount => 'Don\'t have an account\nyet?';
 
   @override

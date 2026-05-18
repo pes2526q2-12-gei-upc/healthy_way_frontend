@@ -11,6 +11,7 @@
   "passwordHint": "Your password",
   "forgotPassword": "Forgot your password?",
   "loginButton": "Sign In",
+  "invalidCredentials": "The email/username or password is incorrect",
   "noAccount": "Don't have an account\nyet?",
   "registerLink": "Sign Up",
   "connectWith": "OR CONNECT WITH",
