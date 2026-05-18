@@ -232,7 +232,10 @@ class _MyTeamState extends State<MyTeam> {
                       MaterialPageRoute(
                         builder: (context) => TeamManagementView(teamName: teamName),
                       ),
-                    );
+                    ).then((_) {
+                      // Recargar les dades de l'equip a l'anar enrere
+                      _loadTeamData();
+                    });
                   },
                   icon: const Icon(Icons.people_outline, size: 16),
                   label: const Text('Gestionar', style: TextStyle(fontSize: 13)),
