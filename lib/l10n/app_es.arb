@@ -19,6 +19,7 @@
   "googleLoginSuccess": "¡Inicio de sesión con Google correcto!",
   "googleLoginError": "Error al iniciar sesión con Google. Inténtalo de nuevo.",
   "requiredField": "Este campo es obligatorio",
+  "userAlreadyExists": "Este correo o nombre de usuario ya está registrado",
   "createAccount": "Crea una cuenta",
   "joinToday": "¡Únete a Healthy Way hoy mismo!",
   "name": "Nombre",

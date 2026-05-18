@@ -19,6 +19,7 @@
   "googleLoginSuccess": "Google sign-in successful!",
   "googleLoginError": "Error signing in with Google. Please try again.",
   "requiredField": "This field is required",
+  "userAlreadyExists": "This email or username is already registered",
   "createAccount": "Create an account",
   "joinToday": "Join Healthy Way today!",
   "name": "Name",

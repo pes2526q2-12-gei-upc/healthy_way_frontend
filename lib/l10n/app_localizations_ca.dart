@@ -66,6 +66,10 @@ class AppLocalizationsCa extends AppLocalizations {
   String get requiredField => 'Aquest camp és obligatori';
 
   @override
+  String get userAlreadyExists =>
+      'Aquest correu o nom d\'usuari ja està registrat';
+
+  @override
   String get createAccount => 'Crea un compte';
 
   @override

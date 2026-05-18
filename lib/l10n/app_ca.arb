@@ -19,6 +19,7 @@
   "googleLoginSuccess": "Inici de sessió amb Google correcte!",
   "googleLoginError": "Error en iniciar sessió amb Google. Torna-ho a provar.",
   "requiredField": "Aquest camp és obligatori",
+  "userAlreadyExists": "Aquest correu o nom d'usuari ja està registrat",
   "createAccount": "Crea un compte",
   "joinToday": "Uneix-te a Healthy Way avui mateix!",
   "name": "Nom",

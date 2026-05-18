@@ -246,7 +246,7 @@ class _RouteCard extends StatelessWidget {
       badgeColor = Colors.red;
     }
 
-    final _primaryBlue = Colors.blue[700]!;
+    final primaryBlue = Colors.blue[700]!;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -270,7 +270,7 @@ class _RouteCard extends StatelessWidget {
                   width: 80,
                   height: 80,
                   color: Colors.blue.withValues(alpha: 0.1),
-                  child: Icon(Icons.map_outlined, color: _primaryBlue, size: 32)
+                  child: Icon(Icons.map_outlined, color: primaryBlue, size: 32)
               )
           ),
           const SizedBox(width: 16),
@@ -333,12 +333,12 @@ class _RouteCard extends StatelessWidget {
                     Expanded(
                       child: Row(
                         children: [
-                          Icon(Icons.location_on, size: 14, color: _primaryBlue),
+                          Icon(Icons.location_on, size: 14, color: primaryBlue),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               route.location,
-                              style: TextStyle(fontSize: 12, color: _primaryBlue, fontWeight: FontWeight.w500),
+                              style: TextStyle(fontSize: 12, color: primaryBlue, fontWeight: FontWeight.w500),
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
                             ),
@@ -355,7 +355,7 @@ class _RouteCard extends StatelessWidget {
                       },
                       child: Icon(
                           Icons.chevron_right_rounded,
-                          color: _primaryBlue,
+                          color: primaryBlue,
                           size: 20
                       ),
                     ),
