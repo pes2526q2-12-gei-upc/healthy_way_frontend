@@ -939,6 +939,30 @@ abstract class AppLocalizations {
   /// In ca, this message translates to:
   /// **'Sense dades'**
   String get noData;
+
+  /// No description provided for @improveExperience.
+  ///
+  /// In ca, this message translates to:
+  /// **'Millora la teva experiència'**
+  String get improveExperience;
+
+  /// No description provided for @backgroundLocationMessage.
+  ///
+  /// In ca, this message translates to:
+  /// **'Per gravar rutes sense talls amb la pantalla apagada, ves a Configuració i selecciona \"Permetre tot el temps\".'**
+  String get backgroundLocationMessage;
+
+  /// No description provided for @later.
+  ///
+  /// In ca, this message translates to:
+  /// **'Més tard'**
+  String get later;
+
+  /// No description provided for @goToSettings.
+  ///
+  /// In ca, this message translates to:
+  /// **'Anar a Configuració'**
+  String get goToSettings;
 }
 
 class _AppLocalizationsDelegate

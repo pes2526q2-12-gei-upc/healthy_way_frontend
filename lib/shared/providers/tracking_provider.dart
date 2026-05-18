@@ -70,23 +70,26 @@ class TrackingProvider extends ChangeNotifier {
 
 
   // 1. INICIAR
-  Future<void> startRun() async {
-    if (_stopwatch.isRunning) return;
+  Future<String?> startRun() async {
+    if (_stopwatch.isRunning) return null;
+    final error = await _locationService.startTracking();
+    if (error != null) {
+      return error;
+    }
 
     _stopwatch.start();
     _startTimer();
-
-    await _locationService.startTracking();
 
     _subscription ??= _locationService.locationStream.listen((LocationPoint point) {
       _updateLocation(point);
     });
 
     running = true;
-
-    startTime = DateTime.now(); // Guardamos el momento de inicio para calcular el tiempo total al finalizar
+    startTime = DateTime.now();
 
     notifyListeners();
+
+    return null;
   }
 
   // 2. PAUSAR / REANUDAR

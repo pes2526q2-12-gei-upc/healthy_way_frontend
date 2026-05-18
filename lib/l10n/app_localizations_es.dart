@@ -439,4 +439,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noData => 'Sin datos';
+
+  @override
+  String get improveExperience => 'Mejora tu experiencia';
+
+  @override
+  String get backgroundLocationMessage =>
+      'Para grabar rutas sin cortes con la pantalla apagada, ve a Ajustes y selecciona \'Permitir todo el tiempo\'.';
+
+  @override
+  String get later => 'Más tarde';
+
+  @override
+  String get goToSettings => 'Ir a Ajustes';
 }

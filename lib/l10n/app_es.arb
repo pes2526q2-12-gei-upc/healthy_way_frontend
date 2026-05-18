@@ -147,5 +147,9 @@
   "good": "Buena",
   "moderate_air": "Moderada",
   "bad": "Mala",
-  "noData": "Sin datos"
+  "noData": "Sin datos",
+  "improveExperience": "Mejora tu experiencia",
+  "backgroundLocationMessage": "Para grabar rutas sin cortes con la pantalla apagada, ve a Ajustes y selecciona 'Permitir todo el tiempo'.",
+  "later": "Más tarde",
+  "goToSettings": "Ir a Ajustes"
 }

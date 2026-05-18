@@ -436,4 +436,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noData => 'No data';
+
+  @override
+  String get improveExperience => 'Improve your experience';
+
+  @override
+  String get backgroundLocationMessage =>
+      'To record routes without interruptions with the screen off, go to Settings and select \"Allow all the time\".';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get goToSettings => 'Go to Settings';
 }

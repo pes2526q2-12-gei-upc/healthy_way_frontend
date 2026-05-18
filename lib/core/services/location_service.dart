@@ -42,7 +42,11 @@ class LocationService {
 
   // --- Ubicación puntual (existente) ---
   static Future<LatLng> getCurrentLocation() async {
-    await _checkAndRequestPermission();
+    final error = await checkAndRequestPermission();
+
+    if (error != null) {
+      throw Exception(error);
+    }
 
     final position = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
@@ -51,40 +55,37 @@ class LocationService {
     return LatLng(position.latitude, position.longitude);
   }
 
-  static Future<void> _checkAndRequestPermission() async {
+  static Future<String?> checkAndRequestPermission() async {
     bool serviceEnabled;
     LocationPermission permission;
 
     // 1. ¿Está el GPS activado en los ajustes del móvil?
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      debugPrint('El GPS está apagado. Necesitamos que enciendas el GPS para que puedas utilizar HealthyWay correctamente.');
-      return;
+      return 'El GPS está apagado. Necesitamos que enciendas el GPS para que puedas utilizar HealthyWay correctamente.';
     }
 
-    // 2. ¿Tenemos permiso de la app?
+    // 2. ¿Tenemos permiso básico de la app?
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
-      // Si no tiene, se lo pedimos ahora mismo
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        debugPrint('El usuario ha denegado el permiso.');
-        return;
+        return 'El usuario ha denegado el permiso.';
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      debugPrint('Permisos denegados para siempre. Debe ir a Ajustes.');
-      return;
+      return 'Permisos denegados para siempre. Debe ir a Ajustes.';
     }
 
+    // 3. ¿Tenemos solo permiso parcial? Pedimos "Permitir siempre"
     if (permission == LocationPermission.whileInUse) {
       permission = await Geolocator.requestPermission();
-      // Si sigue siendo whileInUse, avisamos que puede haber cortes
       if (permission == LocationPermission.whileInUse) {
-        debugPrint("Aviso: La ruta podría detenerse al bloquear el teléfono ya que solo tenemos permiso parcial. Para el correcto funcionamiento ve ajustes y permite la ubicacion todo el tiempo.");
+        return 'background_needed';
       }
     }
+    return null;
   }
 
   // --- NUEVO: Ubicación en tiempo real ---
@@ -97,13 +98,16 @@ class LocationService {
 
   StreamSubscription<Position>? _positionSubscription;
 
-  Future<void> startTracking() async {
-    await _checkAndRequestPermission();
+  Future<String?> startTracking() async {
+    final error = await checkAndRequestPermission();
+
+    if (error != null) {
+      return error;
+    }
 
     late LocationSettings settings = getSettings();
 
-    // Evitamos duplicar subscripciones
-    if (_positionSubscription != null) return;
+    if (_positionSubscription != null) return null;
 
     _positionSubscription = Geolocator.getPositionStream(
         locationSettings: settings
@@ -114,6 +118,8 @@ class LocationService {
       );
       _locationController.add(point);
     });
+
+    return null;
   }
 
   void stopTracking() {
