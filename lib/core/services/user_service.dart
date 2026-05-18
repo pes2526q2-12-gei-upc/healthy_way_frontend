@@ -33,19 +33,21 @@ class UserService {
       }),
     );
 
-    if (response.statusCode != 201) {
-      debugPrint('Error al crear usuario: ${response.statusCode}');
-      debugPrint('Mensaje: ${response.body}');
-      return false;
-    }
-
-    else if (response.statusCode == 201) {
+    if (response.statusCode == 201) {
       final responseBody = json.decode(response.body);
       final token = responseBody['authToken'];
       await SecureStorageService().saveToken(token);
+      return true;
     }
-
-    return true;
+    else if(response.statusCode == 400) {
+      throw Exception('invalid_data');
+    }
+    else if(response.statusCode == 409) {
+      throw Exception('user_already_exists');
+    }
+    else {
+      throw Exception('unknown_error');
+    }
   }
 
   Future<User?> login(String identifier, String password) async {

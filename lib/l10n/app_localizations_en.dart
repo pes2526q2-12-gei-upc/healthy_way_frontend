@@ -64,6 +64,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get requiredField => 'This field is required';
 
   @override
+  String get userAlreadyExists =>
+      'This email or username is already registered';
+
+  @override
   String get createAccount => 'Create an account';
 
   @override

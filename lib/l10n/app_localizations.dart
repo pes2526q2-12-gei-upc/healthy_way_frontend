@@ -208,6 +208,12 @@ abstract class AppLocalizations {
   /// **'Aquest camp és obligatori'**
   String get requiredField;
 
+  /// No description provided for @userAlreadyExists.
+  ///
+  /// In ca, this message translates to:
+  /// **'Aquest correu o nom d\'usuari ja està registrat'**
+  String get userAlreadyExists;
+
   /// No description provided for @createAccount.
   ///
   /// In ca, this message translates to:

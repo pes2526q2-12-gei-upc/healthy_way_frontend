@@ -81,18 +81,42 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_nameError != null || _usernameError != null || _emailError != null || _confirmPasswordError != null) return;
     if (!_isPasswordSecure) return;
 
-    bool b = await UserService().crearUsuari(_nameController.text.trim(), _usernameController.text.trim(), _emailController.text.trim(), _passwordController.text);
+    try {
+      bool b = await UserService().crearUsuari(
+        _nameController.text.trim(),
+        _usernameController.text.trim(),
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
 
-    if (b) {
-      final loginSuccess = await UserService().login(_emailController.text.trim(), _passwordController.text);
-      if (!mounted) return;
-      if (loginSuccess == null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.registerAfterLoginError), backgroundColor: Colors.redAccent));
-        return;
+      if (b) {
+        final loginSuccess = await UserService().login(_emailController.text.trim(), _passwordController.text);
+        if (!mounted) return;
+        if (loginSuccess == null) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.registerAfterLoginError), backgroundColor: Colors.redAccent));
+          return;
+        }
+        context.read<AuthProvider>().login(loginSuccess);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.registerSuccess), backgroundColor: Colors.green));
+        Navigator.pushReplacementNamed(context, AppRouter.homeRoute);
       }
-      context.read<AuthProvider>().login(loginSuccess);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.registerSuccess), backgroundColor: Colors.green));
-      Navigator.pushReplacementNamed(context, AppRouter.homeRoute);
+    } catch (e) {
+      if (!mounted) return;
+
+      if (e.toString().contains('user_already_exists')) {
+        setState(() {
+          _emailError = l10n.userAlreadyExists;
+          _usernameError = l10n.userAlreadyExists;
+        });
+      }
+      else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.registerAfterLoginError),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     }
   }
 
