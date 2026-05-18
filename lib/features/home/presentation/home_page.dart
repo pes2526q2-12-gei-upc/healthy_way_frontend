@@ -321,7 +321,7 @@ class _RouteCard extends StatelessWidget {
 
                       const Icon(Icons.trending_up, size: 14, color: Colors.grey),
                       const SizedBox(width: 4),
-                      Text('${route.elevationGain} m', style: const TextStyle(fontSize: 12, color: Colors.grey))
+                      Text('${route.elevationGain.toStringAsFixed(2)} m', style: const TextStyle(fontSize: 12, color: Colors.grey))
                     ]
                 ),
                 const SizedBox(height: 8),

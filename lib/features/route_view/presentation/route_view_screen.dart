@@ -132,7 +132,7 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                           children: [
                             _buildMetricCard(l10n.distance, rutaSeleccionada.distance.toString(), 'km'),
                             const SizedBox(width: 12),
-                            _buildMetricCard(l10n.altitude, rutaSeleccionada.elevationGain.toString(), 'm'),
+                            _buildMetricCard(l10n.altitude, rutaSeleccionada.elevationGain.toStringAsFixed(2), 'm'),
                             const SizedBox(width: 12),
                             FutureBuilder<User?>(
                               future: UserService().getUserProfile(rutaSeleccionada.createdBy),
