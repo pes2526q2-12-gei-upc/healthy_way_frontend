@@ -40,7 +40,7 @@ void main() {
       expect(user.userId, 1);
     });
 
-    test('login() debe devolver null si las credenciales son incorrectas (401)', () async {
+    test('login() debe lanzar una excepción si las credenciales son incorrectas (401)', () async {
       // 1. ARRANGE: Servidor falso que responde con error de autorización
       final mockClient = MockClient((request) async {
         return http.Response(jsonEncode({'error': 'Credenciales inválidas'}), 401);
@@ -48,11 +48,11 @@ void main() {
 
       final service = UserService(client: mockClient);
 
-      // 2. ACT
-      final user = await service.login('raul123', 'passwordIncorrecta');
-
-      // 3. ASSERT: Como programaste en tu UserService, si no es 200, devuelve null
-      expect(user, isNull);
+      // 2. ACT & 3. ASSERT
+      expect(
+            () async => await service.login('raul123', 'passwordIncorrecta'),
+        throwsA(isA<Exception>()),
+      );
     });
   });
 }
