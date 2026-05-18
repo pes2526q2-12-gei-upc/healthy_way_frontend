@@ -26,6 +26,8 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
   final TextEditingController _minDistController = TextEditingController();
   final TextEditingController _maxDistController = TextEditingController();
 
+  final Set<String> _favoritedRouteIds = {};
+
   @override
   void dispose() {
     _routeNameController.dispose();
@@ -209,13 +211,18 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
   }
 
   Widget _buildSingleRouteCard(RouteModel ruta) {
+    final bool isFav = _favoritedRouteIds.contains(ruta.id);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Card(
         clipBehavior: Clip.antiAlias,
         color: Colors.white,
         elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFE2E8F0))),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFE2E8F0))
+        ),
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -244,7 +251,28 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Flexible(child: Text(ruta.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), overflow: TextOverflow.ellipsis)), Icon(Icons.favorite_outline, color: _inactiveFilterTextColor, size: 24)]),
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Flexible(child: Text(ruta.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), overflow: TextOverflow.ellipsis)),
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            if (isFav) {
+                                              _favoritedRouteIds.remove(ruta.id);
+                                            } else {
+                                              _favoritedRouteIds.add(ruta.id);
+                                            }
+                                          });
+                                        },
+                                        child: Icon(
+                                          isFav ? Icons.favorite : Icons.favorite_outline,
+                                          color: isFav ? Colors.redAccent : _inactiveFilterTextColor,
+                                          size: 24,
+                                        ),
+                                      ),
+                                    ]
+                                ),
                                 const SizedBox(height: 4),
                                 Row(children: [Icon(Icons.location_on_outlined, color: _inactiveFilterTextColor, size: 16), const SizedBox(width: 4), Text(ruta.location, style: TextStyle(color: _inactiveFilterTextColor))]),
                                 const SizedBox(height: 12),
