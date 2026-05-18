@@ -33,8 +33,8 @@ void main() {
           'start_point': [2.1, 41.1],
           'end_point': [2.2, 41.2],
           'location': 'Hospitalet',
-          'altitude': 10,
-          'elevationGain': 20,
+          'altitude': 10.2,
+          'elevation_gain': 20.3,
           'modality': 'Cycling'
         };
 

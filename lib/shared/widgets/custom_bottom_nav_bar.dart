@@ -9,9 +9,6 @@ class CustomBottomNavBar extends StatelessWidget {
     required this.currentIndex,
   });
 
-  // Función auxiliar para mostrar el mensaje de "Próximamente"
-  
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -21,17 +18,16 @@ class CustomBottomNavBar extends StatelessWidget {
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
-            offset: const Offset(0, -5), // Sombrilla suave hacia arriba
+            offset: const Offset(0, -5),
           ),
         ],
       ),
-      // SafeArea evita que la barra se superponga con la línea de inicio de los iPhone
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center, // 🔥 Esto alinea todo en el centro verticalmente
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _BottomNavItem(
                 icon: Icons.home_rounded,
@@ -50,14 +46,12 @@ class CustomBottomNavBar extends StatelessWidget {
                 },
               ),
 
-              // 🔥 AQUÍ ESTÁ EL BOTÓN PLAY REUTILIZABLE 🔥
               GestureDetector(
                 onTap: () {
-                  // Acción central (Iniciar ruta, etc.)
                   Navigator.pushNamed(context, AppRouter.runningRoute);
                 },
                 child: Container(
-                  width: 56, // Tamaño estándar del botón
+                  width: 56,
                   height: 56,
                   decoration: BoxDecoration(
                     color: Colors.blue[700],
@@ -74,7 +68,6 @@ class CustomBottomNavBar extends StatelessWidget {
                 ),
               ),
 
-              // 🔥 BOTÓN SOCIAL (Feedback añadido)
               _BottomNavItem(
                 icon: Icons.people_outline,
                 label: 'Social',
@@ -86,7 +79,6 @@ class CustomBottomNavBar extends StatelessWidget {
                 },
               ),
 
-              // 🔥 BOTÓN PERFIL (Feedback añadido)
               _BottomNavItem(
                 icon: Icons.person_outline,
                 label: 'Perfil',
@@ -121,7 +113,7 @@ class _BottomNavItem extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: SizedBox(
-        width: 60, // Fijamos un ancho para que todos ocupen lo mismo
+        width: 60,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
