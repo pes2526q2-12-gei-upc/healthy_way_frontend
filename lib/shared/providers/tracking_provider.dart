@@ -113,6 +113,13 @@ class TrackingProvider extends ChangeNotifier {
 
   // 4. RESETEAR
   void reset() {
+    _stopwatch.stop();
+    _stopwatch.reset();
+    _timer?.cancel();
+    _timer = null;
+    _subscription?.cancel();
+    _subscription = null;
+    _locationService.stopTracking();
     traversedRoute.clear();
     distanceDouble = 0.0;
     distance = '0.00';
