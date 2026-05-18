@@ -39,17 +39,33 @@ class _LoginPageState extends State<LoginPage> {
 
     if (_identifierError != null || _passwordError != null) return;
 
-    final partialUser = await UserService().login(_identifierController.text.trim(), _passwordController.text.trim());
-    final loggedUser = await UserService().getUserProfile(partialUser!.userId);
-    if (!mounted) return;
-    if (loggedUser != null) {
-      context.read<AuthProvider>().login(loggedUser);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.loginSuccess), backgroundColor: Colors.green, duration: const Duration(seconds: 2)),
+    try {
+      final loginSuccess = await UserService().login(
+        _identifierController.text.trim(),
+        _passwordController.text,
       );
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      setState(() { _backendError = l10n.loginError; });
+
+      if (!mounted) return;
+
+      if (loginSuccess != null) {
+        context.read<AuthProvider>().login(loginSuccess);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.loginSuccess), backgroundColor: Colors.green),
+        );
+      } else {
+        setState(() {
+          _backendError = l10n.invalidCredentials;
+          _identifierError = '';
+          _passwordError = '';
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _backendError = l10n.invalidCredentials;
+        _identifierError = '';
+        _passwordError = '';
+      });
     }
   }
 
