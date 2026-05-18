@@ -106,4 +106,48 @@ class ChatService {
       return [];
     }
   }
+
+  /// Reportar un missatge (placeholder)
+  /// POST /api/v1/chats/report
+  /// Body: { reporterUsername, reportedUsername, content, timestamp }
+  /// Actualmente el endpoint pot no existir; aquesta funció proporciona la
+  /// estructura de la crida perquè en el futur només calgui ajustar la URL o
+  /// el payload.
+  Future<bool> reportMessage({
+    required String reporterUsername,
+    required String reportedUsername,
+    required String content,
+    required DateTime timestamp,
+  }) async {
+    final url = Uri.parse('$baseUrl/chats/report');
+
+    final body = jsonEncode({
+      'reporterUsername': reporterUsername,
+      'reportedUsername': reportedUsername,
+      'content': content,
+      'timestamp': timestamp.toUtc().toIso8601String(),
+    });
+
+    try {
+      final response = await client.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${await SecureStorageService().getToken()}'
+        },
+        body: body,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      }
+
+      debugPrint('Report message failed: ${response.statusCode}');
+      debugPrint('Body: ${response.body}');
+      return false;
+    } catch (e) {
+      debugPrint('Error reporting message: $e');
+      return false;
+    }
+  }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/chat_service.dart';
@@ -159,6 +160,85 @@ class _ChatState extends State<Chat> {
         );
       }
     });
+  }
+
+  // Mostra accions per a un missatge (long-press). De moment només "Reportar".
+  void _onMessageLongPress(ChatMessage message) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.report, color: Colors.red),
+                title: const Text('Reportar missatge'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _reportMessage(message);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.copy),
+                title: const Text('Copiar contingut'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Clipboard.setData(ClipboardData(text: message.content));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Missatge copiat')),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.close),
+                title: const Text('Cancelar'),
+                onTap: () => Navigator.pop(ctx),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _reportMessage(ChatMessage message) async {
+    final user = context.read<AuthProvider>().currentUser;
+    final reporter = user?.username ?? '';
+
+    // Mostrem un loader ràpid
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final success = await ChatService().reportMessage(
+        reporterUsername: reporter,
+        reportedUsername: message.senderUsername,
+        content: message.content,
+        timestamp: message.timestamp,
+      );
+
+      if (mounted) {
+        Navigator.pop(context); // tancar loader
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success
+                ? 'Missatge reportat. Gràcies per la teva notificació.'
+                : 'No s\'ha pogut enviar el report. S\'intentarà més tard.'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error en reportar el missatge')),
+        );
+      }
+    }
   }
 
 
@@ -376,63 +456,68 @@ class _ChatState extends State<Chat> {
 
               // Bombolla del missatge
               Flexible(
-                child: Container(
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.72,
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: isMe ? _primaryBlue : Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(18),
-                      topRight: const Radius.circular(18),
-                      bottomLeft: Radius.circular(isMe ? 18 : 4),
-                      bottomRight: Radius.circular(isMe ? 4 : 18),
+                child: GestureDetector(
+                  onLongPress: isMe
+                      ? null
+                      : () => _onMessageLongPress(message),
+                  child: Container(
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.72,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isMe ? _primaryBlue : Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(18),
+                        topRight: const Radius.circular(18),
+                        bottomLeft: Radius.circular(isMe ? 18 : 4),
+                        bottomRight: Radius.circular(isMe ? 4 : 18),
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        message.content,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isMe ? Colors.white : const Color(0xFF1A1D26),
-                          height: 1.35,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            timeStr,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: isMe
-                                  ? Colors.white.withValues(alpha: 0.65)
-                                  : Colors.grey,
-                            ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          message.content,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isMe ? Colors.white : const Color(0xFF1A1D26),
+                            height: 1.35,
                           ),
-                          if (isMe) ...[
-                            const SizedBox(width: 3),
-                            Icon(
-                              Icons.done_all,
-                              size: 13,
-                              color: Colors.white.withValues(alpha: 0.65),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              timeStr,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: isMe
+                                    ? Colors.white.withValues(alpha: 0.65)
+                                    : Colors.grey,
+                              ),
                             ),
+                            if (isMe) ...[
+                              const SizedBox(width: 3),
+                              Icon(
+                                Icons.done_all,
+                                size: 13,
+                                color: Colors.white.withValues(alpha: 0.65),
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
