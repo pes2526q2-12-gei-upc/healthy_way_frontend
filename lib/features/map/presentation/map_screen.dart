@@ -124,6 +124,7 @@ class _MapScreenState extends State<MapScreen> {
                         child: Container(
                           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))]),
                           child: TextField(
+                            readOnly: true,
                             decoration: InputDecoration(
                               hintText: l10n.searchRoutes,
                               prefixIcon: const Icon(Icons.search, color: Colors.grey),
