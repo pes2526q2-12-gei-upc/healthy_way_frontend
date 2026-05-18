@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:healthy_way_frontend/shared/providers/language_provider.dart';
 import 'package:provider/provider.dart';
 import 'app.dart';
 import 'shared/providers/auth_provider.dart';
@@ -7,6 +9,10 @@ import 'shared/providers/location_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
 
   final authProvider = AuthProvider();
 
@@ -19,6 +25,7 @@ Future<void> main() async {
         // Aquí registramos nuestro Provider para que nazca con la app
         ChangeNotifierProvider(create: (_) => TrackingProvider()),
         ChangeNotifierProvider(create: (_) => LocationProvider()),
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
         ChangeNotifierProvider.value(value: authProvider),
       ],
       child: const HealthyWayApp(),

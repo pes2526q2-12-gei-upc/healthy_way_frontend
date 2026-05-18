@@ -4,6 +4,7 @@ import 'package:healthy_way_frontend/shared/models/route_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:healthy_way_frontend/core/services/token_service.dart';
+import 'package:latlong2/latlong.dart';
 
 class RouteService {
   final http.Client client;
@@ -42,16 +43,34 @@ class RouteService {
     }
 
   // 2. OBTENER TODAS LAS RUTAS RECOMENDADAS
-  Future<List<RouteModel>> getRecommendedRoutes() async {
-    final response = await client.get(Uri.parse('$baseUrl/routes/recommendations'),
-    headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'});
+  Future<List<RouteModel>> getRecommendedRoutes(LatLng pos, int maxDistance) async {
+    try {
+      final queryParameters = {
+        'lat': pos.latitude.toString(),
+        'lng': pos.longitude.toString(),
+        'maxDistance': maxDistance.toString(),
+      };
 
-    if (response.statusCode == 200) {
-      final List<dynamic> routesJson = json.decode(response.body);
-      final List<RouteModel> routes = routesJson.map((json) => RouteModel.fromJson(json)).toList();
-      return routes;
-    } else {
-      throw Exception('Error al cargar las rutas recomendadas');
+      final response = await client.get(
+          Uri.parse('$baseUrl/routes/recommendations').replace(queryParameters: queryParameters),
+          headers: {'Authorization': 'Bearer ${await SecureStorageService().getToken()}'}
+      );
+
+      // Si llegamos aquí, es que el servidor SÍ ha respondido algo
+      if (response.statusCode == 200) {
+        final List<dynamic> routesJson = json.decode(response.body);
+        final List<RouteModel> routes = routesJson.map((item) {
+          final Map<String, dynamic> routeData = item['route'];
+          routeData['points'] = item['points'];
+          return RouteModel.fromJson(routeData);
+        }).toList();
+        return routes;
+      } else {
+        throw Exception('Error del servidor: ${response.statusCode}');
+      }
+
+    } catch (e) {
+      throw Exception('Error de conexión o procesamiento en rutas recomendadas');
     }
   }
 

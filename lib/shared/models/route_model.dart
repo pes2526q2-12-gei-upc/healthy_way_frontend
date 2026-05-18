@@ -13,8 +13,9 @@ class RouteModel {
   final LatLng startPoint;
   final LatLng endPoint;
   final String location;
-  final String altitude;
-  final String elevationGain;
+  final double altitude;
+  final double elevationGain;
+  final double points;
 
   RouteModel({
     required this.id,
@@ -29,6 +30,7 @@ class RouteModel {
     required this.location,
     required this.altitude,
     required this.elevationGain,
+    this.points = 0.0,
   });
 
   factory RouteModel.fromJson(Map<String, dynamic> json) {
@@ -62,8 +64,9 @@ class RouteModel {
       )
           : const LatLng(0, 0), // O pon un LatLng(0,0) como arriba si lo prefieres
       location: json['location'],
-      altitude: json['altitude'].toString(),
-      elevationGain: json['elevation_gain'].toString(),
+      altitude: json['altitude'].toDouble(),
+      elevationGain: json['elevation_gain'].toDouble(),
+      points: (json['points'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -87,8 +90,8 @@ class RouteModel {
         'coordinates': [endPoint.longitude, endPoint.latitude]
       },
       'location': location,
-      'altitude': double.tryParse(altitude),
-      'elevation_gain': double.tryParse(elevationGain),
+      'altitude': altitude,
+      'elevation_gain': elevationGain,
       'modality': modality.toLowerCase(),
     };
   }

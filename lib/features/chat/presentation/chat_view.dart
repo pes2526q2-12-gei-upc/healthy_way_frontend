@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/chat_service.dart';
+import '../../../core/services/socket_service.dart';
 import '../../../shared/models/chat_message.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
@@ -26,11 +27,8 @@ class _ChatState extends State<Chat> {
   List<ChatMessage> _messages = [];
   bool _isLoading = true;
   bool _isSending = false;
-  bool _useHardcoded = false; // Si la API falla, usem missatges de prova
-  Timer? _pollTimer;
 
-  // ⚠️ Hardcoded: chatId. Idealment vindria del backend vinculat a l'equip
-  static const int _chatId = 1;
+
 
   @override
   void initState() {
@@ -43,56 +41,69 @@ class _ChatState extends State<Chat> {
     _messageController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
-    _pollTimer?.cancel();
+    SocketService().off('new-chat-message');
     super.dispose();
   }
 
   Future<void> _loadMessages() async {
+    final user = context.read<AuthProvider>().currentUser;
+    if (user == null || !user.hasTeam) {
+      setState(() {
+        _messages = [];
+        _isLoading = false;
+      });
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
-      final messages = await ChatService().getMessages(_chatId);
+      final messages = await ChatService().getTeamMessages(user.team!);
+      // Ordenar cronològicament (més antics a dalt)
+      messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      
       if (mounted) {
         setState(() {
-          if (messages.isEmpty) {
-            // Si la API retorna buit, usem hardcoded per demostrar la vista
-            _useHardcoded = true;
-            _messages = _getHardcodedMessages();
-          } else {
-            _useHardcoded = false;
-            _messages = messages;
-          }
+          _messages = messages;
           _isLoading = false;
         });
         _scrollToBottom();
-        _startPolling();
+        _setupSocketListener();
       }
     } catch (e) {
-      // Si la API no respon, mostrem dades de prova
       if (mounted) {
         setState(() {
-          _useHardcoded = true;
-          _messages = _getHardcodedMessages();
+          _messages = [];
           _isLoading = false;
         });
-        _scrollToBottom();
       }
     }
   }
 
-  void _startPolling() {
-    if (_useHardcoded) return;
-    _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
-      if (_messages.isNotEmpty) {
-        final newMessages = await ChatService().getMessagesSince(
-          _chatId,
-          _messages.last.timestamp,
-        );
-        if (mounted && newMessages.isNotEmpty) {
-          setState(() => _messages.addAll(newMessages));
-          _scrollToBottom();
-        }
+  void _setupSocketListener() {
+    final user = context.read<AuthProvider>().currentUser;
+    if (user == null || !user.hasTeam) return;
+
+    // Netegem qualsevol listener anterior per evitar duplicats si es crida més d'un cop
+    SocketService().off('new-chat-message');
+
+    SocketService().on('new-chat-message', (data) {
+      if (mounted) {
+        final message = ChatMessage.fromJson(data as Map<String, dynamic>);
+        
+        setState(() {
+          // Evitem duplicats si ja l'hem afegit localment a _sendMessage
+          bool isDuplicate = _messages.any((m) => 
+            m.senderUsername == message.senderUsername && 
+            m.content == message.content &&
+            (m.timestamp.difference(message.timestamp).inSeconds.abs() < 5)
+          );
+
+          if (!isDuplicate) {
+            _messages.add(message);
+            _scrollToBottom();
+          }
+        });
       }
     });
   }
@@ -102,35 +113,20 @@ class _ChatState extends State<Chat> {
     if (text.isEmpty) return;
 
     final user = context.read<AuthProvider>().currentUser;
-    if (user == null) return;
+    if (user == null || !user.hasTeam) return;
 
     _messageController.clear();
-
-    if (_useHardcoded) {
-      // Mode de prova: afegim el missatge localment
-      setState(() {
-        _messages.add(ChatMessage(
-          senderUsername: user.username,
-          content: text,
-          timestamp: DateTime.now(),
-        ));
-      });
-      _scrollToBottom();
-      return;
-    }
-
     setState(() => _isSending = true);
 
     try {
       final success = await ChatService().sendMessage(
-        chatId: _chatId,
-        senderId: user.userId,
+        senderUsername: user.username,
         content: text,
       );
 
       if (mounted) {
         if (success) {
-          // Afegim l'entrada localment per feedback immediat
+          // No cal afegir-lo localment si el polling és ràpid, però ho fem per UX
           setState(() {
             _messages.add(ChatMessage(
               senderUsername: user.username,
@@ -141,23 +137,13 @@ class _ChatState extends State<Chat> {
           _scrollToBottom();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('No s\'ha pogut enviar el missatge'),
-              backgroundColor: Colors.red[700],
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+            const SnackBar(content: Text('No s\'ha pogut enviar el missatge')),
           );
-          // Restaurem el text
           _messageController.text = text;
         }
       }
     } catch (e) {
-      if (mounted) {
-        _messageController.text = text;
-      }
+      if (mounted) _messageController.text = text;
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
@@ -175,42 +161,12 @@ class _ChatState extends State<Chat> {
     });
   }
 
-  // ⚠️ Missatges hardcoded de demostració (basats en el mockup)
-  List<ChatMessage> _getHardcodedMessages() {
-    final now = DateTime.now();
-    return [
-      ChatMessage(
-        senderUsername: 'Marc Soler',
-        content: 'Ei equip! Algú s\'anima a fer la ruta de Collserola aquesta tarda? 🏔️',
-        timestamp: DateTime(now.year, now.month, now.day, 10, 30),
-      ),
-      ChatMessage(
-        senderUsername: 'Laura Vila',
-        content: 'Jo puc a partir de les 18h! M\'han dit que l\'aire està excel·lent avui.',
-        timestamp: DateTime(now.year, now.month, now.day, 10, 32),
-      ),
-      ChatMessage(
-        senderUsername: '_self_', // Marcador per al missatge propi
-        content: 'Perfecte, a les 18h ens veiem a l\'entrada del parc! 👍',
-        timestamp: DateTime(now.year, now.month, now.day, 10, 35),
-      ),
-      ChatMessage(
-        senderUsername: 'Pau Riera',
-        content: 'Compteu amb mi també. Portaré aigua extra.',
-        timestamp: DateTime(now.year, now.month, now.day, 10, 40),
-      ),
-      ChatMessage(
-        senderUsername: 'Marc Soler',
-        content: 'Genial! Doncs ja som 4. Ens veiem allà 💪',
-        timestamp: DateTime(now.year, now.month, now.day, 10, 42),
-      ),
-    ];
-  }
 
   @override
   Widget build(BuildContext context) {
-    final currentUsername =
-        context.watch<AuthProvider>().currentUser?.username ?? '';
+    final user = context.watch<AuthProvider>().currentUser;
+    final hasTeam = user?.hasTeam ?? false;
+    final currentUsername = user?.username ?? '';
 
     return Scaffold(
       backgroundColor: _bgColor,
@@ -219,39 +175,21 @@ class _ChatState extends State<Chat> {
         children: [
           CommunityHeader(selectedIndex: 2),
 
-          // Banner informatiu si estem en mode hardcoded
-          if (_useHardcoded && !_isLoading)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Colors.amber.shade50,
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, size: 14, color: Colors.amber[800]),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Mode de prova — els missatges no es guarden al servidor',
-                      style: TextStyle(fontSize: 11, color: Colors.amber[900]),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
           // Cos del xat
           Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: _primaryBlue),
-                  )
-                : _messages.isEmpty
-                    ? _buildEmptyState()
-                    : _buildMessagesList(currentUsername),
+            child: !hasTeam
+                ? _buildNoTeamState()
+                : _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: _primaryBlue),
+                      )
+                    : _messages.isEmpty
+                        ? _buildEmptyState()
+                        : _buildMessagesList(currentUsername),
           ),
 
-          // Barra d'escriptura
-          _buildInputBar(),
+          // Barra d'escriptura (només si té equip)
+          if (hasTeam) _buildInputBar(),
         ],
       ),
     );
@@ -263,49 +201,76 @@ class _ChatState extends State<Chat> {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      itemCount: _messages.length + 1, // +1 pel separador "Avui"
+      itemCount: _messages.length,
       itemBuilder: (context, index) {
-        // Primer element = separador de dia
+        final msg = _messages[index];
+        final isMe = msg.senderUsername == currentUsername;
+
+        // Decidim si mostrem el separador de data
+        bool showDateSeparator = false;
         if (index == 0) {
-          return _buildDaySeparator('Avui');
+          showDateSeparator = true;
+        } else {
+          final prevMsg = _messages[index - 1];
+          if (!_isSameDay(msg.timestamp, prevMsg.timestamp)) {
+            showDateSeparator = true;
+          }
         }
 
-        final msg = _messages[index - 1];
-        final isMe = msg.senderUsername == currentUsername ||
-            msg.senderUsername == '_self_';
-
         // Decidim si mostrem el nom de l'emissor (agrupació)
-        final showSenderName = index == 1 ||
-            _messages[index - 2].senderUsername != msg.senderUsername;
+        // El mostrem si és el primer missatge, o si el remitent ha canviat, 
+        // o si hi ha un separador de data entremig
+        final showSenderName = index == 0 ||
+            _messages[index - 1].senderUsername != msg.senderUsername ||
+            showDateSeparator;
 
-        return _buildMessageBubble(
+        final bubble = _buildMessageBubble(
           message: msg,
           isMe: isMe,
           showSenderName: showSenderName,
         );
+
+        if (showDateSeparator) {
+          return Column(
+            children: [
+              _buildDaySeparator(_getDateLabel(msg.timestamp)),
+              bubble,
+            ],
+          );
+        }
+        return bubble;
       },
     );
   }
 
   Widget _buildDaySeparator(String label) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
+      margin: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
       child: Row(
         children: [
           Expanded(child: Divider(color: Colors.grey.shade300, thickness: 0.5)),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade200),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               label,
               style: TextStyle(
                 fontSize: 11,
                 color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
               ),
             ),
           ),
@@ -313,6 +278,29 @@ class _ChatState extends State<Chat> {
         ],
       ),
     );
+  }
+
+  String _getDateLabel(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final msgDate = DateTime(date.year, date.month, date.day);
+
+    if (msgDate == today) {
+      return 'HOY';
+    } else if (msgDate == yesterday) {
+      return 'AYER';
+    } else {
+      final months = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      ];
+      return '${date.day} de ${months[date.month - 1]}'.toUpperCase();
+    }
+  }
+
+  bool _isSameDay(DateTime d1, DateTime d2) {
+    return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
   }
 
   Widget _buildMessageBubble({
@@ -451,6 +439,69 @@ class _ChatState extends State<Chat> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  // ─── Estat sense equip ──────────────────────────────────────────────────────────
+
+  Widget _buildNoTeamState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.group_off_rounded,
+                color: Colors.orange,
+                size: 48,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Encara no tens cap equip',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1D26),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Per poder xatejar amb altres usuaris, primer has d\'unir-te a un equip o crear-ne un de nou a la secció d\'Equips.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                // Aquí podríem navegar a la pestanya d'equips si cal
+                // Per ara només informem
+              },
+              icon: const Icon(Icons.search, color: Colors.white),
+              label: const Text('Explorar Equips', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryBlue,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:healthy_way_frontend/core/services/user_service.dart';
 import 'package:provider/provider.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../shared/providers/language_provider.dart';
 import '../../../shared/providers/auth_provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -12,11 +14,9 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Controladores para los campos
   final TextEditingController _identifierController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // Variables para gestionar la visibilidad y errores
   bool _obscurePassword = true;
   String? _identifierError;
   String? _passwordError;
@@ -29,56 +29,34 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  // Lógica de validación antes de hacer la llamada al backend
   Future<void> _validateAndSubmit() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() {
       _backendError = null;
-
-      // Validar Identifier (Email o Username)
-      if (_identifierController.text.trim().isEmpty) {
-        _identifierError = 'Aquest camp és obligatori';
-      } else {
-        _identifierError = null;
-      }
-
-      // Validar Contraseña
-      if (_passwordController.text.trim().isEmpty) {
-        _passwordError = 'Aquest camp és obligatori';
-      } else {
-        _passwordError = null;
-      }
+      _identifierError = _identifierController.text.trim().isEmpty ? l10n.requiredField : null;
+      _passwordError = _passwordController.text.trim().isEmpty ? l10n.requiredField : null;
     });
 
-    // Si hay errores locales, detenemos la ejecución
-    if (_identifierError != null || _passwordError != null) {
-      return;
-    }
+    if (_identifierError != null || _passwordError != null) return;
 
     final partialUser = await UserService().login(_identifierController.text.trim(), _passwordController.text.trim());
     final loggedUser = await UserService().getUserProfile(partialUser!.userId);
     if (!mounted) return;
-    if(loggedUser != null){
+    if (loggedUser != null) {
       context.read<AuthProvider>().login(loggedUser);
-
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Inici de sessió correcte!'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-        ),
+        SnackBar(content: Text(l10n.loginSuccess), backgroundColor: Colors.green, duration: const Duration(seconds: 2)),
       );
-
       Navigator.pushReplacementNamed(context, '/home');
-    }
-    else{
-      setState(() {
-        _backendError = 'Username o contrasenya incorrectes. Torna-ho a provar.';
-      });
+    } else {
+      setState(() { _backendError = l10n.loginError; });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       body: Container(
         height: MediaQuery.of(context).size.height,
@@ -98,46 +76,32 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // 1. Logo
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildLanguageButton(context, 'CA', const Locale('ca')),
+                          const SizedBox(width: 8),
+                          _buildLanguageButton(context, 'ES', const Locale('es')),
+                          const SizedBox(width: 8),
+                          _buildLanguageButton(context, 'EN', const Locale('en')),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
                       CircleAvatar(
                         radius: 40,
                         backgroundColor: Colors.white,
                         child: Icon(Icons.alt_route_rounded, size: 40, color: Colors.blue[700]),
                       ),
                       const SizedBox(height: 16),
-
-                      // 2. Textos de Cabecera
-                      Text(
-                        'Healthy Way',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[800],
-                        ),
-                      ),
+                      Text(l10n.appTitle, textAlign: TextAlign.center, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blue[800])),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Troba el teu camí cap al benestar',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, color: Colors.blueGrey),
-                      ),
+                      Text(l10n.appTagline, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, color: Colors.blueGrey)),
+                      const SizedBox(height: 32),
+                      Text(l10n.welcomeBackLong, textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Text(l10n.enterCredentials, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: Colors.blueGrey)),
                       const SizedBox(height: 32),
 
-                      const Text(
-                        'Benvingut/da de nou!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Introdueix les teves credencials per continuar.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, color: Colors.blueGrey),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // NUEVO: Mensaje de error del backend
                       if (_backendError != null)
                         Container(
                           padding: const EdgeInsets.all(12),
@@ -151,108 +115,56 @@ class _LoginPageState extends State<LoginPage> {
                             children: [
                               const Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
                               const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _backendError!,
-                                  style: const TextStyle(color: Colors.redAccent, fontSize: 13),
-                                ),
-                              ),
+                              Expanded(child: Text(_backendError!, style: const TextStyle(color: Colors.redAccent, fontSize: 13))),
                             ],
                           ),
                         ),
 
-                      // 3. Formulario - Correo / Username
-                      _buildTextField(
-                        label: 'Username o Correu electrònic',
-                        hint: 'Introdueix el teu usuari o email',
-                        icon: Icons.email_outlined,
-                        controller: _identifierController,
-                        errorText: _identifierError,
-                      ),
+                      _buildTextField(label: l10n.usernameOrEmail, hint: l10n.usernameOrEmailHint, icon: Icons.email_outlined, controller: _identifierController, errorText: _identifierError),
                       const SizedBox(height: 16),
+                      _buildTextField(label: l10n.password, hint: l10n.passwordHint, icon: Icons.lock_outline, isPassword: true, controller: _passwordController, errorText: _passwordError, obscureText: _obscurePassword, onToggleVisibility: () => setState(() => _obscurePassword = !_obscurePassword)),
 
-                      // 4. Formulario - Contraseña
-                      _buildTextField(
-                        label: 'Contrasenya',
-                        hint: 'La teva contrasenya',
-                        icon: Icons.lock_outline,
-                        isPassword: true,
-                        controller: _passwordController,
-                        errorText: _passwordError,
-                        obscureText: _obscurePassword,
-                        onToggleVisibility: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-
-                      // 5. Botón "¿Has olvidado la contraseña?"
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () {
-                            // Navigator.pushNamed(context, '/forgot-password');
-                          },
-                          child: const Text(
-                            'Has oblidat la contrasenya?',
-                            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-                          ),
+                          onPressed: () {},
+                          child: Text(l10n.forgotPassword, style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       const SizedBox(height: 16),
 
-                      // 6. Botón Principal "Entrar"
                       ElevatedButton(
-                        onPressed: _validateAndSubmit, // Llamamos a nuestra validación
+                        onPressed: _validateAndSubmit,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue[700],
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 5,
                           shadowColor: Colors.blue.withValues(alpha: 0.5),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('Entrar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_forward),
+                            Text(l10n.loginButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward),
                           ],
                         ),
                       ),
                       const SizedBox(height: 32),
 
-                      // 7. Sección "Regístrate"
-                      const Text(
-                        'No tens compte\nencara?',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.blueGrey),
-                      ),
+                      Text(l10n.noAccount, textAlign: TextAlign.center, style: const TextStyle(color: Colors.blueGrey)),
                       const SizedBox(height: 16),
                       OutlinedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/register');
-                        },
+                        onPressed: () => Navigator.pushNamed(context, '/register'),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           side: const BorderSide(color: Colors.blue, width: 1.5),
                           backgroundColor: Colors.blue.withValues(alpha: 0.1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: Text(
-                          "Registra't",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[700],
-                          ),
-                        ),
+                        child: Text(l10n.registerLink, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[700])),
                       ),
                       const SizedBox(height: 32),
                     ],
@@ -260,7 +172,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
 
-              // Elementos que rellenan la parte inferior de la pantalla
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: Padding(
@@ -275,10 +186,7 @@ class _LoginPageState extends State<LoginPage> {
                             Expanded(child: Divider(color: Colors.grey.shade400)),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                'O CONNECTA AMB',
-                                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                              ),
+                              child: Text(l10n.connectWith, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                             ),
                             Expanded(child: Divider(color: Colors.grey.shade400)),
                           ],
@@ -293,24 +201,14 @@ class _LoginPageState extends State<LoginPage> {
                               onTap: () async {
                                 final success = await context.read<AuthProvider>().enterWithGoogle();
                                 if (!context.mounted) return;
-                                if (success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Inici de sessió amb Google correcte!'),
-                                      backgroundColor: Colors.green,
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
-                                  Navigator.pushReplacementNamed(context, '/home');
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Error en iniciar sessió amb Google. Torna-ho a provar.'),
-                                      backgroundColor: Colors.redAccent,
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
-                                }
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(success ? l10n.googleLoginSuccess : l10n.googleLoginError),
+                                    backgroundColor: success ? Colors.green : Colors.redAccent,
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                                if (success) Navigator.pushReplacementNamed(context, '/home');
                               },
                             ),
                             const SizedBox(width: 16),
@@ -328,7 +226,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Widget extraído para reutilizar el diseño y lógica del campo de texto
   Widget _buildTextField({
     required String label,
     required String hint,
@@ -351,37 +248,42 @@ class _LoginPageState extends State<LoginPage> {
             hintText: hint,
             errorText: errorText,
             prefixIcon: Icon(icon),
-            suffixIcon: isPassword
-                ? IconButton(
-              icon: Icon(obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-              onPressed: onToggleVisibility,
-            )
-                : null,
+            suffixIcon: isPassword ? IconButton(icon: Icon(obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined), onPressed: onToggleVisibility) : null,
             filled: true,
             fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.blue.shade400, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.redAccent, width: 2),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.blue.shade400, width: 2)),
+            errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.redAccent, width: 1.5)),
+            focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.redAccent, width: 2)),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLanguageButton(BuildContext context, String label, Locale locale) {
+    final current = context.watch<LanguageProvider>().locale;
+    final isSelected = current?.languageCode == locale.languageCode;
+
+    return GestureDetector(
+      onTap: () => context.read<LanguageProvider>().setLocale(locale),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue[700] : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.blue[700]!),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.blue[700],
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -399,17 +301,7 @@ class _SocialButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(50),
       child: Container(
         padding: const EdgeInsets.all(12),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 10,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
+        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))]),
         child: Icon(icon, color: Colors.black87),
       ),
     );

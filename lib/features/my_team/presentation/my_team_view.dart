@@ -99,12 +99,10 @@ class _MyTeamState extends State<MyTeam> {
                 _buildTeamCard(context, teamName, team, isLoading),
                 const SizedBox(height: 24),
 
-                // ── Progrés Setmanal ──
-                _buildWeeklyProgress(),
-                const SizedBox(height: 24),
+
 
                 // ── Membres ──
-                _buildMembersList(context),
+                _buildMembersList(context, teamName),
                 const SizedBox(height: 16),
               ],
             ),
@@ -121,10 +119,6 @@ class _MyTeamState extends State<MyTeam> {
     bool isLoading,
   ) {
     final zone = team?.zone ?? '—';
-    final modality = team?.modality ?? '—';
-    final modalityIcon = modality == 'cycling'
-        ? Icons.directions_bike
-        : Icons.directions_run;
 
     return Container(
       width: double.infinity,
@@ -170,26 +164,7 @@ class _MyTeamState extends State<MyTeam> {
                   size: 40,
                 ),
               ),
-              // Indicador de modalitat
-              Container(
-                padding: const EdgeInsets.all(5),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF34C759),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    modalityIcon,
-                    color: Colors.white,
-                    size: 10,
-                  ),
-                ),
-              ),
+
             ],
           ),
           const SizedBox(height: 14),
@@ -333,139 +308,76 @@ class _MyTeamState extends State<MyTeam> {
     );
   }
 
-  Widget _buildWeeklyProgress() {
-    // ⚠️ Tot hardcoded — no hi ha endpoint de progrés setmanal
-    const double progressValue = 0.0;
-    const String progressLabel = '0%';
-    const String goalLabel = 'Objectiu: 15k';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+  Widget _buildMembersList(BuildContext context, String teamName) {
+    final currentUser = context.read<AuthProvider>().currentUser!;
+
+    return FutureBuilder<List<String>>(
+      future: TeamService().getTeamMembers(teamName),
+      builder: (context, snapshot) {
+        final members = snapshot.data ?? [];
+        // Filtrem l'usuari actual per no mostrar-lo a la llista (com demana l'usuari)
+        final otherMembers = members.where((m) => m != currentUser.username).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Progrés Setmanal',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1D26),
-              ),
-            ),
-            Text(
-              goalLabel,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: _primaryBlue,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Aconseguit',
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Membres',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A1D26),
                   ),
-                  Text(
-                    progressLabel,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1D26),
-                    ),
+                ),
+                Text(
+                  '${members.length} membres',
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
                   ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: LinearProgressIndicator(
-                  value: progressValue,
-                  minHeight: 10,
-                  backgroundColor: const Color(0xFFE8EEF7),
-                  valueColor: const AlwaysStoppedAnimation<Color>(_primaryBlue),
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Les dades de progrés s\'actualitzaran aviat',
-                style: TextStyle(fontSize: 11, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMembersList(BuildContext context) {
-    final user = context.read<AuthProvider>().currentUser!;
-
-    // ⚠️ Hardcoded: només es mostra l'usuari actual, no hi ha endpoint per llistar membres
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Membres',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1D26),
-              ),
+              ],
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: _primaryBlue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Text(
-                'Afegir',
-                style: TextStyle(
-                  color: _primaryBlue,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+            const SizedBox(height: 12),
+
+            // Membre: l'usuari actual (Tu) sempre primer o destacat si es vol, 
+            // però aquí el filtrem de la llista "otherMembers" i el posem fix.
+            _buildMemberCard(
+              name: '${currentUser.nom} (Tu)',
+              status: 'Membre actiu',
+              isOnline: true,
+              points: '— pts',
+              avatarColor: _primaryBlue,
             ),
+
+            if (snapshot.connectionState == ConnectionState.waiting)
+              const Center(child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(),
+              ))
+            else if (otherMembers.isEmpty && snapshot.connectionState == ConnectionState.done)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                child: Text('No hi ha altres membres a l\'equip.', 
+                    style: TextStyle(color: Colors.grey, fontSize: 13)),
+              )
+            else
+              ...otherMembers.map((memberName) => _buildMemberCard(
+                name: memberName,
+                status: 'Membre',
+                isOnline: false, // No tenim estat online real a l'API
+                points: '— pts',
+                avatarColor: Colors.grey,
+              )),
           ],
-        ),
-        const SizedBox(height: 12),
-
-        // Membre: l'usuari actual
-        _buildMemberCard(
-          name: '${user.nom} (Tu)',
-          status: 'Membre actiu',
-          isOnline: true,
-          // ⚠️ Hardcoded: punts pendents d'endpoint
-          points: '0 pts',
-          avatarColor: _primaryBlue,
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -683,8 +595,9 @@ class _MyTeamState extends State<MyTeam> {
                   ElevatedButton(
                     onPressed: () async {
                       final teamName = _searchController.text.trim();
+                      final username = context.read<AuthProvider>().currentUser?.username ?? '';
                       if (teamName.isNotEmpty) {
-                        final success = await TeamService().requestJoinPrivateTeam(teamName);
+                        final success = await TeamService().requestJoinPrivateTeam(teamName, username);
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -759,11 +672,7 @@ class _MyTeamState extends State<MyTeam> {
   }
 
   Widget _buildTeamListCard(BuildContext context, TeamModel team) {
-    final modality = team.modality;
-    final modalityIcon =
-    modality == 'cycling' ? Icons.directions_bike : Icons.directions_run;
-    final modalityColor =
-    modality == 'cycling' ? const Color(0xFFFF9500) : const Color(0xFF34C759);
+
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -807,7 +716,8 @@ class _MyTeamState extends State<MyTeam> {
             );
 
             if (shouldJoin == true && context.mounted) {
-              final success = await TeamService().joinTeam(team.name);
+              final username = context.read<AuthProvider>().currentUser?.username ?? '';
+              final success = await TeamService().joinTeam(team.name, username);
               if (context.mounted) {
                 if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -892,34 +802,26 @@ class _MyTeamState extends State<MyTeam> {
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          // Modalitat
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: modalityColor.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(modalityIcon,
-                                    size: 11, color: modalityColor),
-                                const SizedBox(width: 3),
-                                Text(
-                                  modality,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: modalityColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
+                      // Obert/Tancat
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: team.open
+                              ? Colors.green.withValues(alpha: 0.1)
+                              : Colors.grey.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          team.open ? 'Obert' : 'Tancat',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: team.open
+                                ? Colors.green[700]
+                                : Colors.grey,
+                            fontWeight: FontWeight.w600,
                           ),
-                        ],
+                        ),
                       ),
                     ],
                   ),

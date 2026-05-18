@@ -24,8 +24,8 @@ void main() {
           'created_by': 1,
           'created_at': '2024-04-30T10:00:00.000Z',
           'location': 'Barcelona',
-          'altitude': '10',
-          'elevationGain': '20',
+          'altitude': 10.5,
+          'elevation_gain': 20.2,
           'modality': 'Cycling'
         }
       };
@@ -69,7 +69,7 @@ void main() {
               id: '1', name: 'Test', distance: 0, isPrivate: false,
               createdBy: 1, createdAt: DateTime.now(), trajectory: [],
               startPoint: const LatLng(0,0), endPoint: const LatLng(0,0),
-              location: '', altitude: '0', elevationGain: '0'
+              location: '', altitude: 0, elevationGain: 0
           )
       );
 

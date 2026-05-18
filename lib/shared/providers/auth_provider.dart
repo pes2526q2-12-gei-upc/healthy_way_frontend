@@ -5,9 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../../core/services/token_service.dart';
 import '../../core/services/user_service.dart';
+import '../../core/services/socket_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _currentUser;
+  final SocketService _socketService;
+
+  AuthProvider({SocketService? socketService}) : _socketService = socketService ?? SocketService();
 
   // Para leer el usuario desde cualquier pantalla
   User? get currentUser => _currentUser;
@@ -16,7 +20,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _currentUser != null;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    serverClientId: '845230063372-i1g1bf9o8jr62idmnekgtsa1n34d0o4d.apps.googleusercontent.com',
+    clientId: '845230063372-i1g1bf9o8jr62idmnekgtsa1n34d0o4d.apps.googleusercontent.com',
   );
 
   // Se llama cuando el login es correcto
@@ -26,55 +30,82 @@ class AuthProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final userJsonString = jsonEncode(user.toJson());
     await prefs.setString('saved_user', userJsonString);
+    await prefs.setString('login_timestamp', DateTime.now().toIso8601String());
+    
+    // Connectar socket al fer login
+    final token = await SecureStorageService().getToken();
+    if (token != null) {
+      _socketService.connect(token);
+    }
   }
 
   Future<bool> enterWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return false;
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final String? token = googleAuth.idToken;
-
-      if (token == null) {
+      if (googleUser == null) {
         return false;
       }
-
-      final User? user = await UserService().enterWithGoogle(token);
-
-      if (user != null) {
-        _currentUser = user;
-        notifyListeners();
-        return true;
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? tokenParaElBackend = googleAuth.idToken;
+      if (tokenParaElBackend != null) {
+        debugPrint("¡Token obtenido con éxito! Enviando al backend...");
+        final User? user = await UserService().enterWithGoogle(tokenParaElBackend);
+        if (user != null) {
+          await login(user);
+          return true;
+        }
+        else {
+          debugPrint("Error: El backend no devolvió un usuario válido.");
+        }
       }
-      return false;
-
-    } catch (error) {
-      return false;
+      else {
+        debugPrint("Error: No se pudo obtener el idToken de Google.");
+      }
     }
+    catch (error) {
+      debugPrint("Error durante el Google Sign-In: $error");
+    }
+    return false;
   }
 
-  // Se llama al cerrar sesión
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('saved_user');
+    await prefs.remove('login_timestamp');
     _currentUser = null;
     SecureStorageService().deleteToken();
+    _socketService.disconnect();
     notifyListeners();
   }
 
   Future<void> loadSavedUser() async {
     final prefs = await SharedPreferences.getInstance();
-    final userJsonString = prefs.getString('saved_user');
+    final loginTimestamp = prefs.getString('login_timestamp');
+    if (loginTimestamp != null) {
+      final loginDate = DateTime.parse(loginTimestamp);
+      final daysSinceLogin = DateTime.now().difference(loginDate).inDays;
 
+      if (daysSinceLogin >= 30) {
+        await logout();
+        return;
+      }
+    }
+
+    final userJsonString = prefs.getString('saved_user');
     if (userJsonString != null) {
       final Map<String, dynamic> userMap = jsonDecode(userJsonString);
       _currentUser = User.fromJson(userMap);
+      
+      // Connectar socket si ja tenim usuari guardat
+      final token = await SecureStorageService().getToken();
+      if (token != null) {
+        _socketService.connect(token);
+      }
+      
       notifyListeners();
     }
   }
 
-  // Actualitza l'equip de l'usuari actual
   Future<void> updateTeam(String? teamName) async {
     if (_currentUser != null) {
       _currentUser = _currentUser!.copyWith(team: teamName);
