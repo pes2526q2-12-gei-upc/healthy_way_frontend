@@ -25,7 +25,8 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
   late RouteModel rutaSeleccionada;
 
   bool _isLoadingRoute = true;
-  double? _securityScore;
+  double? _securityIndex;
+  String? _securityLevelText;
   bool _isLoadingSecurity = true;
 
   @override
@@ -48,10 +49,11 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
 
   Future<void> _fetchSecurityScore() async {
     try {
-      final score = await SecurityService().evaluateRouteSecurity(rutaSeleccionada.trajectory);
+      final result = await SecurityService().evaluateRouteSecurity(rutaSeleccionada.trajectory);
       if (mounted) {
         setState(() {
-          _securityScore = score;
+          _securityIndex = result.safetyIndex;
+          _securityLevelText = result.safetyLevel;
           _isLoadingSecurity = false;
         });
       }
@@ -286,9 +288,15 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                             _buildMetricCard('ALTITUD', rutaSeleccionada.elevationGain, 'm'),
                             const SizedBox(width: 12),
                             _buildMetricCard(
-                              'SEGURETAT', 
-                              _isLoadingSecurity ? '...' : (_securityScore?.toStringAsFixed(1) ?? 'N/A'), 
-                              ''
+                              'SEGURETAT',
+                              _isLoadingSecurity
+                                  ? '...'
+                                  : (_securityLevelText != null
+                                      ? _securityLevelText!
+                                      : (_securityIndex != null
+                                          ? _securityIndex!.toStringAsFixed(1)
+                                          : 'N/A')),
+                              '',
                             ),
                           ],
                         ),
