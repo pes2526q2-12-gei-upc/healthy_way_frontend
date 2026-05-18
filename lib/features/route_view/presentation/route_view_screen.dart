@@ -9,6 +9,7 @@ import '../../../shared/models/user_model.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
 import '../../../shared/providers/tracking_provider.dart';
 import '../../../core/services/user_service.dart';
+import '../../../core/services/security_service.dart';
 
 class RouteViewScreen extends StatefulWidget {
   const RouteViewScreen({super.key});
@@ -22,6 +23,9 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
   final MapController _mapController = MapController();
   late RouteModel rutaSeleccionada;
   bool _isLoadingRoute = true;
+  double? _securityIndex;
+  String? _securityLevelText;
+  bool _isLoadingSecurity = true;
 
   @override
   void initState() {
@@ -31,7 +35,32 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
 
   Future<void> getRutaSeleccionada() async {
     final trackingProvider = context.read<TrackingProvider>();
-    setState(() { rutaSeleccionada = trackingProvider.rutaSeleccionada; _isLoadingRoute = false; });
+    setState(() {
+      rutaSeleccionada = trackingProvider.rutaSeleccionada;
+      _isLoadingRoute = false;
+    });
+
+    // Fetch security score
+    _fetchSecurityScore();
+  }
+
+  Future<void> _fetchSecurityScore() async {
+    try {
+      final result = await SecurityService().evaluateRouteSecurity(rutaSeleccionada.trajectory);
+      if (mounted) {
+        setState(() {
+          _securityIndex = result.safetyIndex;
+          _securityLevelText = result.safetyLevel;
+          _isLoadingSecurity = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingSecurity = false;
+        });
+      }
+    }
   }
 
   @override
@@ -134,6 +163,25 @@ class _RouteViewScreenState extends State<RouteViewScreen> {
                             const SizedBox(width: 12),
                             _buildMetricCard(l10n.altitude, rutaSeleccionada.elevationGain.toStringAsFixed(2), 'm'),
                             const SizedBox(width: 12),
+                            _buildMetricCard(
+                              'SEGURETAT',
+                              _isLoadingSecurity
+                                  ? '...'
+                                  : (_securityLevelText != null
+                                      ? _securityLevelText!
+                                      : (_securityIndex != null
+                                          ? _securityIndex!.toStringAsFixed(1)
+                                          : 'N/A')),
+                              '',
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Row(
+                          children: [
                             FutureBuilder<User?>(
                               future: UserService().getUserProfile(rutaSeleccionada.createdBy),
                               builder: (context, snapshot) {
