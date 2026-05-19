@@ -34,18 +34,11 @@ class _RankingState extends State<Ranking> {
   Future<void> _fetchRanking() async {
     setState(() => _isLoading = true);
 
-    if (_orderBy == 'distance') {
-      setState(() {
-        _podiumTeams = [];
-        _top10Teams = [];
-        _isLoading = false;
-      });
-      return;
-    }
+
 
     try {
       final String zoneParam = _selectedZone == 'Totes' ? 'All' : _selectedZone;
-      final data = await RankingService().getTeamRanking(_selectedModality, zoneParam);
+      final data = await RankingService().getTeamRanking(_selectedModality, zoneParam, _orderBy);
 
       setState(() {
         // Separamos los 3 primeros para el podio

@@ -32,18 +32,9 @@ class _TotalRankingState extends State<TotalRanking> {
   Future<void> _fetchRanking() async {
     setState(() => _isLoading = true);
 
-    // Si la ordenación es por distancia, devolvemos lista vacía por ahora
-    if (_orderBy == 'distance') {
-      setState(() {
-        _rankingData = [];
-        _isLoading = false;
-      });
-      return;
-    }
-
     try {
       final String zoneParam = _selectedZone == 'Totes' ? 'All' : _selectedZone;
-      final data = await RankingService().getTeamRanking(_selectedModality, zoneParam);
+      final data = await RankingService().getTeamRanking(_selectedModality, zoneParam, _orderBy);
 
       setState(() {
         _rankingData = data; // Aquí cogemos todos los equipos sin límite
