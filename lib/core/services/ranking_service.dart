@@ -50,13 +50,13 @@ class RankingService {
     }
   }
 
-  Future<List<TeamRanking>> getTeamRanking(String modality, String zona) async {
+  Future<List<TeamRanking>> getTeamRanking(String modality, String zona, String orderBy) async {
 
     var uri = Uri.parse('$baseUrl/teams/ranking/$modality');
 
     if (zona != 'All') {
       uri = uri.replace(queryParameters: {
-        'zone': zona,
+        'zone': zona, 'rankingBy': orderBy,
       });
     }
 
