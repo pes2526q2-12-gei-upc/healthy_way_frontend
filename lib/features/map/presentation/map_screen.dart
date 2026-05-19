@@ -1,14 +1,17 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
+import '../../../core/services/location_service.dart';
 import '../../../l10n/app_localizations.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/services/zone_service.dart';
+import '../../../shared/providers/location_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../shared/widgets/custom_filter_chip.dart';
 import '../../../core/router/app_router.dart';
 import '../../../shared/widgets/custom_map_widget.dart';
-import '../../../core/services/location_service.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -34,6 +37,7 @@ class _MapScreenState extends State<MapScreen> {
 
   Timer? _debounce;
   LatLng? _userLocation;
+  StreamSubscription<Position>? _positionSubscription;
 
   @override
   void initState() {
@@ -45,14 +49,38 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _initializeLocation() async {
-    _userLocation = await LocationService.getCurrentLocation();
+    _userLocation = context.read<LocationProvider>().currentLocation;
+
     if (!mounted) return;
     setState(() {});
-    _mapController.move(_userLocation!, 15.0);
-    await LocationService().startTracking();
-    LocationService().locationStream.listen((position) {
+
+    if (_userLocation != null && _userLocation!.latitude != 0) {
+      _mapController.move(_userLocation!, 15.0);
+    }
+
+    final error = await LocationService.checkAndRequestPermission();
+
+    if (!mounted) return;
+
+    if (error != null) {
+      if (error != 'background_needed') {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error), backgroundColor: Colors.redAccent)
+        );
+        return;
+      }
+    }
+
+    _positionSubscription = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 2,
+        )
+    ).listen((Position position) {
       if (!mounted) return;
-      setState(() { _userLocation = position.latLng; });
+      setState(() {
+        _userLocation = LatLng(position.latitude, position.longitude);
+      });
     });
   }
 
@@ -91,8 +119,9 @@ class _MapScreenState extends State<MapScreen> {
   void dispose() {
     _teamSearchController.dispose();
     _teamSearchFocusNode.dispose();
-    LocationService().stopTracking();
+    _positionSubscription?.cancel();
     _mapEventSubscription?.cancel();
+
     super.dispose();
   }
 

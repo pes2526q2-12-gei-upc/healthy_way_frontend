@@ -129,7 +129,7 @@ class _ExploreRoutesScreenState extends State<ExploreRoutesScreen> {
       scrolledUnderElevation: 0,
       elevation: 0,
       titleSpacing: 0,
-      leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black), onPressed: () => Navigator.pushNamed(context, AppRouter.mapRoute)),
+      leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black), onPressed: () => Navigator.pop(context)),
       title: Text(l10n.exploreRoutes, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
       actions: [
         IconButton(

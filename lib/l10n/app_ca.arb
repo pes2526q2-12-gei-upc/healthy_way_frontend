@@ -147,5 +147,9 @@
   "good": "Bona",
   "moderate_air": "Moderada",
   "bad": "Dolenta",
-  "noData": "Sense dades"
+  "noData": "Sense dades",
+  "improveExperience": "Millora la teva experiència",
+  "backgroundLocationMessage": "Per gravar rutes sense talls amb la pantalla apagada, ves a Configuració i selecciona \"Permetre tot el temps\".",
+  "later": "Més tard",
+  "goToSettings": "Anar a Configuració"
 }

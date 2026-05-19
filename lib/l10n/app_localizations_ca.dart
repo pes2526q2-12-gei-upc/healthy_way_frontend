@@ -439,4 +439,17 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get noData => 'Sense dades';
+
+  @override
+  String get improveExperience => 'Millora la teva experiència';
+
+  @override
+  String get backgroundLocationMessage =>
+      'Per gravar rutes sense talls amb la pantalla apagada, ves a Configuració i selecciona \"Permetre tot el temps\".';
+
+  @override
+  String get later => 'Més tard';
+
+  @override
+  String get goToSettings => 'Anar a Configuració';
 }
