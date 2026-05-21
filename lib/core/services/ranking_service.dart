@@ -15,7 +15,7 @@ class RankingService {
   }
   RankingService._internal({http.Client? client}) : client = client ?? http.Client();
 
-  final String baseUrl = 'http://localhost:8080/api/v1';
+  final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
   Future<List<dynamic>> getIndividualRanking(String orderedBy, String modality, String scope) async {
     String URI = orderedBy == 'points' ? '$baseUrl/users/ranked/points' : '$baseUrl/users/ranked/distance';

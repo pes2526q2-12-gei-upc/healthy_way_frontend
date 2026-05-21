@@ -2,8 +2,8 @@ class IndividualRanking {
   final int rank;
   final int user_id;
   final String name;
-  final int distance;
-  final double points;
+  final double distance;
+  final int points;
   final String modality;
   final String scope;
   final String teamName;
@@ -25,10 +25,11 @@ class IndividualRanking {
       rank: json['rank'] ?? 0,
       user_id: json['user_id'] ?? 0,
       name: json['nom'] ?? '',
-      distance: json['distance'] ?? 0,
-      points: (json['points'] as num?)?.toDouble() ?? 0.0,
+      distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
+      points: json['points'] ?? 0,
       modality: json['modality'] ?? '',
       scope: json['scope'] ?? '',
+      teamName: json['teamName'] ?? '',
     );
   }
 }
