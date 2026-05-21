@@ -11,6 +11,7 @@
   "passwordHint": "Tu contraseña",
   "forgotPassword": "¿Has olvidado la contraseña?",
   "loginButton": "Entrar",
+  "invalidCredentials": "El correo/usuario o la contraseña son incorrectos",
   "noAccount": "¿No tienes cuenta\ntodavía?",
   "registerLink": "Regístrate",
   "connectWith": "O CONECTA CON",
@@ -19,6 +20,7 @@
   "googleLoginSuccess": "¡Inicio de sesión con Google correcto!",
   "googleLoginError": "Error al iniciar sesión con Google. Inténtalo de nuevo.",
   "requiredField": "Este campo es obligatorio",
+  "userAlreadyExists": "Este correo o nombre de usuario ya está registrado",
   "createAccount": "Crea una cuenta",
   "joinToday": "¡Únete a Healthy Way hoy mismo!",
   "name": "Nombre",
@@ -145,5 +147,9 @@
   "good": "Buena",
   "moderate_air": "Moderada",
   "bad": "Mala",
-  "noData": "Sin datos"
+  "noData": "Sin datos",
+  "improveExperience": "Mejora tu experiencia",
+  "backgroundLocationMessage": "Para grabar rutas sin cortes con la pantalla apagada, ve a Ajustes y selecciona 'Permitir todo el tiempo'.",
+  "later": "Más tarde",
+  "goToSettings": "Ir a Ajustes"
 }

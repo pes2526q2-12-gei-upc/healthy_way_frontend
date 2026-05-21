@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:healthy_way_frontend/core/router/app_router.dart';
@@ -235,18 +236,65 @@ class _RunningRouteScreenState extends State<RunningRouteScreen> {
                                   Transform.translate(
                                     offset: const Offset(0, -10),
                                     child: GestureDetector(
-                                      onTap: () {
+                                      onTap: () async {
                                         if (trackingProvider.isRunning) {
                                           context.read<TrackingProvider>().toggleRun();
                                         } else {
-                                          context.read<TrackingProvider>().running = true;
-                                          context.read<TrackingProvider>().startRun();
+                                          final error = await context.read<TrackingProvider>().startRun();
+                                          if (!context.mounted) return;
+                                          if (error == 'background_needed') {
+                                            showDialog(
+                                              context: context,
+                                              builder: (ctx) => AlertDialog(
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                                title: Text(l10n.improveExperience),
+                                                content: Text(l10n.backgroundLocationMessage),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.pop(ctx),
+                                                    child: Text(l10n.later, style: TextStyle(color: Colors.grey[600])),
+                                                  ),
+                                                  ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: Colors.blue[700],
+                                                      foregroundColor: Colors.white,
+                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                                    ),
+                                                    onPressed: () async {
+                                                      Navigator.pop(ctx);
+                                                      await Geolocator.openAppSettings();
+                                                    },
+                                                    child: Text(l10n.goToSettings),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }
+                                          else if (error != null) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(error),
+                                                backgroundColor: Colors.redAccent,
+                                                behavior: SnackBarBehavior.floating,
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                              ),
+                                            );
+                                          }
                                         }
                                       },
                                       child: Container(
                                         width: 82, height: 82,
-                                        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 6), boxShadow: [BoxShadow(color: Colors.blue.withAlpha((0.3 * 255).round()), blurRadius: 14, spreadRadius: 2)]),
-                                        child: Container(decoration: BoxDecoration(color: Colors.blue[700], shape: BoxShape.circle), child: Icon(trackingProvider.isRunning ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 36)),
+                                        decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: Colors.white, width: 6),
+                                            boxShadow: [
+                                              BoxShadow(color: Colors.blue.withAlpha((0.3 * 255).round()), blurRadius: 14, spreadRadius: 2)
+                                            ]
+                                        ),
+                                        child: Container(
+                                            decoration: BoxDecoration(color: Colors.blue[700], shape: BoxShape.circle),
+                                            child: Icon(trackingProvider.isRunning ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 36)
+                                        ),
                                       ),
                                     ),
                                   ),

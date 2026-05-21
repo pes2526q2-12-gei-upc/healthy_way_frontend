@@ -40,6 +40,10 @@ class AppLocalizationsCa extends AppLocalizations {
   String get loginButton => 'Entrar';
 
   @override
+  String get invalidCredentials =>
+      'El correu/usuari o la contrasenya són incorrectes';
+
+  @override
   String get noAccount => 'No tens compte\nencara?';
 
   @override
@@ -64,6 +68,10 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get requiredField => 'Aquest camp és obligatori';
+
+  @override
+  String get userAlreadyExists =>
+      'Aquest correu o nom d\'usuari ja està registrat';
 
   @override
   String get createAccount => 'Crea un compte';
@@ -431,4 +439,17 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get noData => 'Sense dades';
+
+  @override
+  String get improveExperience => 'Millora la teva experiència';
+
+  @override
+  String get backgroundLocationMessage =>
+      'Per gravar rutes sense talls amb la pantalla apagada, ves a Configuració i selecciona \"Permetre tot el temps\".';
+
+  @override
+  String get later => 'Més tard';
+
+  @override
+  String get goToSettings => 'Anar a Configuració';
 }

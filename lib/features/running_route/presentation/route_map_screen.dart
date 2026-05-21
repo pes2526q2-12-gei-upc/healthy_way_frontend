@@ -105,7 +105,8 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
           ),
 
           Positioned(
-            right: 16, bottom: 32,
+            right: 16,
+            bottom: 32 + MediaQuery.paddingOf(context).bottom,
             child: _buildMapOverlayButton(
               icon: Icons.my_location,
               iconColor: Colors.blueAccent,

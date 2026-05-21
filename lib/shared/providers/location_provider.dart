@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:healthy_way_frontend/core/services/location_service.dart';
 import 'package:latlong2/latlong.dart';
-
 import '../../core/services/user_service.dart';
 
 class LocationProvider extends ChangeNotifier {
@@ -16,18 +16,28 @@ class LocationProvider extends ChangeNotifier {
   LatLng get currentLocation => _currentLocation;
   bool get isLoading => _isLoading;
 
-  Future<void> fetchLocationName(int userId) async {
+  Future<String?> fetchLocationName(int userId) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final pos = await LocationService.getCurrentLocation();
+      final permissionError = await LocationService.checkAndRequestPermission();
+      if (permissionError != null && permissionError != 'background_needed') {
+        _placeName = 'Sense ubicació';
+        return permissionError;
+      }
 
-      _currentLocation = LatLng(pos.latitude, pos.longitude);
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+
+      _currentLocation = LatLng(position.latitude, position.longitude);
 
       List<Placemark> placemarks = await placemarkFromCoordinates(
-          pos.latitude,
-          pos.longitude
+          position.latitude,
+          position.longitude
       );
 
       if (placemarks.isNotEmpty) {
@@ -36,12 +46,18 @@ class LocationProvider extends ChangeNotifier {
       } else {
         _placeName = 'Ubicació desconeguda';
       }
-      final latLng = LatLng(pos.latitude, pos.longitude);
-      _weatherScore = await UserService().rankWeatherLocation(userId, latLng);
+
+      _weatherScore = await UserService().rankWeatherLocation(userId, _currentLocation);
+
+      return permissionError;
 
     } catch (e) {
-      debugPrint('Error obteniendo la ubicación: $e');
       _placeName = 'Sense ubicació';
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.replaceFirst('Exception: ', '');
+      }
+      return errorMessage;
     } finally {
       _isLoading = false;
       notifyListeners();

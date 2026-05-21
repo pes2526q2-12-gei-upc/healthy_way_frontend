@@ -39,6 +39,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get loginButton => 'Entrar';
 
   @override
+  String get invalidCredentials =>
+      'El correo/usuario o la contraseña son incorrectos';
+
+  @override
   String get noAccount => '¿No tienes cuenta\ntodavía?';
 
   @override
@@ -63,6 +67,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get requiredField => 'Este campo es obligatorio';
+
+  @override
+  String get userAlreadyExists =>
+      'Este correo o nombre de usuario ya está registrado';
 
   @override
   String get createAccount => 'Crea una cuenta';
@@ -431,4 +439,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noData => 'Sin datos';
+
+  @override
+  String get improveExperience => 'Mejora tu experiencia';
+
+  @override
+  String get backgroundLocationMessage =>
+      'Para grabar rutas sin cortes con la pantalla apagada, ve a Ajustes y selecciona \'Permitir todo el tiempo\'.';
+
+  @override
+  String get later => 'Más tarde';
+
+  @override
+  String get goToSettings => 'Ir a Ajustes';
 }

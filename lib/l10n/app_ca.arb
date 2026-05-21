@@ -11,6 +11,7 @@
   "passwordHint": "La teva contrasenya",
   "forgotPassword": "Has oblidat la contrasenya?",
   "loginButton": "Entrar",
+  "invalidCredentials": "El correu/usuari o la contrasenya són incorrectes",
   "noAccount": "No tens compte\nencara?",
   "registerLink": "Registra't",
   "connectWith": "O CONNECTA AMB",
@@ -19,6 +20,7 @@
   "googleLoginSuccess": "Inici de sessió amb Google correcte!",
   "googleLoginError": "Error en iniciar sessió amb Google. Torna-ho a provar.",
   "requiredField": "Aquest camp és obligatori",
+  "userAlreadyExists": "Aquest correu o nom d'usuari ja està registrat",
   "createAccount": "Crea un compte",
   "joinToday": "Uneix-te a Healthy Way avui mateix!",
   "name": "Nom",
@@ -145,5 +147,9 @@
   "good": "Bona",
   "moderate_air": "Moderada",
   "bad": "Dolenta",
-  "noData": "Sense dades"
+  "noData": "Sense dades",
+  "improveExperience": "Millora la teva experiència",
+  "backgroundLocationMessage": "Per gravar rutes sense talls amb la pantalla apagada, ves a Configuració i selecciona \"Permetre tot el temps\".",
+  "later": "Més tard",
+  "goToSettings": "Anar a Configuració"
 }

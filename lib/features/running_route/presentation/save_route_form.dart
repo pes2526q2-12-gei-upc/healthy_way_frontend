@@ -112,7 +112,7 @@ class _SaveRouteFormScreenState extends State<SaveRouteFormScreen> {
                               distance: double.parse((distance / 1000).toStringAsFixed(2)),
                               createdBy: context.read<AuthProvider>().currentUser!.userId,
                               isPrivate: !_isPublic, location: location, createdAt: DateTime.now(),
-                              elevationGain: elevation, altitude: altitude,
+                              elevationGain: double.parse(elevation.toStringAsFixed(2)), altitude: altitude,
                             );
                             final newActivity = Activity(
                               distance: double.parse((distance / 1000).toStringAsFixed(2)),

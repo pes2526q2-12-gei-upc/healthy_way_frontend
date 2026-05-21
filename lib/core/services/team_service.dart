@@ -168,14 +168,39 @@ class TeamService {
     return response.statusCode == 200 || response.statusCode == 201;
   }
 
-  /// Denegar una sol·licitud d'unió (de moment s'elimina de forma temporal, no fa trucada a l'API)
-  Future<bool> denyJoinRequest(String teamName, String username) async {
-    // ⚠️ Endpoint no implementat realment al backend encara
-    await Future.delayed(const Duration(milliseconds: 200));
-    return true; // Retorna true per eliminar de la llista localment
-  }
+   /// Denegar una sol·licitud d'unió (de moment s'elimina de forma temporal, no fa trucada a l'API)
+   Future<bool> denyJoinRequest(String teamName, String username) async {
+     // ⚠️ Endpoint no implementat realment al backend encara
+     await Future.delayed(const Duration(milliseconds: 200));
+     return true; // Retorna true per eliminar de la llista localment
+   }
 
-  /// Obtenir tots els equips públics
+   /// Eliminar un membre d'un equip
+   /// DELETE /api/v1/teams/members/{username}
+   Future<bool> removeMember(String teamName, String username) async {
+     final response = await client.delete(
+       Uri.parse('$baseUrl/teams/members/${Uri.encodeComponent(username)}'),
+       headers: {
+         'Authorization': 'Bearer ${await SecureStorageService().getToken()}'
+       },
+     );
+
+     if (response.statusCode == 200 || response.statusCode == 204) {
+       return true;
+     } else {
+       debugPrint('Error al eliminar membre: ${response.statusCode}');
+       debugPrint('Missatge: ${response.body}');
+       return false;
+     }
+   }
+
+   /// Abandonar un equip (el membre actual es treÍ a si mateix)
+   /// DELETE /api/v1/teams/{teamName}/members/{currentUsername}
+   Future<bool> leaveTeam(String teamName, String currentUsername) async {
+     return removeMember(teamName, currentUsername);
+   }
+
+   /// Obtenir tots els equips públics
   /// GET /api/v1/teams
   Future<List<TeamModel>> getAllTeams() async {
     final response = await client.get(

@@ -8,7 +8,7 @@ import '../../../shared/providers/location_provider.dart';
 import '../../../shared/providers/tracking_provider.dart';
 import '../../../shared/widgets/custom_bottom_nav_bar.dart';
 import '../../../core/services/route_service.dart';
-import '../../../core/services/location_service.dart';
+import 'package:geolocator/geolocator.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,10 +26,52 @@ class _HomePage extends State<HomePage> {
   }
 
   Future<void> iniciaGPS() async {
-    LocationService().startTracking();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<LocationProvider>().fetchLocationName(context.read<AuthProvider>().currentUser?.userId ?? 0);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      final userId = context.read<AuthProvider>().currentUser?.userId ?? 0;
+
+      final error = await context.read<LocationProvider>().fetchLocationName(userId);
+
+      if (!mounted) return;
+
+      if (error == 'background_needed') {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Text(l10n.improveExperience),
+            content: Text(l10n.backgroundLocationMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l10n.later, style: TextStyle(color: Colors.grey[600])),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue[700],
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  await Geolocator.openAppSettings();
+                },
+                child: Text(l10n.goToSettings),
+              ),
+            ],
+          ),
+        );
+      } else if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
       }
     });
   }
@@ -246,7 +288,7 @@ class _RouteCard extends StatelessWidget {
       badgeColor = Colors.red;
     }
 
-    final _primaryBlue = Colors.blue[700]!;
+    final primaryBlue = Colors.blue[700]!;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -270,7 +312,7 @@ class _RouteCard extends StatelessWidget {
                   width: 80,
                   height: 80,
                   color: Colors.blue.withValues(alpha: 0.1),
-                  child: Icon(Icons.map_outlined, color: _primaryBlue, size: 32)
+                  child: Icon(Icons.map_outlined, color: primaryBlue, size: 32)
               )
           ),
           const SizedBox(width: 16),
@@ -321,7 +363,7 @@ class _RouteCard extends StatelessWidget {
 
                       const Icon(Icons.trending_up, size: 14, color: Colors.grey),
                       const SizedBox(width: 4),
-                      Text('${route.elevationGain} m', style: const TextStyle(fontSize: 12, color: Colors.grey))
+                      Text('${route.elevationGain.toStringAsFixed(2)} m', style: const TextStyle(fontSize: 12, color: Colors.grey))
                     ]
                 ),
                 const SizedBox(height: 8),
@@ -333,12 +375,12 @@ class _RouteCard extends StatelessWidget {
                     Expanded(
                       child: Row(
                         children: [
-                          Icon(Icons.location_on, size: 14, color: _primaryBlue),
+                          Icon(Icons.location_on, size: 14, color: primaryBlue),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               route.location,
-                              style: TextStyle(fontSize: 12, color: _primaryBlue, fontWeight: FontWeight.w500),
+                              style: TextStyle(fontSize: 12, color: primaryBlue, fontWeight: FontWeight.w500),
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
                             ),
@@ -355,7 +397,7 @@ class _RouteCard extends StatelessWidget {
                       },
                       child: Icon(
                           Icons.chevron_right_rounded,
-                          color: _primaryBlue,
+                          color: primaryBlue,
                           size: 20
                       ),
                     ),

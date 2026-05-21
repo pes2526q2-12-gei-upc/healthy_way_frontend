@@ -39,6 +39,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginButton => 'Sign In';
 
   @override
+  String get invalidCredentials =>
+      'The email/username or password is incorrect';
+
+  @override
   String get noAccount => 'Don\'t have an account\nyet?';
 
   @override
@@ -62,6 +66,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get requiredField => 'This field is required';
+
+  @override
+  String get userAlreadyExists =>
+      'This email or username is already registered';
 
   @override
   String get createAccount => 'Create an account';
@@ -428,4 +436,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noData => 'No data';
+
+  @override
+  String get improveExperience => 'Improve your experience';
+
+  @override
+  String get backgroundLocationMessage =>
+      'To record routes without interruptions with the screen off, go to Settings and select \"Allow all the time\".';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get goToSettings => 'Go to Settings';
 }

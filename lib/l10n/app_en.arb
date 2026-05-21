@@ -11,6 +11,7 @@
   "passwordHint": "Your password",
   "forgotPassword": "Forgot your password?",
   "loginButton": "Sign In",
+  "invalidCredentials": "The email/username or password is incorrect",
   "noAccount": "Don't have an account\nyet?",
   "registerLink": "Sign Up",
   "connectWith": "OR CONNECT WITH",
@@ -19,6 +20,7 @@
   "googleLoginSuccess": "Google sign-in successful!",
   "googleLoginError": "Error signing in with Google. Please try again.",
   "requiredField": "This field is required",
+  "userAlreadyExists": "This email or username is already registered",
   "createAccount": "Create an account",
   "joinToday": "Join Healthy Way today!",
   "name": "Name",
@@ -145,5 +147,9 @@
   "good": "Good",
   "moderate_air": "Moderate",
   "bad": "Poor",
-  "noData": "No data"
+  "noData": "No data",
+  "improveExperience": "Improve your experience",
+  "backgroundLocationMessage": "To record routes without interruptions with the screen off, go to Settings and select \"Allow all the time\".",
+  "later": "Later",
+  "goToSettings": "Go to Settings"
 }
