@@ -46,5 +46,3 @@ Este repositorio contiene el frontend de la aplicación Healthy Way (Flutter).
 - Si `flutter doctor` muestra advertencias o errores, sigue las indicaciones que muestra para instalar componentes faltantes.
 - En Windows asegúrate de que las rutas a Java/Android/Flutter estén correctamente configuradas en las variables de entorno.
 - Si tienes problemas al ejecutar en Android, comprueba que el emulador está creado y corriendo, o que el dispositivo físico está autorizado para depuración USB.
-
-Si quieres que añada instrucciones más detalladas (por ejemplo: configuración paso a paso de Android Studio, variables de entorno en Windows, o cómo ejecutar pruebas), dímelo y lo añado.
