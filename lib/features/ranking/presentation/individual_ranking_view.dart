@@ -224,7 +224,7 @@ class _IndividualRankingState extends State<IndividualRanking> {
   }
 
   Widget _buildPodiumPilar({required models.IndividualRanking? user, required int rank, required double height, required Color baseColor, required Color badgeColor, bool isFirst = false, dynamic currentUserId}) {
-    bool isUser = user != null && user.user_id == currentUserId;
+    bool isUser = user != null && user.userId == currentUserId;
     String displayValue = '';
     String unit = _orderBy == 'points' ? 'pts' : 'km';
 
@@ -314,7 +314,7 @@ class _IndividualRankingState extends State<IndividualRanking> {
             itemBuilder: (context, index) {
               final user = _top10Users[index];
               final value = _orderBy == 'points' ? user.points : user.distance;
-              bool isMe = user.user_id == currentUserId;
+              bool isMe = user.userId == currentUserId;
 
               return _buildUserCard(user, isMe, index, value);
             },

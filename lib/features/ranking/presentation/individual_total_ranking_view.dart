@@ -91,7 +91,7 @@ class _IndividualTotalRankingState extends State<IndividualTotalRanking> {
                   itemBuilder: (context, index) {
                     final user = _rankingData[index];
                     final value = _orderBy == 'points' ? user.points : user.distance;
-                    bool isMe = user.user_id == currentUserId;
+                    bool isMe = user.userId == currentUserId;
                     return _buildUserCard(user, isMe, index, value);
                   },
                 ),

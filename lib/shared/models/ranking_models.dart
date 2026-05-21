@@ -1,6 +1,6 @@
 class IndividualRanking {
   final int rank;
-  final int user_id;
+  final int userId;
   final String name;
   final double distance;
   final int points;
@@ -10,7 +10,7 @@ class IndividualRanking {
 
   IndividualRanking({
     required this.rank,
-    required this.user_id,
+    required this.userId,
     required this.name,
     required this.distance,
     required this.points,
@@ -23,7 +23,7 @@ class IndividualRanking {
   factory IndividualRanking.fromJson(Map<String, dynamic> json) {
     return IndividualRanking(
       rank: json['rank'] ?? 0,
-      user_id: json['user_id'] ?? 0,
+      userId: json['user_id'] ?? 0,
       name: json['nom'] ?? '',
       distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
       points: json['points'] ?? 0,

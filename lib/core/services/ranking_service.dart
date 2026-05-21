@@ -18,18 +18,18 @@ class RankingService {
   final String baseUrl = 'http://nattech.fib.upc.edu:40540/api/v1';
 
   Future<List<dynamic>> getIndividualRanking(String orderedBy, String modality, String scope) async {
-    String URI = orderedBy == 'points' ? '$baseUrl/users/ranked/points' : '$baseUrl/users/ranked/distance';
+    String uri = orderedBy == 'points' ? '$baseUrl/users/ranked/points' : '$baseUrl/users/ranked/distance';
 
     // modality = running o cycling
     // scope = current o total
-    var uri = Uri.parse(URI).replace(queryParameters: {
+    var uriFinal = Uri.parse(uri).replace(queryParameters: {
       'modality': modality,
       'scope': scope,
     });
 
     try {
       final response = await client.get(
-        uri,
+        uriFinal,
         headers: {
           'Authorization': 'Bearer ${await SecureStorageService().getToken()}'
         },
